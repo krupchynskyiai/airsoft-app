@@ -1,0 +1,12 @@
+# Environment variables
+.env
+
+# Node dependencies
+node_modules/
+webapp/node_modules/
+
+# Optional (часто теж додають)
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.DS_Store
