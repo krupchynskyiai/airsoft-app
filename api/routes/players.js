@@ -33,10 +33,13 @@ router.get("/profile", async (req, res) => {
     );
 
     const config = require("../../config");
+    const isAdmin = config.ADMINS.includes(tgId);
+
+    log.info("Profile API", { tgId, isAdmin, admins: config.ADMINS });
 
     res.json({
       registered: true,
-      is_admin: config.ADMINS.includes(tgId),
+      is_admin: isAdmin,
       player: {
         id: player.id,
         nickname: player.nickname,
