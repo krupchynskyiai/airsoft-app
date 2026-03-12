@@ -35,9 +35,10 @@ export default function App() {
     try {
       const data = await getProfile();
       setProfile(data);
-      setIsAdmin(data.player?.rating >= 0);
+      setIsAdmin(data.is_admin === true);
     } catch (e) {
       console.error("Profile load error:", e);
+      setIsAdmin(false);
     } finally {
       setLoading(false);
     }
