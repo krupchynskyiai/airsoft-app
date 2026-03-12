@@ -21,9 +21,20 @@ router.get("/profile", async (req, res) => {
     }
 
     const badges = await q(
-      "SELECT badge_name, badge_emoji FROM player_badges WHERE player_id = ?",
+      "SELECT badge_name FROM player_badges WHERE player_id = ?",
       [player.id]
     );
+
+    // Always use badge definitions from constants (not DB emoji)
+    const BADGES = require("../../constants/badges");
+    const badgesWithColor = badges.map(b => {
+      const def = BADGES.find(bd => bd.name === b.badge_name);
+      return {
+        badge_name: b.badge_name,
+        badge_icon: def?.icon || "Award",
+        badge_color: def?.color || "#64748b",
+      };
+    });
 
     const recentGames = await q(
       `SELECT g.id, g.date, g.time, g.game_mode, g.status, gp.result, gp.kills_total, gp.deaths_total
@@ -55,7 +66,7 @@ router.get("/profile", async (req, res) => {
           : player.total_kills,
         created_at: player.created_at,
       },
-      badges,
+      badges: badgesWithColor,
       recentGames,
     });
   } catch (e) {

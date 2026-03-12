@@ -1,6 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { registerPlayer, getTeamsList } from "../api";
 import { useTelegram } from "../hooks/useTelegram";
+import {
+  Crosshair, Medal, Trophy, Crown, Flame, Star, Gem, Shield, Skull, Award
+} from "lucide-react";
+
+const BADGE_ICONS = {
+  Crosshair, Medal, Trophy, Crown, Flame, Star, Gem, Shield, Skull, Award,
+};
 
 // ---- Animated background particles (decorative) ----
 function FloatingParticles() {
@@ -81,7 +88,7 @@ export default function Profile({ profile, onReload }) {
             </div>
             <div className="flex-1 min-w-0">
               <h1 className="text-[22px] font-extrabold tracking-tight truncate">{p.nickname}</h1>
-              <p className="text-emerald-100/80 text-sm">#{String(p.id).padStart(3, "0")} • {p.team || "Соло-ігрок"}</p>
+              <p className="text-emerald-100/80 text-sm">#{String(p.id).padStart(3, "0")} • {p.team || "Solo Player"}</p>
             </div>
           </div>
 
@@ -94,9 +101,9 @@ export default function Profile({ profile, onReload }) {
               </div>
             </div>
             <div>
-              <div className="text-xs text-emerald-100/60 uppercase tracking-wider font-semibold">Рейтинг</div>
+              <div className="text-xs text-emerald-100/60 uppercase tracking-wider font-semibold">Rating Points</div>
               <div className="text-[13px] text-emerald-100/80">
-                Далі: {1000 - (p.rating % 1000)} до рівня {Math.floor(p.rating / 100) + 2}
+                Next: {1000 - (p.rating % 1000)} to Level {Math.floor(p.rating / 100) + 2}
               </div>
             </div>
           </div>
@@ -105,9 +112,9 @@ export default function Profile({ profile, onReload }) {
 
       {/* ---- Quick stats row ---- */}
       <div className="grid grid-cols-4 gap-2 mb-5">
-        <QuickStat value={p.games_played} label="Ігри" />
-        <QuickStat value={p.wins} label="Перемоги" accent />
-        <QuickStat value={`${winRate}%`} label="Відсоток перемог" />
+        <QuickStat value={p.games_played} label="Games" />
+        <QuickStat value={p.wins} label="Wins" accent />
+        <QuickStat value={`${winRate}%`} label="Win Rate" />
         <QuickStat value={p.mvp_count} label="MVP" accent />
       </div>
 
@@ -115,18 +122,18 @@ export default function Profile({ profile, onReload }) {
       <div className="bg-slate-800/80 backdrop-blur-sm rounded-2xl p-4 mb-4 border border-slate-700/50">
         <div className="flex items-center gap-2 mb-4">
           <span className="text-base">⚔️</span>
-          <h3 className="text-sm font-bold text-gray-300 uppercase tracking-wider">Статистика ігор</h3>
+          <h3 className="text-sm font-bold text-gray-300 uppercase tracking-wider">Combat Stats</h3>
         </div>
 
         <div className="grid grid-cols-2 gap-3 mb-4">
-          <CombatStat icon="💀" value={p.total_deaths} label="Смертей" color="text-red-400" />
-          <CombatStat icon="🛡" value={`${survivalRate}%`} label="Виживання" color="text-emerald-400" />
+          <CombatStat icon="💀" value={p.total_deaths} label="Deaths" color="text-red-400" />
+          <CombatStat icon="🛡" value={`${survivalRate}%`} label="Survival" color="text-emerald-400" />
         </div>
 
         {/* Survival Rate bar */}
         <div className="mt-1 mb-1">
           <div className="flex justify-between text-[10px] text-gray-500 mb-1.5">
-            <span className="font-semibold">Виживання, %</span>
+            <span className="font-semibold">Survival Rate</span>
             <span className={`font-bold ${
               survivalRate >= 70 ? "text-emerald-400" : survivalRate >= 40 ? "text-amber-400" : "text-red-400"
             }`}>{survivalRate}%</span>
@@ -159,17 +166,29 @@ export default function Profile({ profile, onReload }) {
             </span>
           </div>
           <div className="flex flex-wrap gap-2">
-            {profile.badges.map((b, i) => (
-              <div
-                key={i}
-                className="group relative bg-gradient-to-br from-slate-700 to-slate-800 px-3 py-2 rounded-xl border border-slate-600/50 hover:border-emerald-500/50 transition-all duration-300"
-              >
-                <div className="flex items-center gap-1.5">
-                  <span className="text-base">{b.badge_emoji}</span>
-                  <span className="text-xs font-semibold">{b.badge_name}</span>
+            {profile.badges.map((b, i) => {
+              const IconComponent = BADGE_ICONS[b.badge_icon] || Award;
+              return (
+                <div
+                  key={i}
+                  className="group relative px-3 py-2 rounded-xl border transition-all duration-300 hover:scale-105"
+                  style={{
+                    borderColor: `${b.badge_color}40`,
+                    background: `linear-gradient(135deg, ${b.badge_color}15, ${b.badge_color}08)`,
+                  }}
+                >
+                  <div className="flex items-center gap-2">
+                    <div
+                      className="w-7 h-7 rounded-lg flex items-center justify-center"
+                      style={{ backgroundColor: `${b.badge_color}25` }}
+                    >
+                      <IconComponent size={16} color={b.badge_color} strokeWidth={2.5} />
+                    </div>
+                    <span className="text-xs font-semibold">{b.badge_name}</span>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       )}
@@ -180,9 +199,9 @@ export default function Profile({ profile, onReload }) {
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               <span className="text-base">🎮</span>
-              <h3 className="text-sm font-bold text-gray-300 uppercase tracking-wider">Історія ігор</h3>
+              <h3 className="text-sm font-bold text-gray-300 uppercase tracking-wider">Match History</h3>
             </div>
-            <span className="text-xs text-gray-500">{profile.recentGames.length} ігор</span>
+            <span className="text-xs text-gray-500">{profile.recentGames.length} games</span>
           </div>
 
           <div className="space-y-2">
@@ -200,12 +219,12 @@ export default function Profile({ profile, onReload }) {
                   <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-sm font-black ${
                     isWin ? "bg-emerald-600/20 text-emerald-400" : "bg-red-600/20 text-red-400"
                   }`}>
-                    {isWin ? "Win" : "Lost"}
+                    {isWin ? "W" : "L"}
                   </div>
 
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
-                      <span className="text-sm font-semibold">Гра #{g.id}</span>
+                      <span className="text-sm font-semibold">Game #{g.id}</span>
                       <span className="text-[10px] text-gray-500 bg-slate-700 px-1.5 py-0.5 rounded">
                         {g.game_mode === "team_vs_team" ? "TvT" : g.game_mode === "random_teams" ? "Random" : "FFA"}
                       </span>
@@ -215,7 +234,7 @@ export default function Profile({ profile, onReload }) {
 
                   <div className="text-right">
                     <span className={isWin ? "text-emerald-400 font-bold text-sm" : "text-red-400 font-bold text-sm"}>
-                      {isWin ? "ПЕРЕМОГА" : "ПОРАЗКА"}
+                      {isWin ? "WIN" : "LOSS"}
                     </span>
                   </div>
                 </div>

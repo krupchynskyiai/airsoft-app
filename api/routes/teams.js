@@ -75,7 +75,20 @@ router.post("/:id/apply", async (req, res) => {
 
     const player = await q1("SELECT id, team_id FROM players WHERE telegram_id = ?", [tgId]);
     if (!player) return res.status(400).json({ error: "Not registered" });
-    if (player.team_id) return res.status(400).json({ error: "Already in a team. Leave first." });
+
+    // If already in this team
+    if (player.team_id === tid) return res.status(400).json({ error: "Already in this team" });
+
+    // If in another team — auto-leave
+    if (player.team_id) {
+      // Remove captain if was captain
+      const oldTeam = await q1("SELECT captain_id FROM teams WHERE id = ?", [player.team_id]);
+      if (oldTeam && oldTeam.captain_id === player.id) {
+        await ins("UPDATE teams SET captain_id = NULL WHERE id = ?", [player.team_id]);
+      }
+      await ins("UPDATE players SET team_id = NULL WHERE id = ?", [player.id]);
+      log.info("Player auto-left team for application", { playerId: player.id, oldTeam: player.team_id, newTeam: tid });
+    }
 
     // Check for existing pending application to this team
     const existing = await q1(

@@ -137,6 +137,7 @@ function TeamDetail({ teamId, onBack, onReloadProfile }) {
   const [applyMessage, setApplyMessage] = useState("");
   const [showApplyForm, setShowApplyForm] = useState(false);
   const [showInviteForm, setShowInviteForm] = useState(false);
+  const [showLeaveWarning, setShowLeaveWarning] = useState(false);
   const { haptic, showAlert } = useTelegram();
 
   const load = useCallback(async () => {
@@ -174,7 +175,9 @@ function TeamDetail({ teamId, onBack, onReloadProfile }) {
     );
   }
 
-  const { team, members, myApplication, isCaptain, pendingApps } = data;
+  const { team, members, myApplication, isCaptain, pendingApps, myPlayerId, myTeamId } = data;
+  const isMyTeam = members.some(m => m.id === myPlayerId);
+  const hasTeam = !!myTeamId && myTeamId !== team.id;
 
   return (
     <div className="pb-6">
@@ -209,36 +212,69 @@ function TeamDetail({ teamId, onBack, onReloadProfile }) {
 
       {/* Actions */}
       <div className="space-y-2 mb-5">
-        {/* Apply button */}
-        {!myApplication && !isCaptain && !members.find(m => m.id === data?.myPlayerId) && (
-          showApplyForm ? (
-            <div className="bg-slate-800/60 border border-slate-700/40 rounded-2xl p-4">
-              <p className="text-sm font-medium mb-2">Повідомлення для капітана (не обовʼязково):</p>
-              <textarea
-                value={applyMessage}
-                onChange={(e) => setApplyMessage(e.target.value)}
-                placeholder="Привіт! Хочу приєднатись..."
-                className="w-full bg-slate-700/40 border border-slate-600/30 rounded-xl px-3 py-2 text-sm mb-3 resize-none h-20 focus:border-emerald-500 focus:outline-none"
-              />
-              <div className="flex gap-2">
-                <button
-                  onClick={() => doAction(() => applyToTeam(teamId, applyMessage), "✅ Заявку подано!")}
-                  disabled={actionLoading}
-                  className="flex-1 bg-emerald-600 py-3 rounded-xl font-bold text-sm active:scale-95 disabled:opacity-50"
-                >
-                  {actionLoading ? "..." : "📝 Подати заявку"}
-                </button>
-                <button onClick={() => setShowApplyForm(false)} className="px-4 bg-slate-700 rounded-xl text-sm">✕</button>
+        {/* Apply button — available even if in another team */}
+        {!myApplication && !isCaptain && !isMyTeam && (
+          <>
+            {showLeaveWarning ? (
+              <div className="bg-red-950/20 border border-red-800/30 rounded-2xl p-4">
+                <div className="text-center mb-3">
+                  <div className="text-3xl mb-2">⚠️</div>
+                  <h4 className="font-bold text-red-300">Ти вже в команді</h4>
+                  <p className="text-sm text-gray-400 mt-1">
+                    При подачі заявки ти автоматично покинеш свою поточну команду. Продовжити?
+                  </p>
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => { setShowLeaveWarning(false); setShowApplyForm(true); }}
+                    className="flex-1 bg-red-700 py-3 rounded-xl font-bold text-sm active:scale-95"
+                  >
+                    Так, покинути і подати
+                  </button>
+                  <button
+                    onClick={() => setShowLeaveWarning(false)}
+                    className="flex-1 bg-slate-700 py-3 rounded-xl font-bold text-sm text-gray-400 active:scale-95"
+                  >
+                    Скасувати
+                  </button>
+                </div>
               </div>
-            </div>
-          ) : (
-            <button
-              onClick={() => { haptic("impact"); setShowApplyForm(true); }}
-              className="w-full bg-gradient-to-r from-emerald-600 to-teal-600 py-4 rounded-2xl font-bold text-[15px] active:scale-[0.98]"
-            >
-              📝 Подати заявку в команду
-            </button>
-          )
+            ) : showApplyForm ? (
+              <div className="bg-slate-800/60 border border-slate-700/40 rounded-2xl p-4">
+                <p className="text-sm font-medium mb-2">Повідомлення для капітана (не обовʼязково):</p>
+                <textarea
+                  value={applyMessage}
+                  onChange={(e) => setApplyMessage(e.target.value)}
+                  placeholder="Привіт! Хочу приєднатись..."
+                  className="w-full bg-slate-700/40 border border-slate-600/30 rounded-xl px-3 py-2 text-sm mb-3 resize-none h-20 focus:border-emerald-500 focus:outline-none"
+                />
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => doAction(() => applyToTeam(teamId, applyMessage), "✅ Заявку подано!")}
+                    disabled={actionLoading}
+                    className="flex-1 bg-emerald-600 py-3 rounded-xl font-bold text-sm active:scale-95 disabled:opacity-50"
+                  >
+                    {actionLoading ? "..." : "📝 Подати заявку"}
+                  </button>
+                  <button onClick={() => setShowApplyForm(false)} className="px-4 bg-slate-700 rounded-xl text-sm">✕</button>
+                </div>
+              </div>
+            ) : (
+              <button
+                onClick={() => {
+                  haptic("impact");
+                  if (hasTeam) {
+                    setShowLeaveWarning(true);
+                  } else {
+                    setShowApplyForm(true);
+                  }
+                }}
+                className="w-full bg-gradient-to-r from-emerald-600 to-teal-600 py-4 rounded-2xl font-bold text-[15px] active:scale-[0.98]"
+              >
+                📝 Подати заявку в команду
+              </button>
+            )}
+          </>
         )}
 
         {/* Pending application */}
@@ -258,7 +294,7 @@ function TeamDetail({ teamId, onBack, onReloadProfile }) {
         )}
 
         {/* Leave team */}
-        {members.find(m => m.id === data?.myPlayerId) && (
+        {isMyTeam && (
           <button
             onClick={() => doAction(() => leaveTeam(), "Ти покинув команду")}
             disabled={actionLoading}

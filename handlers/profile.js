@@ -19,7 +19,7 @@ function register(bot) {
 
     const badges = await q("SELECT badge_name,badge_emoji FROM player_badges WHERE player_id=?", [p.id]);
     const bs = badges.length
-      ? badges.map((b) => `${b.badge_emoji} ${esc(b.badge_name)}`).join(", ")
+      ? badges.map((b) => `[${esc(b.badge_emoji)}] ${esc(b.badge_name)}`).join(", ")
       : "Немає";
     const survivalRate = p.games_played > 0
       ? Math.round(((p.games_played * 3 - p.total_deaths) / (p.games_played * 3)) * 100)
