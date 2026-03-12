@@ -4,22 +4,17 @@ const { adminMiddleware } = require("../middleware/auth");
 const log = require("../../utils/logger");
 
 const router = Router();
-
-// All routes require admin
 router.use(adminMiddleware);
 
 // POST /api/admin/games — create game
 router.post("/games", async (req, res) => {
   try {
     const { date, time, location, game_mode, checkin_lat, checkin_lng } = req.body;
-
     const season = await q1("SELECT id FROM seasons WHERE is_active=1 LIMIT 1");
-
     const r = await ins(
       "INSERT INTO games (date,time,location,game_mode,total_rounds,status,season_id,checkin_lat,checkin_lng) VALUES (?,?,?,?,0,'upcoming',?,?,?)",
       [date, time, location, game_mode || "team_vs_team", season?.id || null, checkin_lat || null, checkin_lng || null]
     );
-
     log.info("API create game", { id: r.insertId });
     res.json({ success: true, game_id: r.insertId });
   } catch (e) {
@@ -33,18 +28,23 @@ router.post("/games/:id/status", async (req, res) => {
     const gid = parseInt(req.params.id);
     const { status } = req.body;
     const g = await q1("SELECT * FROM games WHERE id=?", [gid]);
+
     await ins("UPDATE games SET status=? WHERE id=?", [status, gid]);
 
-    // Auto-finish active round when game finishes
+    // ---- FINISH GAME: close round + calculate scores ----
     if (status === "finished") {
+      // Close active round
       const activeRound = await q1("SELECT id FROM rounds WHERE game_id=? AND status='active'", [gid]);
       if (activeRound) {
         await ins("UPDATE rounds SET status='finished', ended_at=NOW() WHERE id=?", [activeRound.id]);
       }
       await ins("UPDATE games SET total_rounds=? WHERE id=?", [g.current_round, gid]);
+
+      // Calculate scores
+      await calculateGameScores(gid);
     }
 
-    // Start game — assign teams, mark no-shows, create round 1
+    // ---- START GAME: assign teams, mark no-shows, create round 1 ----
     if (status === "active") {
       await ins("UPDATE game_players SET attendance='no_show' WHERE game_id=? AND attendance='registered'", [gid]);
 
@@ -73,7 +73,6 @@ router.post("/games/:id/status", async (req, res) => {
         }
       }
 
-      // Create round 1
       await ins("UPDATE games SET current_round=1 WHERE id=?", [gid]);
       await ins("INSERT INTO rounds (game_id,round_number,status,started_at) VALUES (?,1,'active',NOW())", [gid]);
       const round = await q1("SELECT id FROM rounds WHERE game_id=? AND round_number=1", [gid]);
@@ -89,7 +88,7 @@ router.post("/games/:id/status", async (req, res) => {
   }
 });
 
-// POST /api/admin/games/:id/start-round — manually start next round
+// POST /api/admin/games/:id/start-round
 router.post("/games/:id/start-round", async (req, res) => {
   try {
     const gid = parseInt(req.params.id);
@@ -109,14 +108,14 @@ router.post("/games/:id/start-round", async (req, res) => {
       await ins("INSERT INTO round_players (round_id,player_id,game_team,is_alive,kills) VALUES (?,?,?,1,0)", [newRound.id, ap.player_id, ap.game_team]);
     }
 
-    log.info("Round started manually", { gid, round: nextR });
+    log.info("Round started", { gid, round: nextR });
     res.json({ success: true, round: nextR });
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
 });
 
-// POST /api/admin/games/:id/end-round — end current round (no auto-start next)
+// POST /api/admin/games/:id/end-round
 router.post("/games/:id/end-round", async (req, res) => {
   try {
     const gid = parseInt(req.params.id);
@@ -136,7 +135,7 @@ router.post("/games/:id/end-round", async (req, res) => {
   }
 });
 
-// POST /api/admin/games/:id/kill — admin marks player dead
+// POST /api/admin/games/:id/kill
 router.post("/games/:id/kill", async (req, res) => {
   try {
     const gid = parseInt(req.params.id);
@@ -149,7 +148,7 @@ router.post("/games/:id/kill", async (req, res) => {
     await ins("INSERT INTO round_kills (round_id,game_id,killed_player_id,reported_by) VALUES (?,?,?,'admin')", [round.id, gid, player_id]);
     await ins("UPDATE round_players SET is_alive=0 WHERE round_id=? AND player_id=?", [round.id, player_id]);
 
-    log.info("API admin kill", { gid, killed: player_id });
+    log.info("API kill", { gid, killed: player_id });
     res.json({ success: true });
   } catch (e) {
     res.status(500).json({ error: e.message });
@@ -180,5 +179,143 @@ router.post("/points", async (req, res) => {
     res.status(500).json({ error: e.message });
   }
 });
+
+// ============================================
+// SCORING: Calculate points when game finishes
+// ============================================
+
+async function calculateGameScores(gid) {
+  log.info("=== CALCULATING SCORES ===", { gid });
+
+  const g = await q1("SELECT * FROM games WHERE id=?", [gid]);
+
+  // Count round wins per team → determine overall winner
+  const roundWins = await q(
+    "SELECT winner_game_team, COUNT(*) as wins FROM rounds WHERE game_id=? AND winner_game_team IS NOT NULL GROUP BY winner_game_team ORDER BY wins DESC",
+    [gid]
+  );
+  const winnerTeam = roundWins.length ? roundWins[0].winner_game_team : null;
+
+  // Count deaths per player (across all rounds)
+  const deathStats = await q(
+    "SELECT killed_player_id, COUNT(*) as deaths FROM round_kills WHERE game_id=? GROUP BY killed_player_id",
+    [gid]
+  );
+  const deathMap = {};
+  deathStats.forEach((d) => { deathMap[d.killed_player_id] = d.deaths; });
+
+  // Count rounds survived per player
+  const totalRounds = g.current_round || 1;
+
+  // Get all checked-in players
+  const gps = await q(
+    "SELECT * FROM game_players WHERE game_id=? AND attendance='checked_in'",
+    [gid]
+  );
+
+  for (const gp of gps) {
+    const isWinner = gp.game_team === winnerTeam;
+    const playerDeaths = deathMap[gp.player_id] || 0;
+
+    // Count rounds where player survived (was alive at end)
+    const roundsSurvived = await q1(
+      "SELECT COUNT(*) as c FROM round_players rp JOIN rounds r ON rp.round_id=r.id WHERE r.game_id=? AND rp.player_id=? AND rp.is_alive=1 AND r.status='finished'",
+      [gid, gp.player_id]
+    );
+    const survived = roundsSurvived?.c || 0;
+
+    // ---- SCORING FORMULA ----
+    // +5  base participation
+    // +10 if winning team
+    // +3  per round survived
+    // +5  MVP bonus (later from voting)
+    const pts = 5 + (isWinner ? 10 : 0) + (survived * 3);
+
+    // Update player stats
+    await ins(
+      "UPDATE players SET games_played=games_played+1, wins=wins+?, total_deaths=total_deaths+?, rating=rating+? WHERE id=?",
+      [isWinner ? 1 : 0, playerDeaths, pts, gp.player_id]
+    );
+
+    // Update game_players record
+    await ins(
+      "UPDATE game_players SET deaths_total=?, result=? WHERE game_id=? AND player_id=?",
+      [playerDeaths, isWinner ? "win" : "loss", gid, gp.player_id]
+    );
+
+    log.info("Player scored", {
+      player: gp.player_id,
+      isWinner,
+      deaths: playerDeaths,
+      roundsSurvived: survived,
+      points: pts,
+    });
+
+    // Season stats
+    if (g.season_id) {
+      const ex = await q1(
+        "SELECT * FROM season_stats WHERE player_id=? AND season_id=?",
+        [gp.player_id, g.season_id]
+      );
+      if (ex) {
+        await ins(
+          "UPDATE season_stats SET season_games=season_games+1, season_wins=season_wins+?, season_deaths=season_deaths+?, season_rating=season_rating+? WHERE id=?",
+          [isWinner ? 1 : 0, playerDeaths, pts, ex.id]
+        );
+      } else {
+        await ins(
+          "INSERT INTO season_stats (player_id,season_id,season_games,season_wins,season_kills,season_deaths,season_rating) VALUES (?,?,1,?,0,?,?)",
+          [gp.player_id, g.season_id, isWinner ? 1 : 0, playerDeaths, pts]
+        );
+      }
+    }
+
+    // Check badges
+    const updatedPlayer = await q1("SELECT * FROM players WHERE id=?", [gp.player_id]);
+    await checkBadgesAPI(gp.player_id, updatedPlayer);
+  }
+
+  // No-show penalty: -5 rating
+  const noShows = await q(
+    "SELECT player_id FROM game_players WHERE game_id=? AND attendance='no_show'",
+    [gid]
+  );
+  for (const ns of noShows) {
+    await ins("UPDATE players SET rating=GREATEST(0,rating-5) WHERE id=?", [ns.player_id]);
+    log.info("No-show penalty", { player: ns.player_id });
+  }
+
+  // Update winning team rating
+  if (winnerTeam) {
+    // Find actual team_id for winning game_team letter
+    const winningPlayers = await q(
+      "SELECT DISTINCT team_id FROM game_players WHERE game_id=? AND game_team=? AND team_id IS NOT NULL",
+      [gid, winnerTeam]
+    );
+    for (const wp of winningPlayers) {
+      await ins("UPDATE teams SET rating=rating+20 WHERE id=?", [wp.team_id]);
+    }
+  }
+
+  log.info("=== SCORES CALCULATED ===", { gid, winner: winnerTeam });
+}
+
+// Badge check (simplified for API context — no bot notifications)
+async function checkBadgesAPI(playerId, stats) {
+  const BADGES = require("../../constants/badges");
+  const existing = new Set(
+    (await q("SELECT badge_name FROM player_badges WHERE player_id=?", [playerId])).map((b) => b.badge_name)
+  );
+
+  for (const b of BADGES) {
+    if (!existing.has(b.name) && b.check(stats)) {
+      await ins(
+        "INSERT INTO player_badges (player_id,badge_name,badge_emoji) VALUES (?,?,?)",
+        [playerId, b.name, b.emoji]
+      );
+      log.info("Badge awarded", { playerId, badge: b.name });
+    }
+  }
+}
 
 module.exports = router;
