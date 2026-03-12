@@ -6,9 +6,8 @@ const BADGES = [
     { name: "War Machine", emoji: "⚙️", check: (s) => s.games_played >= 50 },
     { name: "MVP Star", emoji: "⭐", check: (s) => s.mvp_count >= 3 },
     { name: "Elite", emoji: "💎", check: (s) => s.rating >= 500 },
-    { name: "Killer", emoji: "🔫", check: (s) => s.total_kills >= 50 },
-    { name: "Sniper", emoji: "🎯", check: (s) => s.total_kills >= 100 },
-    { name: "Rambo", emoji: "💪", check: (s) => s.total_kills >= 250 },
+    { name: "Survivor", emoji: "🛡", check: (s) => s.games_played >= 10 && s.total_deaths <= s.games_played },
+    { name: "Immortal", emoji: "👑", check: (s) => s.games_played >= 20 && s.total_deaths <= s.games_played * 0.5 },
   ];
   
   module.exports = BADGES;

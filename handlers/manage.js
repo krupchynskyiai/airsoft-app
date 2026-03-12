@@ -43,9 +43,9 @@ function register(bot) {
       `🎮 *Гра \\#${gid}*\n` +
       `📅 ${esc(g.date)} ${esc(g.time || "")}\n` +
       `📍 ${esc(g.location)}\n` +
-      `🎯 ${esc(MODE_LABELS[g.game_mode])} \\| ${g.total_rounds} раундів\n` +
+      `🎯 ${esc(MODE_LABELS[g.game_mode])}\n` +
       `👥 Записано: ${cnt.c} \\| Check\\-in: ${chk.c}\n` +
-      `📊 Статус: *${esc(g.status)}* \\| Раунд: ${g.current_round}/${g.total_rounds}`;
+      `📊 Статус: *${esc(g.status)}* \\| Раунд: ${g.current_round}`;
 
     const kb = new InlineKeyboard();
 

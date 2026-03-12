@@ -21,7 +21,9 @@ function register(bot) {
     const bs = badges.length
       ? badges.map((b) => `${b.badge_emoji} ${esc(b.badge_name)}`).join(", ")
       : "Немає";
-    const kd = p.total_deaths > 0 ? (p.total_kills / p.total_deaths).toFixed(2) : p.total_kills;
+    const survivalRate = p.games_played > 0
+      ? Math.round(((p.games_played * 3 - p.total_deaths) / (p.games_played * 3)) * 100)
+      : 100;
 
     log.info("Profile", { tgId, nickname: p.nickname });
 
@@ -29,9 +31,9 @@ function register(bot) {
     return ctx.editMessageText(
       `🪖 *Player №${String(p.id).padStart(3, "0")}*\n` +
         `👤 ${esc(p.nickname)}\n🏠 ${esc(p.tn || "Без команди")}\n\n` +
-        `🎮 Ігор: ${p.games_played} \n` + `🏆 Перемог: ${p.wins}\n` +
-        `💀 Deaths: ${p.total_deaths} \n` +
-        `⭐ MVP: ${p.mvp_count} \n` + `📊 Rating: ${p.rating}\n\n` +
+        `🎮 Ігор: ${p.games_played} \\| 🏆 Перемог: ${p.wins}\n` +
+        `💀 Deaths: ${p.total_deaths} \\| 🛡 Survival: ${survivalRate}%\n` +
+        `⭐ MVP: ${p.mvp_count} \\| 📊 Rating: ${p.rating}\n\n` +
         `🎖 ${bs}`,
       { parse_mode: "MarkdownV2", reply_markup: backBtn() }
     );
@@ -47,7 +49,7 @@ function register(bot) {
     else
       ps.forEach((p, i) => {
         const m = i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `${i + 1}\\.`;
-        msg += `${m} *${esc(p.nickname)}* — ${p.rating}pts \\(${p.total_deaths} D\\)\n`;
+        msg += `${m} *${esc(p.nickname)}* — ${p.rating}pts \\(${p.wins}W/${p.total_deaths}D\\)\n`;
       });
     await ctx.answerCallbackQuery();
     return ctx.editMessageText(msg, { parse_mode: "MarkdownV2", reply_markup: backBtn() });

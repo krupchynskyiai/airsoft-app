@@ -13,8 +13,8 @@ async function createGame(ctx, bot) {
   const season = await q1("SELECT id FROM seasons WHERE is_active=1 LIMIT 1");
 
   const r = await ins(
-    "INSERT INTO games (date,time,location,game_mode,total_rounds,status,season_id,checkin_lat,checkin_lng) VALUES (?,?,?,?,?,'upcoming',?,?,?)",
-    [sd.date, sd.time, sd.location, sd.game_mode, sd.total_rounds, season?.id || null, sd.lat, sd.lng]
+    "INSERT INTO games (date,time,location,game_mode,total_rounds,status,season_id,checkin_lat,checkin_lng) VALUES (?,?,?,?,0,'upcoming',?,?,?)",
+    [sd.date, sd.time, sd.location, sd.game_mode, season?.id || null, sd.lat, sd.lng]
   );
 
   const gid = r.insertId;
@@ -25,7 +25,7 @@ async function createGame(ctx, bot) {
     `🔥 *ГРА \\#${gid}*\n\n` +
     `📅 ${esc(sd.date)} о ${esc(sd.time)}\n` +
     `📍 ${esc(sd.location)}\n` +
-    `🎯 ${esc(MODE_LABELS[sd.game_mode])} \\| ${sd.total_rounds} раундів\n\n` +
+    `🎯 ${esc(MODE_LABELS[sd.game_mode])}\n\n` +
     `Натисни щоб записатись 👇`;
 
   if (config.CHANNEL_ID) {

@@ -91,7 +91,6 @@ export default function Leaderboard() {
               <div className="space-y-2">
                 {players.slice(players.length >= 3 ? 3 : 0).map((p, i) => {
                   const rank = (players.length >= 3 ? 3 : 0) + i;
-                  const kd = p.total_deaths > 0 ? (p.total_kills / p.total_deaths).toFixed(1) : p.total_kills;
                   return (
                     <div
                       key={p.id}
@@ -106,16 +105,16 @@ export default function Leaderboard() {
                       <div className="flex-1 min-w-0">
                         <div className="font-bold text-sm truncate">{p.nickname}</div>
                         <div className="text-[11px] text-gray-500 flex items-center gap-2">
-                          <span>{p.wins}W</span>
+                          <span>{p.wins} перемог</span>
                           <span className="text-gray-700">•</span>
-                          <span>{p.total_kills}K/{p.total_deaths}D</span>
+                          <span>{p.total_deaths} смертей</span>
                           <span className="text-gray-700">•</span>
-                          <span>{p.games_played}G</span>
+                          <span>{p.games_played} ігор</span>
                         </div>
                       </div>
                       <div className="text-right">
                         <div className="font-black text-emerald-400">{p.rating}</div>
-                        <div className="text-[10px] text-gray-600">pts</div>
+                        <div className="text-[10px] text-gray-600"> очок</div>
                       </div>
                     </div>
                   );
@@ -191,7 +190,7 @@ export default function Leaderboard() {
                         <div className="flex-1 min-w-0">
                           <div className="font-bold text-sm truncate">{p.nickname}</div>
                           <div className="text-[11px] text-gray-500">
-                            {p.season_wins}W • {p.season_kills}K • {p.season_games}G
+                            {p.season_wins}W • {p.season_deaths || 0}D • {p.season_games}G
                           </div>
                         </div>
                         <div className="text-right">

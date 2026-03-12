@@ -56,7 +56,6 @@ export default function Profile({ profile, onReload }) {
   }
 
   const p = profile.player;
-  const kd = p.total_deaths > 0 ? (p.total_kills / p.total_deaths).toFixed(2) : String(p.total_kills);
   const winRate = p.games_played > 0 ? Math.round((p.wins / p.games_played) * 100) : 0;
   const survivalRate = p.games_played > 0
     ? Math.round(((p.games_played * 3 - p.total_deaths) / (p.games_played * 3)) * 100)
@@ -76,18 +75,17 @@ export default function Profile({ profile, onReload }) {
               <div className="w-[72px] h-[72px] rounded-2xl bg-white/15 backdrop-blur-sm flex items-center justify-center text-3xl shadow-lg border border-white/20">
                 🪖
               </div>
-              {/* Level badge */}
               <div className="absolute -bottom-1 -right-1 bg-amber-500 text-[10px] font-black px-1.5 py-0.5 rounded-md shadow-md">
                 LV{Math.floor(p.rating / 100) + 1}
               </div>
             </div>
             <div className="flex-1 min-w-0">
               <h1 className="text-[22px] font-extrabold tracking-tight truncate">{p.nickname}</h1>
-              <p className="text-emerald-100/80 text-sm">#{String(p.id).padStart(3, "0")} • {p.team || "Solo Player"}</p>
+              <p className="text-emerald-100/80 text-sm">#{String(p.id).padStart(3, "0")} • {p.team || "Соло-ігрок"}</p>
             </div>
           </div>
 
-          {/* Rating — big center */}
+          {/* Rating */}
           <div className="flex items-center justify-center gap-3 bg-white/10 backdrop-blur-sm rounded-2xl py-4 px-5 border border-white/10">
             <div className="relative flex items-center justify-center">
               <ProgressRing value={p.rating % 1000} max={1000} size={64} stroke={4} color="#fbbf24" />
@@ -96,9 +94,9 @@ export default function Profile({ profile, onReload }) {
               </div>
             </div>
             <div>
-              <div className="text-xs text-emerald-100/60 uppercase tracking-wider font-semibold">Rating Points</div>
+              <div className="text-xs text-emerald-100/60 uppercase tracking-wider font-semibold">Рейтинг</div>
               <div className="text-[13px] text-emerald-100/80">
-                Next: {1000 - (p.rating % 1000)} to Level {Math.floor(p.rating / 100) + 2}
+                Далі: {1000 - (p.rating % 1000)} до рівня {Math.floor(p.rating / 100) + 2}
               </div>
             </div>
           </div>
@@ -107,9 +105,9 @@ export default function Profile({ profile, onReload }) {
 
       {/* ---- Quick stats row ---- */}
       <div className="grid grid-cols-4 gap-2 mb-5">
-        <QuickStat value={p.games_played} label="Games" />
-        <QuickStat value={p.wins} label="Wins" accent />
-        <QuickStat value={`${winRate}%`} label="Win Rate" />
+        <QuickStat value={p.games_played} label="Ігри" />
+        <QuickStat value={p.wins} label="Перемоги" accent />
+        <QuickStat value={`${winRate}%`} label="Відсоток перемог" />
         <QuickStat value={p.mvp_count} label="MVP" accent />
       </div>
 
@@ -117,29 +115,34 @@ export default function Profile({ profile, onReload }) {
       <div className="bg-slate-800/80 backdrop-blur-sm rounded-2xl p-4 mb-4 border border-slate-700/50">
         <div className="flex items-center gap-2 mb-4">
           <span className="text-base">⚔️</span>
-          <h3 className="text-sm font-bold text-gray-300 uppercase tracking-wider">Combat Stats</h3>
+          <h3 className="text-sm font-bold text-gray-300 uppercase tracking-wider">Статистика ігор</h3>
         </div>
 
-        <div className="grid grid-cols-3 gap-3 mb-4">
-          <CombatStat icon="🔫" value={p.total_kills} label="Kills" color="text-emerald-400" />
-          <CombatStat icon="💀" value={p.total_deaths} label="Deaths" color="text-red-400" />
-          <CombatStat icon="📊" value={kd} label="K/D Ratio" color="text-amber-400" />
+        <div className="grid grid-cols-2 gap-3 mb-4">
+          <CombatStat icon="💀" value={p.total_deaths} label="Смертей" color="text-red-400" />
+          <CombatStat icon="🛡" value={`${survivalRate}%`} label="Виживання" color="text-emerald-400" />
         </div>
 
-        {/* Kill/Death bar */}
-        <div className="relative h-2 bg-red-900/40 rounded-full overflow-hidden">
-          <div
-            className="absolute inset-y-0 left-0 bg-gradient-to-r from-emerald-500 to-emerald-400 rounded-full transition-all duration-1000"
-            style={{
-              width: `${p.total_kills + p.total_deaths > 0
-                ? (p.total_kills / (p.total_kills + p.total_deaths)) * 100
-                : 50}%`,
-            }}
-          />
-        </div>
-        <div className="flex justify-between text-[10px] text-gray-500 mt-1">
-          <span>Kills</span>
-          <span>Deaths</span>
+        {/* Survival Rate bar */}
+        <div className="mt-1 mb-1">
+          <div className="flex justify-between text-[10px] text-gray-500 mb-1.5">
+            <span className="font-semibold">Виживання, %</span>
+            <span className={`font-bold ${
+              survivalRate >= 70 ? "text-emerald-400" : survivalRate >= 40 ? "text-amber-400" : "text-red-400"
+            }`}>{survivalRate}%</span>
+          </div>
+          <div className="relative h-2 bg-slate-700/60 rounded-full overflow-hidden">
+            <div
+              className={`absolute inset-y-0 left-0 rounded-full transition-all duration-1000 ${
+                survivalRate >= 70
+                  ? "bg-gradient-to-r from-emerald-500 to-emerald-400"
+                  : survivalRate >= 40
+                    ? "bg-gradient-to-r from-amber-500 to-amber-400"
+                    : "bg-gradient-to-r from-red-500 to-red-400"
+              }`}
+              style={{ width: `${survivalRate}%` }}
+            />
+          </div>
         </div>
       </div>
 
@@ -177,9 +180,9 @@ export default function Profile({ profile, onReload }) {
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               <span className="text-base">🎮</span>
-              <h3 className="text-sm font-bold text-gray-300 uppercase tracking-wider">Match History</h3>
+              <h3 className="text-sm font-bold text-gray-300 uppercase tracking-wider">Історія ігор</h3>
             </div>
-            <span className="text-xs text-gray-500">{profile.recentGames.length} games</span>
+            <span className="text-xs text-gray-500">{profile.recentGames.length} ігор</span>
           </div>
 
           <div className="space-y-2">
@@ -194,17 +197,15 @@ export default function Profile({ profile, onReload }) {
                       : "bg-red-950/20 border-red-900/20"
                   }`}
                 >
-                  {/* Result icon */}
                   <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-sm font-black ${
                     isWin ? "bg-emerald-600/20 text-emerald-400" : "bg-red-600/20 text-red-400"
                   }`}>
-                    {isWin ? "W" : "L"}
+                    {isWin ? "Win" : "Lost"}
                   </div>
 
-                  {/* Game info */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
-                      <span className="text-sm font-semibold">Game #{g.id}</span>
+                      <span className="text-sm font-semibold">Гра #{g.id}</span>
                       <span className="text-[10px] text-gray-500 bg-slate-700 px-1.5 py-0.5 rounded">
                         {g.game_mode === "team_vs_team" ? "TvT" : g.game_mode === "random_teams" ? "Random" : "FFA"}
                       </span>
@@ -212,16 +213,10 @@ export default function Profile({ profile, onReload }) {
                     <span className="text-xs text-gray-500">{g.date}</span>
                   </div>
 
-                  {/* Stats */}
                   <div className="text-right">
-                    {g.kills_total != null && (
-                      <div className="text-sm font-bold">
-                        <span className="text-emerald-400">{g.kills_total}</span>
-                        <span className="text-gray-600">/</span>
-                        <span className="text-red-400">{g.deaths_total || 0}</span>
-                      </div>
-                    )}
-                    <div className="text-[10px] text-gray-500">K/D</div>
+                    <span className={isWin ? "text-emerald-400 font-bold text-sm" : "text-red-400 font-bold text-sm"}>
+                      {isWin ? "ПЕРЕМОГА" : "ПОРАЗКА"}
+                    </span>
                   </div>
                 </div>
               );
@@ -300,11 +295,9 @@ function RegisterForm({ onDone }) {
     }
   }
 
-  // ---- Step 1: Nickname ----
   if (step === "nick") {
     return (
       <div className="flex flex-col items-center justify-center min-h-[80vh] px-6">
-        {/* Logo animation */}
         <div className="relative mb-8">
           <div className="w-24 h-24 rounded-3xl bg-gradient-to-br from-emerald-500 to-cyan-600 flex items-center justify-center text-5xl shadow-2xl shadow-emerald-900/50">
             🎯
@@ -361,7 +354,6 @@ function RegisterForm({ onDone }) {
     );
   }
 
-  // ---- Step 2: Team selection ----
   return (
     <div className="flex flex-col min-h-[80vh] px-4">
       <button

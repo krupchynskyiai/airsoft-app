@@ -105,8 +105,8 @@ function CreateGameForm({ onDone }) {
   }
 
   const modes = [
-    { id: "team_vs_team", icon: "⚔️", label: "Team vs Team", desc: "Постійні команди" },
-    { id: "random_teams", icon: "🎲", label: "Random Teams", desc: "Автоматичний розподіл" },
+    { id: "team_vs_team", icon: "⚔️", label: "Команда проти команди", desc: "Постійні команди" },
+    { id: "random_teams", icon: "🎲", label: "Випадкові команди", desc: "Автоматичний розподіл" },
     { id: "ffa", icon: "👤", label: "Free For All", desc: "Кожен сам за себе" },
   ];
 
@@ -116,13 +116,13 @@ function CreateGameForm({ onDone }) {
         <div className="w-12 h-12 rounded-2xl bg-emerald-600/20 flex items-center justify-center text-2xl">🎮</div>
         <div>
           <h3 className="text-lg font-black">Нова гра</h3>
-          <p className="text-xs text-gray-500">Крок {step} з 3</p>
+          <p className="text-xs text-gray-500">Крок {step} з 2</p>
         </div>
       </div>
 
       {/* Step indicator */}
       <div className="flex gap-1.5 mb-6">
-        {[1, 2, 3].map((s) => (
+        {[1, 2].map((s) => (
           <div key={s} className={`flex-1 h-1 rounded-full transition-all duration-300 ${s <= step ? "bg-emerald-500" : "bg-slate-700"}`} />
         ))}
       </div>
@@ -167,33 +167,6 @@ function CreateGameForm({ onDone }) {
               {form.game_mode === m.id && <span className="text-emerald-400 text-lg">✓</span>}
             </button>
           ))}
-          <button
-            onClick={() => { haptic("impact"); setStep(3); }}
-            className="w-full bg-emerald-600 py-4 rounded-2xl font-bold transition-all active:scale-[0.98] mt-2"
-          >
-            Далі →
-          </button>
-        </div>
-      )}
-
-      {step === 3 && (
-        <div className="space-y-4">
-          <p className="text-sm text-gray-400 mb-2 font-medium">Кількість раундів</p>
-          <div className="grid grid-cols-4 gap-2">
-            {[1, 3, 5, 7].map((n) => (
-              <button
-                key={n}
-                onClick={() => { haptic("impact"); set("total_rounds", n); }}
-                className={`py-4 rounded-2xl text-lg font-black border-2 transition-all active:scale-95 ${
-                  form.total_rounds === n
-                    ? "border-emerald-500/60 bg-emerald-950/30 text-emerald-400"
-                    : "border-slate-700/40 bg-slate-800/40 text-gray-400"
-                }`}
-              >
-                {n}
-              </button>
-            ))}
-          </div>
 
           {/* Summary */}
           <div className="bg-slate-800/60 rounded-2xl p-4 border border-slate-700/30 mt-4">
@@ -202,7 +175,7 @@ function CreateGameForm({ onDone }) {
               <p>📅 {form.date} {form.time && `о ${form.time}`}</p>
               <p>📍 {form.location}</p>
               <p>🎯 {modes.find((m) => m.id === form.game_mode)?.label}</p>
-              <p>🔄 {form.total_rounds} раундів</p>
+              <p>🔄 Раунди - по ходу гри</p>
             </div>
           </div>
 

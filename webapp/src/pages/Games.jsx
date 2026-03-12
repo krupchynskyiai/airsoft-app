@@ -136,21 +136,14 @@ export default function Games({ onOpenGame }) {
                       <span className="text-gray-500">гравців</span>
                     </div>
                   </div>
-                  <div className="flex items-center gap-1.5 text-sm text-gray-400">
-                    <span className="text-base">🔄</span>
-                    <span>{g.total_rounds} раундів</span>
-                  </div>
+                  {g.current_round > 0 && (
+                    <div className="flex items-center gap-1.5 text-sm text-gray-400">
+                      <span className="text-base">🔄</span>
+                      <span>Раунд {g.current_round}</span>
+                    </div>
+                  )}
                 </div>
 
-                {/* Live indicator bar */}
-                {g.status === "active" && (
-                  <div className="mt-3 h-1 rounded-full bg-slate-700/50 overflow-hidden">
-                    <div
-                      className="h-full bg-gradient-to-r from-red-500 to-orange-500 rounded-full animate-live-bar"
-                      style={{ width: `${((g.current_round || 1) / g.total_rounds) * 100}%` }}
-                    />
-                  </div>
-                )}
               </button>
             );
           })}

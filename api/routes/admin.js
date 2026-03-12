@@ -11,13 +11,13 @@ router.use(adminMiddleware);
 // POST /api/admin/games — create game
 router.post("/games", async (req, res) => {
   try {
-    const { date, time, location, game_mode, total_rounds, checkin_lat, checkin_lng } = req.body;
+    const { date, time, location, game_mode, checkin_lat, checkin_lng } = req.body;
 
     const season = await q1("SELECT id FROM seasons WHERE is_active=1 LIMIT 1");
 
     const r = await ins(
-      "INSERT INTO games (date,time,location,game_mode,total_rounds,status,season_id,checkin_lat,checkin_lng) VALUES (?,?,?,?,?,'upcoming',?,?,?)",
-      [date, time, location, game_mode || "team_vs_team", total_rounds || 3, season?.id || null, checkin_lat || null, checkin_lng || null]
+      "INSERT INTO games (date,time,location,game_mode,total_rounds,status,season_id,checkin_lat,checkin_lng) VALUES (?,?,?,?,0,'upcoming',?,?,?)",
+      [date, time, location, game_mode || "team_vs_team", season?.id || null, checkin_lat || null, checkin_lng || null]
     );
 
     log.info("API create game", { id: r.insertId });
@@ -32,14 +32,22 @@ router.post("/games/:id/status", async (req, res) => {
   try {
     const gid = parseInt(req.params.id);
     const { status } = req.body;
+    const g = await q1("SELECT * FROM games WHERE id=?", [gid]);
     await ins("UPDATE games SET status=? WHERE id=?", [status, gid]);
 
-    if (status === "active") {
-      // Mark no-shows & start round 1
-      await ins("UPDATE game_players SET attendance='no_show' WHERE game_id=? AND attendance='registered'", [gid]);
-      const g = await q1("SELECT * FROM games WHERE id=?", [gid]);
+    // Auto-finish active round when game finishes
+    if (status === "finished") {
+      const activeRound = await q1("SELECT id FROM rounds WHERE game_id=? AND status='active'", [gid]);
+      if (activeRound) {
+        await ins("UPDATE rounds SET status='finished', ended_at=NOW() WHERE id=?", [activeRound.id]);
+      }
+      await ins("UPDATE games SET total_rounds=? WHERE id=?", [g.current_round, gid]);
+    }
 
-      // Assign teams
+    // Start game — assign teams, mark no-shows, create round 1
+    if (status === "active") {
+      await ins("UPDATE game_players SET attendance='no_show' WHERE game_id=? AND attendance='registered'", [gid]);
+
       if (g.game_mode === "team_vs_team") {
         const teamIds = await q("SELECT DISTINCT team_id FROM game_players WHERE game_id=? AND attendance='checked_in' AND team_id IS NOT NULL", [gid]);
         let letter = "A";
@@ -48,6 +56,7 @@ router.post("/games/:id/status", async (req, res) => {
           letter = String.fromCharCode(letter.charCodeAt(0) + 1);
         }
       }
+
       if (g.game_mode === "random_teams") {
         const ps = await q("SELECT id FROM game_players WHERE game_id=? AND attendance='checked_in'", [gid]);
         const shuffled = ps.sort(() => Math.random() - 0.5);
@@ -56,11 +65,15 @@ router.post("/games/:id/status", async (req, res) => {
           await ins("UPDATE game_players SET game_team=? WHERE id=?", [i < half ? "A" : "B", shuffled[i].id]);
         }
       }
+
       if (g.game_mode === "ffa") {
         const ps = await q("SELECT id, player_id FROM game_players WHERE game_id=? AND attendance='checked_in'", [gid]);
-        for (const p of ps) await ins("UPDATE game_players SET game_team=? WHERE id=?", [String(p.player_id), p.id]);
+        for (const p of ps) {
+          await ins("UPDATE game_players SET game_team=? WHERE id=?", [String(p.player_id), p.id]);
+        }
       }
 
+      // Create round 1
       await ins("UPDATE games SET current_round=1 WHERE id=?", [gid]);
       await ins("INSERT INTO rounds (game_id,round_number,status,started_at) VALUES (?,1,'active',NOW())", [gid]);
       const round = await q1("SELECT id FROM rounds WHERE game_id=? AND round_number=1", [gid]);
@@ -76,7 +89,54 @@ router.post("/games/:id/status", async (req, res) => {
   }
 });
 
-// POST /api/admin/games/:id/kill — admin marks kill
+// POST /api/admin/games/:id/start-round — manually start next round
+router.post("/games/:id/start-round", async (req, res) => {
+  try {
+    const gid = parseInt(req.params.id);
+    const game = await q1("SELECT * FROM games WHERE id=?", [gid]);
+    if (!game || game.status !== "active") return res.status(400).json({ error: "Game not active" });
+
+    const activeRound = await q1("SELECT id FROM rounds WHERE game_id=? AND status='active'", [gid]);
+    if (activeRound) return res.status(400).json({ error: "Round already active" });
+
+    const nextR = game.current_round + 1;
+    await ins("UPDATE games SET current_round=? WHERE id=?", [nextR, gid]);
+    await ins("INSERT INTO rounds (game_id,round_number,status,started_at) VALUES (?,?,'active',NOW())", [gid, nextR]);
+
+    const newRound = await q1("SELECT id FROM rounds WHERE game_id=? AND round_number=?", [gid, nextR]);
+    const aps = await q("SELECT player_id,game_team FROM game_players WHERE game_id=? AND attendance='checked_in'", [gid]);
+    for (const ap of aps) {
+      await ins("INSERT INTO round_players (round_id,player_id,game_team,is_alive,kills) VALUES (?,?,?,1,0)", [newRound.id, ap.player_id, ap.game_team]);
+    }
+
+    log.info("Round started manually", { gid, round: nextR });
+    res.json({ success: true, round: nextR });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// POST /api/admin/games/:id/end-round — end current round (no auto-start next)
+router.post("/games/:id/end-round", async (req, res) => {
+  try {
+    const gid = parseInt(req.params.id);
+    const { winner_team } = req.body;
+
+    const game = await q1("SELECT * FROM games WHERE id=?", [gid]);
+    const round = await q1("SELECT id FROM rounds WHERE game_id=? AND round_number=? AND status='active'", [gid, game.current_round]);
+    if (!round) return res.status(400).json({ error: "No active round" });
+
+    await ins("UPDATE rounds SET winner_game_team=?, status='finished', ended_at=NOW() WHERE id=?", [winner_team, round.id]);
+    await ins("UPDATE games SET total_rounds=? WHERE id=?", [game.current_round, gid]);
+
+    log.info("Round ended", { gid, round: game.current_round, winner: winner_team });
+    res.json({ success: true, roundFinished: game.current_round });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// POST /api/admin/games/:id/kill — admin marks player dead
 router.post("/games/:id/kill", async (req, res) => {
   try {
     const gid = parseInt(req.params.id);
@@ -91,37 +151,6 @@ router.post("/games/:id/kill", async (req, res) => {
 
     log.info("API admin kill", { gid, killed: player_id });
     res.json({ success: true });
-  } catch (e) {
-    res.status(500).json({ error: e.message });
-  }
-});
-
-// POST /api/admin/games/:id/end-round
-router.post("/games/:id/end-round", async (req, res) => {
-  try {
-    const gid = parseInt(req.params.id);
-    const { winner_team } = req.body;
-
-    const game = await q1("SELECT * FROM games WHERE id=?", [gid]);
-    const round = await q1("SELECT id FROM rounds WHERE game_id=? AND round_number=? AND status='active'", [gid, game.current_round]);
-    if (!round) return res.status(400).json({ error: "No active round" });
-
-    await ins("UPDATE rounds SET winner_game_team=?, status='finished', ended_at=NOW() WHERE id=?", [winner_team, round.id]);
-
-    if (game.current_round < game.total_rounds) {
-      const nextR = game.current_round + 1;
-      await ins("UPDATE games SET current_round=? WHERE id=?", [nextR, gid]);
-      await ins("INSERT INTO rounds (game_id,round_number,status,started_at) VALUES (?,?,'active',NOW())", [gid, nextR]);
-      const newRound = await q1("SELECT id FROM rounds WHERE game_id=? AND round_number=?", [gid, nextR]);
-      const aps = await q("SELECT player_id,game_team FROM game_players WHERE game_id=? AND attendance='checked_in'", [gid]);
-      for (const ap of aps) {
-        await ins("INSERT INTO round_players (round_id,player_id,game_team,is_alive,kills) VALUES (?,?,?,1,0)", [newRound.id, ap.player_id, ap.game_team]);
-      }
-      res.json({ success: true, nextRound: nextR });
-    } else {
-      await ins("UPDATE games SET status='finished' WHERE id=?", [gid]);
-      res.json({ success: true, finished: true });
-    }
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
