@@ -31,20 +31,17 @@ router.post("/games/:id/status", async (req, res) => {
 
     await ins("UPDATE games SET status=? WHERE id=?", [status, gid]);
 
-    // ---- FINISH GAME: close round + calculate scores ----
+    // Finish game — close round + calculate scores
     if (status === "finished") {
-      // Close active round
       const activeRound = await q1("SELECT id FROM rounds WHERE game_id=? AND status='active'", [gid]);
       if (activeRound) {
         await ins("UPDATE rounds SET status='finished', ended_at=NOW() WHERE id=?", [activeRound.id]);
       }
       await ins("UPDATE games SET total_rounds=? WHERE id=?", [g.current_round, gid]);
-
-      // Calculate scores
       await calculateGameScores(gid);
     }
 
-    // ---- START GAME: assign teams, mark no-shows, create round 1 ----
+    // Start game — assign teams, mark no-shows
     if (status === "active") {
       await ins("UPDATE game_players SET attendance='no_show' WHERE game_id=? AND attendance='registered'", [gid]);
 
@@ -73,8 +70,7 @@ router.post("/games/:id/status", async (req, res) => {
         }
       }
 
-      // Create game as active but WITHOUT starting round 1
-      // Round will be started manually via /start-round
+      // No auto round — admin starts manually
       await ins("UPDATE games SET current_round=0 WHERE id=?", [gid]);
     }
 
@@ -177,7 +173,7 @@ router.post("/points", async (req, res) => {
 });
 
 // ============================================
-// SCORING: Calculate points when game finishes
+// SCORING
 // ============================================
 
 async function calculateGameScores(gid) {
@@ -185,14 +181,26 @@ async function calculateGameScores(gid) {
 
   const g = await q1("SELECT * FROM games WHERE id=?", [gid]);
 
-  // Count round wins per team → determine overall winner
+  // Count checked-in players
+  const playerCountRow = await q1(
+    "SELECT COUNT(*) as c FROM game_players WHERE game_id=? AND attendance='checked_in'",
+    [gid]
+  );
+  const playerCount = playerCountRow?.c || 1;
+
+  // Logarithmic multiplier: base = 6 players (x1.0)
+  const multiplier = Math.max(1, Math.log(playerCount) / Math.log(6));
+
+  log.info("Score multiplier", { playerCount, multiplier: multiplier.toFixed(2) });
+
+  // Round wins per team → overall winner
   const roundWins = await q(
     "SELECT winner_game_team, COUNT(*) as wins FROM rounds WHERE game_id=? AND winner_game_team IS NOT NULL GROUP BY winner_game_team ORDER BY wins DESC",
     [gid]
   );
   const winnerTeam = roundWins.length ? roundWins[0].winner_game_team : null;
 
-  // Count deaths per player (across all rounds)
+  // Deaths per player
   const deathStats = await q(
     "SELECT killed_player_id, COUNT(*) as deaths FROM round_kills WHERE game_id=? GROUP BY killed_player_id",
     [gid]
@@ -200,10 +208,7 @@ async function calculateGameScores(gid) {
   const deathMap = {};
   deathStats.forEach((d) => { deathMap[d.killed_player_id] = d.deaths; });
 
-  // Count rounds survived per player
-  const totalRounds = g.current_round || 1;
-
-  // Get all checked-in players
+  // All checked-in players
   const gps = await q(
     "SELECT * FROM game_players WHERE game_id=? AND attendance='checked_in'",
     [gid]
@@ -213,27 +218,55 @@ async function calculateGameScores(gid) {
     const isWinner = gp.game_team === winnerTeam;
     const playerDeaths = deathMap[gp.player_id] || 0;
 
-    // Count rounds where player survived (was alive at end)
-    const roundsSurvived = await q1(
-      "SELECT COUNT(*) as c FROM round_players rp JOIN rounds r ON rp.round_id=r.id WHERE r.game_id=? AND rp.player_id=? AND rp.is_alive=1 AND r.status='finished'",
+    // Rounds survived (alive at end)
+    const survivedRow = await q1(
+      `SELECT COUNT(*) as c FROM round_players rp 
+       JOIN rounds r ON rp.round_id = r.id 
+       WHERE r.game_id=? AND rp.player_id=? AND rp.is_alive=1 AND r.status='finished'`,
       [gid, gp.player_id]
     );
-    const survived = roundsSurvived?.c || 0;
+    const roundsSurvived = survivedRow?.c || 0;
+
+    // Rounds survived AND team won that round
+    const aliveAndWonRow = await q1(
+      `SELECT COUNT(*) as c FROM round_players rp
+       JOIN rounds r ON rp.round_id = r.id
+       WHERE r.game_id=? AND rp.player_id=? AND rp.is_alive=1 
+       AND r.status='finished' AND r.winner_game_team=?`,
+      [gid, gp.player_id, gp.game_team]
+    );
+    const roundsAliveAndWon = aliveAndWonRow?.c || 0;
+
+    // Rounds survived BUT team lost that round
+    const aliveLostRow = await q1(
+      `SELECT COUNT(*) as c FROM round_players rp
+       JOIN rounds r ON rp.round_id = r.id
+       WHERE r.game_id=? AND rp.player_id=? AND rp.is_alive=1
+       AND r.status='finished' AND r.winner_game_team IS NOT NULL AND r.winner_game_team!=?`,
+      [gid, gp.player_id, gp.game_team]
+    );
+    const roundsAliveLost = aliveLostRow?.c || 0;
 
     // ---- SCORING FORMULA ----
-    // +5  base participation
-    // +10 if winning team
-    // +3  per round survived
-    // +5  MVP bonus (later from voting)
-    const pts = 5 + (isWinner ? 10 : 0) + (survived * 3);
+    // base:          5 * mult    — participation
+    // winBonus:      10 * mult   — team won overall
+    // survivalPts:   3 * mult    — per each round survived
+    // aliveWinBonus: 2 * mult    — survived + team won THAT round
+    // aliveLoseBonus: 1 * mult   — survived but team LOST that round
+    const basePts        = Math.round(5 * multiplier);
+    const winBonus       = isWinner ? Math.round(10 * multiplier) : 0;
+    const survivalPts    = Math.round(3 * multiplier * roundsSurvived);
+    const aliveWinBonus  = Math.round(2 * multiplier * roundsAliveAndWon);
+    const aliveLoseBonus = Math.round(1 * multiplier * roundsAliveLost);
 
-    // Update player stats
+    const totalPts = basePts + winBonus + survivalPts + aliveWinBonus + aliveLoseBonus;
+
+    // Update player
     await ins(
       "UPDATE players SET games_played=games_played+1, wins=wins+?, total_deaths=total_deaths+?, rating=rating+? WHERE id=?",
-      [isWinner ? 1 : 0, playerDeaths, pts, gp.player_id]
+      [isWinner ? 1 : 0, playerDeaths, totalPts, gp.player_id]
     );
 
-    // Update game_players record
     await ins(
       "UPDATE game_players SET deaths_total=?, result=? WHERE game_id=? AND player_id=?",
       [playerDeaths, isWinner ? "win" : "loss", gid, gp.player_id]
@@ -243,8 +276,12 @@ async function calculateGameScores(gid) {
       player: gp.player_id,
       isWinner,
       deaths: playerDeaths,
-      roundsSurvived: survived,
-      points: pts,
+      roundsSurvived,
+      roundsAliveAndWon,
+      roundsAliveLost,
+      multiplier: multiplier.toFixed(2),
+      breakdown: `base=${basePts} win=${winBonus} surv=${survivalPts} aliveWin=${aliveWinBonus} aliveLose=${aliveLoseBonus}`,
+      total: totalPts,
     });
 
     // Season stats
@@ -256,22 +293,22 @@ async function calculateGameScores(gid) {
       if (ex) {
         await ins(
           "UPDATE season_stats SET season_games=season_games+1, season_wins=season_wins+?, season_deaths=season_deaths+?, season_rating=season_rating+? WHERE id=?",
-          [isWinner ? 1 : 0, playerDeaths, pts, ex.id]
+          [isWinner ? 1 : 0, playerDeaths, totalPts, ex.id]
         );
       } else {
         await ins(
           "INSERT INTO season_stats (player_id,season_id,season_games,season_wins,season_kills,season_deaths,season_rating) VALUES (?,?,1,?,0,?,?)",
-          [gp.player_id, g.season_id, isWinner ? 1 : 0, playerDeaths, pts]
+          [gp.player_id, g.season_id, isWinner ? 1 : 0, playerDeaths, totalPts]
         );
       }
     }
 
-    // Check badges
+    // Badges
     const updatedPlayer = await q1("SELECT * FROM players WHERE id=?", [gp.player_id]);
     await checkBadgesAPI(gp.player_id, updatedPlayer);
   }
 
-  // No-show penalty: -5 rating
+  // No-show penalty (flat, not scaled)
   const noShows = await q(
     "SELECT player_id FROM game_players WHERE game_id=? AND attendance='no_show'",
     [gid]
@@ -281,22 +318,23 @@ async function calculateGameScores(gid) {
     log.info("No-show penalty", { player: ns.player_id });
   }
 
-  // Update winning team rating
+  // Team bonus (scaled)
   if (winnerTeam) {
-    // Find actual team_id for winning game_team letter
+    const teamBonus = Math.round(20 * multiplier);
     const winningPlayers = await q(
       "SELECT DISTINCT team_id FROM game_players WHERE game_id=? AND game_team=? AND team_id IS NOT NULL",
       [gid, winnerTeam]
     );
     for (const wp of winningPlayers) {
-      await ins("UPDATE teams SET rating=rating+20 WHERE id=?", [wp.team_id]);
+      await ins("UPDATE teams SET rating=rating+? WHERE id=?", [teamBonus, wp.team_id]);
     }
+    log.info("Team bonus", { winnerTeam, teamBonus });
   }
 
-  log.info("=== SCORES CALCULATED ===", { gid, winner: winnerTeam });
+  log.info("=== SCORES CALCULATED ===", { gid, winner: winnerTeam, playerCount, multiplier: multiplier.toFixed(2) });
 }
 
-// Badge check (simplified for API context — no bot notifications)
+// Badge check
 async function checkBadgesAPI(playerId, stats) {
   const BADGES = require("../../constants/badges");
   const existing = new Set(
@@ -307,7 +345,7 @@ async function checkBadgesAPI(playerId, stats) {
     if (!existing.has(b.name) && b.check(stats)) {
       await ins(
         "INSERT INTO player_badges (player_id,badge_name,badge_emoji) VALUES (?,?,?)",
-        [playerId, b.name, b.emoji]
+        [playerId, b.name, b.icon || "??"]
       );
       log.info("Badge awarded", { playerId, badge: b.name });
     }

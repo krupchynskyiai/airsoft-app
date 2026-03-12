@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { adminCreateGame, adminCreateTeam, adminAddPoints } from "../api";
 import { useTelegram } from "../hooks/useTelegram";
+import PlayerSearch from "../components/PlayerSearch";
 
 export default function Admin() {
   const [section, setSection] = useState(null);
@@ -8,13 +9,11 @@ export default function Admin() {
 
   const sections = [
     { id: "game", icon: "🎮", label: "Створити гру", desc: "Нова подія з датою, локацією та форматом", color: "from-emerald-600/20 to-teal-700/10", border: "border-emerald-700/30" },
-    { id: "team", icon: "🏠", label: "Створити команду", desc: "Додати нову команду до клубу", color: "from-blue-600/20 to-indigo-700/10", border: "border-blue-700/30" },
     { id: "points", icon: "📊", label: "Змінити очки", desc: "Додати або зняти рейтинг гравцю", color: "from-amber-600/20 to-orange-700/10", border: "border-amber-700/30" },
   ];
 
   return (
     <div className="pb-4">
-      {/* Header */}
       <div className="mb-5">
         <h2 className="text-2xl font-black">Адмін панель</h2>
         <p className="text-sm text-gray-500">Керування клубом</p>
@@ -43,7 +42,6 @@ export default function Admin() {
             </button>
           ))}
 
-          {/* Quick stats */}
           <div className="mt-6 bg-slate-800/40 rounded-2xl p-4 border border-slate-700/30">
             <div className="flex items-center gap-2 mb-3">
               <span>💡</span>
@@ -53,6 +51,7 @@ export default function Admin() {
               <p>• Створюй гру заздалегідь щоб гравці встигли записатись</p>
               <p>• Random Teams розподілить гравців автоматично</p>
               <p>• Очки нараховуються автоматично після гри</p>
+              <p>• Команди створюються в розділі Команди</p>
             </div>
           </div>
         </div>
@@ -69,7 +68,6 @@ export default function Admin() {
           </button>
 
           {section === "game" && <CreateGameForm onDone={() => setSection(null)} />}
-          {section === "team" && <CreateTeamForm onDone={() => setSection(null)} />}
           {section === "points" && <PointsForm onDone={() => setSection(null)} />}
         </div>
       )}
@@ -80,7 +78,7 @@ export default function Admin() {
 // ---- Create Game ----
 function CreateGameForm({ onDone }) {
   const [form, setForm] = useState({
-    date: "", time: "", location: "", game_mode: "team_vs_team", total_rounds: 3,
+    date: "", time: "", location: "", game_mode: "team_vs_team",
   });
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState(1);
@@ -120,7 +118,6 @@ function CreateGameForm({ onDone }) {
         </div>
       </div>
 
-      {/* Step indicator */}
       <div className="flex gap-1.5 mb-6">
         {[1, 2].map((s) => (
           <div key={s} className={`flex-1 h-1 rounded-full transition-all duration-300 ${s <= step ? "bg-emerald-500" : "bg-slate-700"}`} />
@@ -168,14 +165,13 @@ function CreateGameForm({ onDone }) {
             </button>
           ))}
 
-          {/* Summary */}
           <div className="bg-slate-800/60 rounded-2xl p-4 border border-slate-700/30 mt-4">
             <p className="text-xs text-gray-500 uppercase tracking-wider font-bold mb-2">Підсумок</p>
             <div className="space-y-1.5 text-sm">
               <p>📅 {form.date} {form.time && `о ${form.time}`}</p>
               <p>📍 {form.location}</p>
               <p>🎯 {modes.find((m) => m.id === form.game_mode)?.label}</p>
-              <p>🔄 Раунди - по ходу гри</p>
+              <p>🔄 Раунди — по ходу гри</p>
             </div>
           </div>
 
@@ -208,73 +204,23 @@ function CreateGameForm({ onDone }) {
   );
 }
 
-// ---- Create Team ----
-function CreateTeamForm({ onDone }) {
-  const [name, setName] = useState("");
-  const [loading, setLoading] = useState(false);
-  const { haptic, showAlert } = useTelegram();
-
-  async function submit() {
-    if (!name.trim()) return;
-    setLoading(true);
-    try {
-      await adminCreateTeam(name.trim());
-      haptic("success");
-      showAlert("✅ Команду створено!");
-      onDone();
-    } catch (e) {
-      showAlert(e.message);
-      haptic("error");
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  return (
-    <div>
-      <div className="flex items-center gap-3 mb-6">
-        <div className="w-12 h-12 rounded-2xl bg-blue-600/20 flex items-center justify-center text-2xl">🏠</div>
-        <div>
-          <h3 className="text-lg font-black">Нова команда</h3>
-          <p className="text-xs text-gray-500">Додай команду до клубу</p>
-        </div>
-      </div>
-
-      <div className="space-y-4">
-        <FormInput icon="🏷" label="Назва команди" value={name} onChange={setName} placeholder="Team Alpha" />
-        <button
-          onClick={submit}
-          disabled={loading || !name.trim()}
-          className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 disabled:from-slate-700 disabled:to-slate-700 disabled:text-gray-500 py-4 rounded-2xl font-bold transition-all active:scale-[0.98]"
-        >
-          {loading ? (
-            <span className="flex items-center justify-center gap-2">
-              <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-            </span>
-          ) : (
-            "✅ Створити команду"
-          )}
-        </button>
-      </div>
-    </div>
-  );
-}
-
 // ---- Points Form ----
 function PointsForm({ onDone }) {
   const [nick, setNick] = useState("");
+  const [selectedPlayer, setSelectedPlayer] = useState(null);
   const [amount, setAmount] = useState("");
   const [loading, setLoading] = useState(false);
   const { haptic, showAlert } = useTelegram();
 
   async function submit(sign) {
     const amt = parseInt(amount);
-    if (!nick.trim() || isNaN(amt) || amt <= 0) return showAlert("Заповни поля коректно");
+    const nickname = selectedPlayer?.nickname || nick.trim();
+    if (!nickname || isNaN(amt) || amt <= 0) return showAlert("Заповни поля коректно");
     setLoading(true);
     try {
-      const res = await adminAddPoints(nick.trim(), sign * amt);
+      const res = await adminAddPoints(nickname, sign * amt);
       haptic("success");
-      showAlert(`✅ Новий рейтинг: ${res.newRating}`);
+      showAlert(`✅ ${nickname}: новий рейтинг ${res.newRating}`);
       onDone();
     } catch (e) {
       showAlert(e.message);
@@ -295,20 +241,42 @@ function PointsForm({ onDone }) {
       </div>
 
       <div className="space-y-4">
-        <FormInput icon="👤" label="Нікнейм гравця" value={nick} onChange={setNick} placeholder="Falcon" />
+        <PlayerSearch
+          value={nick}
+          onChange={(v) => { setNick(v); setSelectedPlayer(null); }}
+          onSelect={(p) => { setNick(p.nickname); setSelectedPlayer(p); }}
+          placeholder="Нікнейм гравця"
+          icon="👤"
+        />
+
+        {/* Selected player info */}
+        {selectedPlayer && (
+          <div className="flex items-center gap-3 bg-emerald-950/20 border border-emerald-800/30 rounded-xl px-4 py-2.5">
+            <div className="w-8 h-8 rounded-lg bg-emerald-600/20 flex items-center justify-center text-sm">🪖</div>
+            <div className="flex-1">
+              <span className="text-sm font-bold">{selectedPlayer.nickname}</span>
+              <span className="text-xs text-gray-500 ml-2">Rating: {selectedPlayer.rating}</span>
+            </div>
+            <button
+              onClick={() => { setSelectedPlayer(null); setNick(""); }}
+              className="text-gray-500 text-xs"
+            >✕</button>
+          </div>
+        )}
+
         <FormInput icon="🔢" label="Кількість очок" value={amount} onChange={setAmount} placeholder="10" type="number" />
 
         <div className="grid grid-cols-2 gap-3 mt-2">
           <button
             onClick={() => submit(1)}
-            disabled={loading || !nick.trim() || !amount}
+            disabled={loading || (!nick.trim() && !selectedPlayer) || !amount}
             className="bg-gradient-to-r from-emerald-600 to-teal-600 disabled:from-slate-700 disabled:to-slate-700 disabled:text-gray-500 py-4 rounded-2xl font-bold transition-all active:scale-[0.98] flex items-center justify-center gap-2"
           >
             {loading ? <Spinner /> : <><span>⬆️</span> Додати</>}
           </button>
           <button
             onClick={() => submit(-1)}
-            disabled={loading || !nick.trim() || !amount}
+            disabled={loading || (!nick.trim() && !selectedPlayer) || !amount}
             className="bg-gradient-to-r from-red-700 to-red-800 disabled:from-slate-700 disabled:to-slate-700 disabled:text-gray-500 py-4 rounded-2xl font-bold transition-all active:scale-[0.98] flex items-center justify-center gap-2"
           >
             {loading ? <Spinner /> : <><span>⬇️</span> Зняти</>}
@@ -319,7 +287,7 @@ function PointsForm({ onDone }) {
   );
 }
 
-// ---- Shared components ----
+// ---- Shared ----
 function FormInput({ icon, label, value, onChange, placeholder, type = "text" }) {
   return (
     <div>

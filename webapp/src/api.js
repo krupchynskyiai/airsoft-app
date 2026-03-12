@@ -32,6 +32,7 @@ export const getProfile = () => api("/profile");
 export const registerPlayer = (nickname, team_id) =>
   api("/register", { method: "POST", body: { nickname, team_id } });
 export const getTeamsList = () => api("/teams/list");
+export const searchPlayers = (query) => api(`/search-players?q=${encodeURIComponent(query)}`);
 
 // ---- Teams ----
 export const getGames = (status) =>
@@ -51,6 +52,8 @@ export const getTeamsLeaderboard = () => api("/leaderboard/teams");
 export const getSeasonStats = () => api("/leaderboard/season");
 
 // ---- Teams ----
+export const createTeam = (name) =>
+  api("/teams/create", { method: "POST", body: { name } });
 export const getAllTeams = () => api("/teams");
 export const getTeamDetail = (id) => api(`/teams/${id}`);
 export const applyToTeam = (id, message) =>

@@ -4,6 +4,51 @@ const log = require("../../utils/logger");
 
 const router = Router();
 
+// POST /api/teams/create — any player can create a team
+router.post("/create", async (req, res) => {
+  try {
+    const tgId = req.tgUser.id;
+    const { name } = req.body;
+
+    if (!name || name.trim().length < 2) {
+      return res.status(400).json({ error: "Team name required (min 2 chars)" });
+    }
+
+    const player = await q1("SELECT id, team_id FROM players WHERE telegram_id = ?", [tgId]);
+    if (!player) return res.status(400).json({ error: "Not registered" });
+
+    // Check duplicate name
+    const dup = await q1("SELECT id FROM teams WHERE name = ?", [name.trim()]);
+    if (dup) return res.status(400).json({ error: "Team name already taken" });
+
+    // If player is in another team — auto-leave
+    if (player.team_id) {
+      const oldTeam = await q1("SELECT captain_id FROM teams WHERE id = ?", [player.team_id]);
+      if (oldTeam && oldTeam.captain_id === player.id) {
+        await ins("UPDATE teams SET captain_id = NULL WHERE id = ?", [player.team_id]);
+      }
+      log.info("Player auto-left team to create new", { playerId: player.id, oldTeam: player.team_id });
+    }
+
+    // Cancel any pending applications
+    await ins(
+      "UPDATE team_applications SET status = 'cancelled', resolved_at = NOW() WHERE player_id = ? AND status = 'pending'",
+      [player.id]
+    );
+
+    // Create team with player as captain
+    const r = await ins("INSERT INTO teams (name, captain_id, rating) VALUES (?, ?, 0)", [name.trim(), player.id]);
+
+    // Add player to the new team
+    await ins("UPDATE players SET team_id = ? WHERE id = ?", [r.insertId, player.id]);
+
+    log.info("Team created by player", { teamId: r.insertId, name: name.trim(), captain: player.id });
+    res.json({ success: true, team_id: r.insertId });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 // GET /api/teams — all teams with members count
 router.get("/", async (req, res) => {
   try {
@@ -60,7 +105,7 @@ router.get("/:id", async (req, res) => {
       );
     }
 
-    res.json({ team, members, myApplication, isCaptain, pendingApps, myPlayerId: me?.id || null });
+    res.json({ team, members, myApplication, isCaptain, pendingApps, myPlayerId: me?.id || null, myTeamId: me?.team_id || null });
   } catch (e) {
     res.status(500).json({ error: e.message });
   }

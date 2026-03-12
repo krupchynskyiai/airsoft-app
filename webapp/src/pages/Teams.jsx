@@ -2,14 +2,21 @@ import React, { useState, useEffect, useCallback } from "react";
 import {
   getAllTeams, getTeamDetail, applyToTeam, cancelApplication,
   resolveApplication, inviteToTeam, getMyInvites, respondToInvite, leaveTeam,
+  createTeam,
 } from "../api";
 import { useTelegram } from "../hooks/useTelegram";
+import PlayerSearch from "../components/PlayerSearch";
 
 export default function Teams({ onReloadProfile }) {
   const [teams, setTeams] = useState([]);
   const [invites, setInvites] = useState([]);
   const [selectedTeam, setSelectedTeam] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [showCreate, setShowCreate] = useState(false);
+  const [newTeamName, setNewTeamName] = useState("");
+  const [createLoading, setCreateLoading] = useState(false);
+  const [showLeaveWarningCreate, setShowLeaveWarningCreate] = useState(false);
+  const [currentTeamId, setCurrentTeamId] = useState(null);
   const { haptic, showAlert } = useTelegram();
 
   useEffect(() => { loadTeams(); }, []);
@@ -17,11 +24,36 @@ export default function Teams({ onReloadProfile }) {
   async function loadTeams() {
     setLoading(true);
     try {
-      const [t, inv] = await Promise.all([getAllTeams(), getMyInvites()]);
+      const [t, inv, profile] = await Promise.all([
+        getAllTeams(),
+        getMyInvites(),
+        import("../api").then(m => m.getProfile()),
+      ]);
       setTeams(t);
       setInvites(inv);
+      setCurrentTeamId(profile.player?.team_id || null);
     } catch (e) { console.error(e); }
     finally { setLoading(false); }
+  }
+
+  async function handleCreateTeam() {
+    if (!newTeamName.trim() || newTeamName.trim().length < 2) return;
+    setCreateLoading(true);
+    try {
+      await createTeam(newTeamName.trim());
+      haptic("success");
+      showAlert("✅ Команду створено! Ти — капітан.");
+      setShowCreate(false);
+      setNewTeamName("");
+      setShowLeaveWarningCreate(false);
+      loadTeams();
+      if (onReloadProfile) onReloadProfile();
+    } catch (e) {
+      showAlert(e.message);
+      haptic("error");
+    } finally {
+      setCreateLoading(false);
+    }
   }
 
   if (selectedTeam) {
@@ -75,6 +107,85 @@ export default function Teams({ onReloadProfile }) {
           </div>
         </div>
       )}
+
+      {/* Create team */}
+      <div className="mb-5">
+        {showLeaveWarningCreate ? (
+          <div className="bg-red-950/20 border border-red-800/30 rounded-2xl p-4">
+            <div className="text-center mb-3">
+              <div className="text-3xl mb-2">⚠️</div>
+              <h4 className="font-bold text-red-300">Ти вже в команді</h4>
+              <p className="text-sm text-gray-400 mt-1">
+                При створенні нової команди ти автоматично покинеш поточну. Продовжити?
+              </p>
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={() => { setShowLeaveWarningCreate(false); setShowCreate(true); }}
+                className="flex-1 bg-red-700 py-3 rounded-xl font-bold text-sm active:scale-95"
+              >
+                Так, створити нову
+              </button>
+              <button
+                onClick={() => setShowLeaveWarningCreate(false)}
+                className="flex-1 bg-slate-700 py-3 rounded-xl font-bold text-sm text-gray-400 active:scale-95"
+              >
+                Скасувати
+              </button>
+            </div>
+          </div>
+        ) : showCreate ? (
+          <div className="bg-slate-800/60 border border-slate-700/40 rounded-2xl p-4">
+            <h3 className="font-bold text-sm mb-3">Створити команду</h3>
+            <div className="relative mb-3">
+              <input
+                value={newTeamName}
+                onChange={(e) => setNewTeamName(e.target.value)}
+                placeholder="Назва команди"
+                maxLength={30}
+                className="w-full bg-slate-700/40 border border-slate-600/30 rounded-xl px-4 py-3 text-sm focus:border-emerald-500 focus:outline-none"
+                autoFocus
+              />
+              {newTeamName.length > 0 && (
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-gray-500">{newTeamName.length}/30</span>
+              )}
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={handleCreateTeam}
+                disabled={createLoading || newTeamName.trim().length < 2}
+                className="flex-1 bg-gradient-to-r from-emerald-600 to-teal-600 py-3 rounded-xl font-bold text-sm active:scale-95 disabled:opacity-50"
+              >
+                {createLoading ? (
+                  <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin inline-block" />
+                ) : (
+                  "✅ Створити"
+                )}
+              </button>
+              <button
+                onClick={() => { setShowCreate(false); setNewTeamName(""); }}
+                className="px-4 bg-slate-700 rounded-xl text-sm text-gray-400"
+              >
+                ✕
+              </button>
+            </div>
+          </div>
+        ) : (
+          <button
+            onClick={() => {
+              haptic("impact");
+              if (currentTeamId) {
+                setShowLeaveWarningCreate(true);
+              } else {
+                setShowCreate(true);
+              }
+            }}
+            className="w-full bg-slate-800/60 border-2 border-dashed border-slate-600/50 hover:border-emerald-500/40 py-4 rounded-2xl font-bold text-sm text-gray-400 hover:text-emerald-400 transition-all active:scale-[0.98] flex items-center justify-center gap-2"
+          >
+            <span className="text-lg">+</span> Створити свою команду
+          </button>
+        )}
+      </div>
 
       {/* Teams list */}
       {loading ? (
@@ -348,14 +459,14 @@ function TeamDetail({ teamId, onBack, onReloadProfile }) {
         <div className="mb-5">
           {showInviteForm ? (
             <div className="bg-slate-800/60 border border-slate-700/40 rounded-2xl p-4">
-              <p className="text-sm font-medium mb-2">Нікнейм гравця:</p>
-              <input
+              <PlayerSearch
                 value={inviteNick}
-                onChange={(e) => setInviteNick(e.target.value)}
-                placeholder="Falcon"
-                className="w-full bg-slate-700/40 border border-slate-600/30 rounded-xl px-3 py-2.5 text-sm mb-3 focus:border-emerald-500 focus:outline-none"
+                onChange={(v) => setInviteNick(v)}
+                onSelect={(p) => setInviteNick(p.nickname)}
+                placeholder="Знайди гравця"
+                icon="🔍"
               />
-              <div className="flex gap-2">
+              <div className="flex gap-2 mt-3">
                 <button
                   onClick={() => doAction(() => inviteToTeam(teamId, inviteNick), "✅ Запрошення надіслано!")}
                   disabled={actionLoading || !inviteNick.trim()}
@@ -363,7 +474,7 @@ function TeamDetail({ teamId, onBack, onReloadProfile }) {
                 >
                   📩 Запросити
                 </button>
-                <button onClick={() => setShowInviteForm(false)} className="px-4 bg-slate-700 rounded-xl text-sm">✕</button>
+                <button onClick={() => { setShowInviteForm(false); setInviteNick(""); }} className="px-4 bg-slate-700 rounded-xl text-sm text-gray-400">✕</button>
               </div>
             </div>
           ) : (

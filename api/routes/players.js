@@ -114,4 +114,20 @@ router.get("/teams/list", async (req, res) => {
   }
 });
 
+// GET /api/search-players?q=falcon — search players by nickname
+router.get("/search-players", async (req, res) => {
+  try {
+    const query = req.query.q || "";
+    if (query.length < 1) return res.json([]);
+
+    const players = await q(
+      "SELECT id, nickname, rating, team_id FROM players WHERE nickname LIKE ? LIMIT 10",
+      [`%${query}%`]
+    );
+    res.json(players);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 module.exports = router;
