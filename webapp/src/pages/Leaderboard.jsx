@@ -150,7 +150,7 @@ export default function Leaderboard() {
                   </div>
                   <div className="text-right">
                     <div className="font-black text-emerald-400 text-lg">{t.rating}</div>
-                    <div className="text-[10px] text-gray-500">pts</div>
+                    <div className="text-[10px] text-gray-500">очок</div>
                   </div>
                 </div>
               ))}
@@ -195,7 +195,7 @@ export default function Leaderboard() {
                         </div>
                         <div className="text-right">
                           <div className="font-black text-emerald-400">{p.season_rating}</div>
-                          <div className="text-[10px] text-gray-600">pts</div>
+                          <div className="text-[10px] text-gray-600">очок</div>
                         </div>
                       </div>
                     ))}

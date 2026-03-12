@@ -215,10 +215,7 @@ export default function GameDetail({ gameId, onBack, isAdmin }) {
           </div>
           <div className="flex flex-wrap gap-2">
             {g.status === "upcoming" && (
-              <>
-                <SmallButton onClick={() => doAction(() => adminSetGameStatus(gameId, "checkin"))} icon="📍" label="Check-in" color="amber" />
-                <SmallButton onClick={() => doAction(() => adminSetGameStatus(gameId, "active"))} icon="▶️" label="Старт" color="red" />
-              </>
+              <SmallButton onClick={() => doAction(() => adminSetGameStatus(gameId, "checkin"))} icon="📍" label="Відкрити Check-in" color="amber" />
             )}
             {g.status === "checkin" && (
               <SmallButton onClick={() => doAction(() => adminSetGameStatus(gameId, "active"))} icon="▶️" label="Почати гру" color="red" />

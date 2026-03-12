@@ -73,13 +73,9 @@ router.post("/games/:id/status", async (req, res) => {
         }
       }
 
-      await ins("UPDATE games SET current_round=1 WHERE id=?", [gid]);
-      await ins("INSERT INTO rounds (game_id,round_number,status,started_at) VALUES (?,1,'active',NOW())", [gid]);
-      const round = await q1("SELECT id FROM rounds WHERE game_id=? AND round_number=1", [gid]);
-      const aps = await q("SELECT player_id,game_team FROM game_players WHERE game_id=? AND attendance='checked_in'", [gid]);
-      for (const ap of aps) {
-        await ins("INSERT INTO round_players (round_id,player_id,game_team,is_alive,kills) VALUES (?,?,?,1,0)", [round.id, ap.player_id, ap.game_team]);
-      }
+      // Create game as active but WITHOUT starting round 1
+      // Round will be started manually via /start-round
+      await ins("UPDATE games SET current_round=0 WHERE id=?", [gid]);
     }
 
     res.json({ success: true });
@@ -159,7 +155,7 @@ router.post("/games/:id/kill", async (req, res) => {
 router.post("/teams", async (req, res) => {
   try {
     const { name } = req.body;
-    const r = await ins("INSERT INTO teams (name,rating) VALUES (?,0)", [name]);
+    const r = await ins("INSERT INTO teams (name,captain_id,rating) VALUES (?,NULL,0)", [name]);
     res.json({ success: true, team_id: r.insertId });
   } catch (e) {
     res.status(500).json({ error: e.message });

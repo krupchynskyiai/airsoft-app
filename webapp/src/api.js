@@ -33,7 +33,7 @@ export const registerPlayer = (nickname, team_id) =>
   api("/register", { method: "POST", body: { nickname, team_id } });
 export const getTeamsList = () => api("/teams/list");
 
-// ---- Games ----
+// ---- Teams ----
 export const getGames = (status) =>
   api(`/games${status ? `?status=${status}` : ""}`);
 export const getGameDetail = (id) => api(`/games/${id}`);
@@ -49,6 +49,23 @@ export const getRoundStatus = (id) => api(`/games/${id}/round`);
 export const getLeaderboard = () => api("/leaderboard");
 export const getTeamsLeaderboard = () => api("/leaderboard/teams");
 export const getSeasonStats = () => api("/leaderboard/season");
+
+// ---- Teams ----
+export const getAllTeams = () => api("/teams");
+export const getTeamDetail = (id) => api(`/teams/${id}`);
+export const applyToTeam = (id, message) =>
+  api(`/teams/${id}/apply`, { method: "POST", body: { message } });
+export const cancelApplication = (id) =>
+  api(`/teams/${id}/cancel-application`, { method: "POST" });
+export const resolveApplication = (id, applicationId, action) =>
+  api(`/teams/${id}/resolve`, { method: "POST", body: { application_id: applicationId, action } });
+export const inviteToTeam = (id, playerNickname) =>
+  api(`/teams/${id}/invite`, { method: "POST", body: { player_nickname: playerNickname } });
+export const getMyInvites = () => api("/teams/my/invites");
+export const respondToInvite = (inviteId, action) =>
+  api(`/teams/invites/${inviteId}/respond`, { method: "POST", body: { action } });
+export const leaveTeam = () =>
+  api("/teams/leave", { method: "POST" });
 
 // ---- Admin ----
 export const adminCreateGame = (data) =>

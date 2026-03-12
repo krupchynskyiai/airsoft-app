@@ -2605,3 +2605,922 @@
 [2026-03-12T12:42:52.663Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM game_players WHERE game_id = ?","rows":1,"ms":17}
 [2026-03-12T12:42:52.669Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM game_players WHERE game_id = ?","rows":1,"ms":18}
 [2026-03-12T12:42:56.160Z] [INFO] Shutdown...
+[2026-03-12T13:06:00.694Z] [INFO] =============================
+[2026-03-12T13:06:00.695Z] [INFO]   AIRSOFT CLUB BOT + APP v2  
+[2026-03-12T13:06:00.696Z] [INFO] =============================
+[2026-03-12T13:06:00.697Z] [INFO] Connecting MySQL... | {"host":"s5.thehost.com.ua","database":"airsoft_db"}
+[2026-03-12T13:06:00.834Z] [INFO] MySQL OK
+[2026-03-12T13:06:00.877Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM players","rows":1,"ms":42}
+[2026-03-12T13:06:00.916Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM teams","rows":1,"ms":37}
+[2026-03-12T13:06:00.954Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM games","rows":1,"ms":38}
+[2026-03-12T13:06:00.955Z] [INFO] DB | {"players":3,"teams":1,"games":5}
+[2026-03-12T13:06:00.980Z] [INFO] Bot running!
+[2026-03-12T13:06:00.981Z] [INFO] Express server on port 3000
+[2026-03-12T13:06:00.982Z] [INFO] Mini App URL: http://localhost:3000
+[2026-03-12T13:06:05.499Z] [INFO] =============================
+[2026-03-12T13:06:05.500Z] [INFO]   AIRSOFT CLUB BOT + APP v2  
+[2026-03-12T13:06:05.503Z] [INFO] =============================
+[2026-03-12T13:06:05.505Z] [INFO] Connecting MySQL... | {"host":"s5.thehost.com.ua","database":"airsoft_db"}
+[2026-03-12T13:06:05.625Z] [INFO] MySQL OK
+[2026-03-12T13:06:05.660Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM players","rows":1,"ms":32}
+[2026-03-12T13:06:05.694Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM teams","rows":1,"ms":32}
+[2026-03-12T13:06:05.729Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM games","rows":1,"ms":33}
+[2026-03-12T13:06:05.729Z] [INFO] DB | {"players":3,"teams":1,"games":5}
+[2026-03-12T13:06:05.752Z] [INFO] Bot running!
+[2026-03-12T13:06:05.754Z] [INFO] Express server on port 3000
+[2026-03-12T13:06:05.755Z] [INFO] Mini App URL: http://localhost:3000
+[2026-03-12T13:06:06.277Z] [DEBUG] API GET /profile | {"body":{}}
+[2026-03-12T13:06:06.278Z] [DEBUG] DEV mode auth bypass | {"userId":412606522}
+[2026-03-12T13:06:06.313Z] [DB] Q | {"sql":"SELECT p.*, t.name AS team_name\n       FROM players p LEFT JOIN teams t ON p.team_id = t.id\n       W","rows":1,"ms":35}
+[2026-03-12T13:06:06.346Z] [DB] Q | {"sql":"SELECT badge_name, badge_emoji FROM player_badges WHERE player_id = ?","rows":0,"ms":31}
+[2026-03-12T13:06:06.380Z] [DB] Q | {"sql":"SELECT g.id, g.date, g.time, g.game_mode, g.status, gp.result, gp.kills_total, gp.deaths_total\n     ","rows":4,"ms":33}
+[2026-03-12T13:06:06.381Z] [INFO] Profile API | {"tgId":412606522,"isAdmin":true,"admins":[412606522]}
+[2026-03-12T13:06:06.387Z] [DEBUG] API GET /profile | {"body":{}}
+[2026-03-12T13:06:06.388Z] [DEBUG] DEV mode auth bypass | {"userId":412606522}
+[2026-03-12T13:06:06.405Z] [DB] Q | {"sql":"SELECT p.*, t.name AS team_name\n       FROM players p LEFT JOIN teams t ON p.team_id = t.id\n       W","rows":1,"ms":17}
+[2026-03-12T13:06:06.423Z] [DB] Q | {"sql":"SELECT badge_name, badge_emoji FROM player_badges WHERE player_id = ?","rows":0,"ms":17}
+[2026-03-12T13:06:06.440Z] [DB] Q | {"sql":"SELECT g.id, g.date, g.time, g.game_mode, g.status, gp.result, gp.kills_total, gp.deaths_total\n     ","rows":4,"ms":17}
+[2026-03-12T13:06:06.441Z] [INFO] Profile API | {"tgId":412606522,"isAdmin":true,"admins":[412606522]}
+[2026-03-12T13:06:06.445Z] [DEBUG] API GET /profile | {"body":{}}
+[2026-03-12T13:06:06.445Z] [DEBUG] DEV mode auth bypass | {"userId":412606522}
+[2026-03-12T13:06:06.462Z] [DB] Q | {"sql":"SELECT p.*, t.name AS team_name\n       FROM players p LEFT JOIN teams t ON p.team_id = t.id\n       W","rows":1,"ms":16}
+[2026-03-12T13:06:06.478Z] [DB] Q | {"sql":"SELECT badge_name, badge_emoji FROM player_badges WHERE player_id = ?","rows":0,"ms":16}
+[2026-03-12T13:06:06.495Z] [DB] Q | {"sql":"SELECT g.id, g.date, g.time, g.game_mode, g.status, gp.result, gp.kills_total, gp.deaths_total\n     ","rows":4,"ms":16}
+[2026-03-12T13:06:06.496Z] [INFO] Profile API | {"tgId":412606522,"isAdmin":true,"admins":[412606522]}
+[2026-03-12T13:06:06.501Z] [DEBUG] API GET /profile | {"body":{}}
+[2026-03-12T13:06:06.501Z] [DEBUG] DEV mode auth bypass | {"userId":412606522}
+[2026-03-12T13:06:06.519Z] [DB] Q | {"sql":"SELECT p.*, t.name AS team_name\n       FROM players p LEFT JOIN teams t ON p.team_id = t.id\n       W","rows":1,"ms":16}
+[2026-03-12T13:06:06.535Z] [DB] Q | {"sql":"SELECT badge_name, badge_emoji FROM player_badges WHERE player_id = ?","rows":0,"ms":16}
+[2026-03-12T13:06:06.553Z] [DB] Q | {"sql":"SELECT g.id, g.date, g.time, g.game_mode, g.status, gp.result, gp.kills_total, gp.deaths_total\n     ","rows":4,"ms":16}
+[2026-03-12T13:06:06.553Z] [INFO] Profile API | {"tgId":412606522,"isAdmin":true,"admins":[412606522]}
+[2026-03-12T13:06:06.560Z] [DEBUG] API GET /profile | {"body":{}}
+[2026-03-12T13:06:06.561Z] [DEBUG] DEV mode auth bypass | {"userId":412606522}
+[2026-03-12T13:06:06.578Z] [DB] Q | {"sql":"SELECT p.*, t.name AS team_name\n       FROM players p LEFT JOIN teams t ON p.team_id = t.id\n       W","rows":1,"ms":16}
+[2026-03-12T13:06:06.594Z] [DB] Q | {"sql":"SELECT badge_name, badge_emoji FROM player_badges WHERE player_id = ?","rows":0,"ms":16}
+[2026-03-12T13:06:06.612Z] [DB] Q | {"sql":"SELECT g.id, g.date, g.time, g.game_mode, g.status, gp.result, gp.kills_total, gp.deaths_total\n     ","rows":4,"ms":16}
+[2026-03-12T13:06:06.613Z] [INFO] Profile API | {"tgId":412606522,"isAdmin":true,"admins":[412606522]}
+[2026-03-12T13:06:06.617Z] [DEBUG] API GET /profile | {"body":{}}
+[2026-03-12T13:06:06.618Z] [DEBUG] DEV mode auth bypass | {"userId":412606522}
+[2026-03-12T13:06:06.635Z] [DB] Q | {"sql":"SELECT p.*, t.name AS team_name\n       FROM players p LEFT JOIN teams t ON p.team_id = t.id\n       W","rows":1,"ms":16}
+[2026-03-12T13:06:06.652Z] [DB] Q | {"sql":"SELECT badge_name, badge_emoji FROM player_badges WHERE player_id = ?","rows":0,"ms":16}
+[2026-03-12T13:06:06.669Z] [DEBUG] API GET /profile | {"body":{}}
+[2026-03-12T13:06:06.670Z] [DEBUG] DEV mode auth bypass | {"userId":412606522}
+[2026-03-12T13:06:06.672Z] [DB] Q | {"sql":"SELECT g.id, g.date, g.time, g.game_mode, g.status, gp.result, gp.kills_total, gp.deaths_total\n     ","rows":4,"ms":20}
+[2026-03-12T13:06:06.673Z] [INFO] Profile API | {"tgId":412606522,"isAdmin":true,"admins":[412606522]}
+[2026-03-12T13:06:06.674Z] [DEBUG] API GET /profile | {"body":{}}
+[2026-03-12T13:06:06.675Z] [DEBUG] DEV mode auth bypass | {"userId":412606522}
+[2026-03-12T13:06:06.680Z] [DEBUG] API GET /profile | {"body":{}}
+[2026-03-12T13:06:06.680Z] [DEBUG] DEV mode auth bypass | {"userId":412606522}
+[2026-03-12T13:06:06.692Z] [DB] Q | {"sql":"SELECT p.*, t.name AS team_name\n       FROM players p LEFT JOIN teams t ON p.team_id = t.id\n       W","rows":1,"ms":16}
+[2026-03-12T13:06:06.710Z] [DB] Q | {"sql":"SELECT badge_name, badge_emoji FROM player_badges WHERE player_id = ?","rows":0,"ms":17}
+[2026-03-12T13:06:06.732Z] [DB] Q | {"sql":"SELECT g.id, g.date, g.time, g.game_mode, g.status, gp.result, gp.kills_total, gp.deaths_total\n     ","rows":4,"ms":22}
+[2026-03-12T13:06:06.734Z] [INFO] Profile API | {"tgId":412606522,"isAdmin":true,"admins":[412606522]}
+[2026-03-12T13:06:06.767Z] [DB] Q | {"sql":"SELECT p.*, t.name AS team_name\n       FROM players p LEFT JOIN teams t ON p.team_id = t.id\n       W","rows":1,"ms":95}
+[2026-03-12T13:06:06.768Z] [DB] Q | {"sql":"SELECT p.*, t.name AS team_name\n       FROM players p LEFT JOIN teams t ON p.team_id = t.id\n       W","rows":1,"ms":87}
+[2026-03-12T13:06:06.800Z] [DB] Q | {"sql":"SELECT badge_name, badge_emoji FROM player_badges WHERE player_id = ?","rows":0,"ms":33}
+[2026-03-12T13:06:06.802Z] [DB] Q | {"sql":"SELECT badge_name, badge_emoji FROM player_badges WHERE player_id = ?","rows":0,"ms":33}
+[2026-03-12T13:06:06.837Z] [DB] Q | {"sql":"SELECT g.id, g.date, g.time, g.game_mode, g.status, gp.result, gp.kills_total, gp.deaths_total\n     ","rows":4,"ms":35}
+[2026-03-12T13:06:06.837Z] [INFO] Profile API | {"tgId":412606522,"isAdmin":true,"admins":[412606522]}
+[2026-03-12T13:06:06.839Z] [DB] Q | {"sql":"SELECT g.id, g.date, g.time, g.game_mode, g.status, gp.result, gp.kills_total, gp.deaths_total\n     ","rows":4,"ms":36}
+[2026-03-12T13:06:06.839Z] [INFO] Profile API | {"tgId":412606522,"isAdmin":true,"admins":[412606522]}
+[2026-03-12T13:06:06.845Z] [DEBUG] API GET /profile | {"body":{}}
+[2026-03-12T13:06:06.846Z] [DEBUG] DEV mode auth bypass | {"userId":412606522}
+[2026-03-12T13:06:06.863Z] [DB] Q | {"sql":"SELECT p.*, t.name AS team_name\n       FROM players p LEFT JOIN teams t ON p.team_id = t.id\n       W","rows":1,"ms":17}
+[2026-03-12T13:06:06.880Z] [DB] Q | {"sql":"SELECT badge_name, badge_emoji FROM player_badges WHERE player_id = ?","rows":0,"ms":16}
+[2026-03-12T13:06:06.897Z] [DB] Q | {"sql":"SELECT g.id, g.date, g.time, g.game_mode, g.status, gp.result, gp.kills_total, gp.deaths_total\n     ","rows":4,"ms":17}
+[2026-03-12T13:06:06.898Z] [INFO] Profile API | {"tgId":412606522,"isAdmin":true,"admins":[412606522]}
+[2026-03-12T13:06:10.177Z] [DEBUG] API GET /leaderboard | {"body":{}}
+[2026-03-12T13:06:10.178Z] [DEBUG] DEV mode auth bypass | {"userId":412606522}
+[2026-03-12T13:06:10.179Z] [DEBUG] API GET /leaderboard | {"body":{}}
+[2026-03-12T13:06:10.179Z] [DEBUG] DEV mode auth bypass | {"userId":412606522}
+[2026-03-12T13:06:10.211Z] [DB] Q | {"sql":"SELECT id, nickname, rating, wins, games_played, total_kills, total_deaths, mvp_count FROM players O","rows":3,"ms":33}
+[2026-03-12T13:06:10.213Z] [DB] Q | {"sql":"SELECT id, nickname, rating, wins, games_played, total_kills, total_deaths, mvp_count FROM players O","rows":3,"ms":33}
+[2026-03-12T13:06:53.148Z] [DEBUG] API GET /profile | {"body":{}}
+[2026-03-12T13:06:53.149Z] [DEBUG] DEV mode auth bypass | {"userId":412606522}
+[2026-03-12T13:06:53.168Z] [DB] Q | {"sql":"SELECT p.*, t.name AS team_name\n       FROM players p LEFT JOIN teams t ON p.team_id = t.id\n       W","rows":1,"ms":18}
+[2026-03-12T13:06:53.185Z] [DB] Q | {"sql":"SELECT badge_name, badge_emoji FROM player_badges WHERE player_id = ?","rows":0,"ms":16}
+[2026-03-12T13:06:53.205Z] [DB] Q | {"sql":"SELECT g.id, g.date, g.time, g.game_mode, g.status, gp.result, gp.kills_total, gp.deaths_total\n     ","rows":4,"ms":19}
+[2026-03-12T13:06:53.206Z] [INFO] Profile API | {"tgId":412606522,"isAdmin":true,"admins":[412606522]}
+[2026-03-12T13:06:53.335Z] [DEBUG] API GET /profile | {"body":{}}
+[2026-03-12T13:06:53.336Z] [DEBUG] DEV mode auth bypass | {"userId":412606522}
+[2026-03-12T13:06:53.352Z] [DB] Q | {"sql":"SELECT p.*, t.name AS team_name\n       FROM players p LEFT JOIN teams t ON p.team_id = t.id\n       W","rows":1,"ms":16}
+[2026-03-12T13:06:53.368Z] [DB] Q | {"sql":"SELECT badge_name, badge_emoji FROM player_badges WHERE player_id = ?","rows":0,"ms":16}
+[2026-03-12T13:06:53.385Z] [DB] Q | {"sql":"SELECT g.id, g.date, g.time, g.game_mode, g.status, gp.result, gp.kills_total, gp.deaths_total\n     ","rows":4,"ms":17}
+[2026-03-12T13:06:53.386Z] [INFO] Profile API | {"tgId":412606522,"isAdmin":true,"admins":[412606522]}
+[2026-03-12T13:06:53.389Z] [DEBUG] API GET /profile | {"body":{}}
+[2026-03-12T13:06:53.390Z] [DEBUG] DEV mode auth bypass | {"userId":412606522}
+[2026-03-12T13:06:53.409Z] [DB] Q | {"sql":"SELECT p.*, t.name AS team_name\n       FROM players p LEFT JOIN teams t ON p.team_id = t.id\n       W","rows":1,"ms":19}
+[2026-03-12T13:06:53.426Z] [DB] Q | {"sql":"SELECT badge_name, badge_emoji FROM player_badges WHERE player_id = ?","rows":0,"ms":16}
+[2026-03-12T13:06:53.443Z] [DB] Q | {"sql":"SELECT g.id, g.date, g.time, g.game_mode, g.status, gp.result, gp.kills_total, gp.deaths_total\n     ","rows":4,"ms":15}
+[2026-03-12T13:06:53.444Z] [INFO] Profile API | {"tgId":412606522,"isAdmin":true,"admins":[412606522]}
+[2026-03-12T13:06:53.450Z] [DEBUG] API GET /profile | {"body":{}}
+[2026-03-12T13:06:53.451Z] [DEBUG] DEV mode auth bypass | {"userId":412606522}
+[2026-03-12T13:06:53.481Z] [DB] Q | {"sql":"SELECT p.*, t.name AS team_name\n       FROM players p LEFT JOIN teams t ON p.team_id = t.id\n       W","rows":1,"ms":29}
+[2026-03-12T13:06:53.497Z] [DB] Q | {"sql":"SELECT badge_name, badge_emoji FROM player_badges WHERE player_id = ?","rows":0,"ms":15}
+[2026-03-12T13:06:53.514Z] [DB] Q | {"sql":"SELECT g.id, g.date, g.time, g.game_mode, g.status, gp.result, gp.kills_total, gp.deaths_total\n     ","rows":4,"ms":16}
+[2026-03-12T13:06:53.515Z] [INFO] Profile API | {"tgId":412606522,"isAdmin":true,"admins":[412606522]}
+[2026-03-12T13:06:53.520Z] [DEBUG] API GET /profile | {"body":{}}
+[2026-03-12T13:06:53.521Z] [DEBUG] DEV mode auth bypass | {"userId":412606522}
+[2026-03-12T13:06:53.538Z] [DB] Q | {"sql":"SELECT p.*, t.name AS team_name\n       FROM players p LEFT JOIN teams t ON p.team_id = t.id\n       W","rows":1,"ms":17}
+[2026-03-12T13:06:53.558Z] [DB] Q | {"sql":"SELECT badge_name, badge_emoji FROM player_badges WHERE player_id = ?","rows":0,"ms":19}
+[2026-03-12T13:06:53.575Z] [DB] Q | {"sql":"SELECT g.id, g.date, g.time, g.game_mode, g.status, gp.result, gp.kills_total, gp.deaths_total\n     ","rows":4,"ms":16}
+[2026-03-12T13:06:53.576Z] [INFO] Profile API | {"tgId":412606522,"isAdmin":true,"admins":[412606522]}
+[2026-03-12T13:06:55.646Z] [DEBUG] API GET /profile | {"body":{}}
+[2026-03-12T13:06:55.646Z] [DEBUG] DEV mode auth bypass | {"userId":412606522}
+[2026-03-12T13:06:55.663Z] [DB] Q | {"sql":"SELECT p.*, t.name AS team_name\n       FROM players p LEFT JOIN teams t ON p.team_id = t.id\n       W","rows":1,"ms":15}
+[2026-03-12T13:06:55.679Z] [DB] Q | {"sql":"SELECT badge_name, badge_emoji FROM player_badges WHERE player_id = ?","rows":0,"ms":16}
+[2026-03-12T13:06:55.696Z] [DB] Q | {"sql":"SELECT g.id, g.date, g.time, g.game_mode, g.status, gp.result, gp.kills_total, gp.deaths_total\n     ","rows":4,"ms":16}
+[2026-03-12T13:06:55.698Z] [INFO] Profile API | {"tgId":412606522,"isAdmin":true,"admins":[412606522]}
+[2026-03-12T13:06:56.238Z] [DEBUG] API GET /profile | {"body":{}}
+[2026-03-12T13:06:56.239Z] [DEBUG] DEV mode auth bypass | {"userId":412606522}
+[2026-03-12T13:06:56.265Z] [DB] Q | {"sql":"SELECT p.*, t.name AS team_name\n       FROM players p LEFT JOIN teams t ON p.team_id = t.id\n       W","rows":1,"ms":26}
+[2026-03-12T13:06:56.282Z] [DB] Q | {"sql":"SELECT badge_name, badge_emoji FROM player_badges WHERE player_id = ?","rows":0,"ms":16}
+[2026-03-12T13:06:56.299Z] [DB] Q | {"sql":"SELECT g.id, g.date, g.time, g.game_mode, g.status, gp.result, gp.kills_total, gp.deaths_total\n     ","rows":4,"ms":16}
+[2026-03-12T13:06:56.300Z] [INFO] Profile API | {"tgId":412606522,"isAdmin":true,"admins":[412606522]}
+[2026-03-12T13:06:56.308Z] [DEBUG] API GET /profile | {"body":{}}
+[2026-03-12T13:06:56.308Z] [DEBUG] DEV mode auth bypass | {"userId":412606522}
+[2026-03-12T13:06:56.330Z] [DB] Q | {"sql":"SELECT p.*, t.name AS team_name\n       FROM players p LEFT JOIN teams t ON p.team_id = t.id\n       W","rows":1,"ms":21}
+[2026-03-12T13:06:56.346Z] [DB] Q | {"sql":"SELECT badge_name, badge_emoji FROM player_badges WHERE player_id = ?","rows":0,"ms":16}
+[2026-03-12T13:06:56.376Z] [DB] Q | {"sql":"SELECT g.id, g.date, g.time, g.game_mode, g.status, gp.result, gp.kills_total, gp.deaths_total\n     ","rows":4,"ms":28}
+[2026-03-12T13:06:56.377Z] [INFO] Profile API | {"tgId":412606522,"isAdmin":true,"admins":[412606522]}
+[2026-03-12T13:06:56.383Z] [DEBUG] API GET /profile | {"body":{}}
+[2026-03-12T13:06:56.384Z] [DEBUG] DEV mode auth bypass | {"userId":412606522}
+[2026-03-12T13:06:56.409Z] [DB] Q | {"sql":"SELECT p.*, t.name AS team_name\n       FROM players p LEFT JOIN teams t ON p.team_id = t.id\n       W","rows":1,"ms":24}
+[2026-03-12T13:06:56.442Z] [DB] Q | {"sql":"SELECT badge_name, badge_emoji FROM player_badges WHERE player_id = ?","rows":0,"ms":33}
+[2026-03-12T13:06:56.461Z] [DB] Q | {"sql":"SELECT g.id, g.date, g.time, g.game_mode, g.status, gp.result, gp.kills_total, gp.deaths_total\n     ","rows":4,"ms":17}
+[2026-03-12T13:06:56.461Z] [INFO] Profile API | {"tgId":412606522,"isAdmin":true,"admins":[412606522]}
+[2026-03-12T13:06:56.467Z] [DEBUG] API GET /profile | {"body":{}}
+[2026-03-12T13:06:56.468Z] [DEBUG] DEV mode auth bypass | {"userId":412606522}
+[2026-03-12T13:06:56.487Z] [DB] Q | {"sql":"SELECT p.*, t.name AS team_name\n       FROM players p LEFT JOIN teams t ON p.team_id = t.id\n       W","rows":1,"ms":18}
+[2026-03-12T13:06:56.515Z] [DB] Q | {"sql":"SELECT badge_name, badge_emoji FROM player_badges WHERE player_id = ?","rows":0,"ms":27}
+[2026-03-12T13:06:56.532Z] [DB] Q | {"sql":"SELECT g.id, g.date, g.time, g.game_mode, g.status, gp.result, gp.kills_total, gp.deaths_total\n     ","rows":4,"ms":17}
+[2026-03-12T13:06:56.533Z] [INFO] Profile API | {"tgId":412606522,"isAdmin":true,"admins":[412606522]}
+[2026-03-12T13:07:00.395Z] [DEBUG] API GET /games | {"body":{}}
+[2026-03-12T13:07:00.395Z] [DEBUG] DEV mode auth bypass | {"userId":412606522}
+[2026-03-12T13:07:00.397Z] [DEBUG] API GET /games | {"body":{}}
+[2026-03-12T13:07:00.398Z] [DEBUG] DEV mode auth bypass | {"userId":412606522}
+[2026-03-12T13:07:00.662Z] [DB] Q | {"sql":"SELECT * FROM games ORDER BY created_at DESC LIMIT 50","rows":5,"ms":75}
+[2026-03-12T13:07:00.667Z] [DB] Q | {"sql":"SELECT * FROM games ORDER BY created_at DESC LIMIT 50","rows":5,"ms":270}
+[2026-03-12T13:07:00.698Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM game_players WHERE game_id = ?","rows":1,"ms":35}
+[2026-03-12T13:07:00.702Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM game_players WHERE game_id = ?","rows":1,"ms":33}
+[2026-03-12T13:07:00.716Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM game_players WHERE game_id = ?","rows":1,"ms":17}
+[2026-03-12T13:07:00.720Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM game_players WHERE game_id = ?","rows":1,"ms":16}
+[2026-03-12T13:07:00.733Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM game_players WHERE game_id = ?","rows":1,"ms":16}
+[2026-03-12T13:07:00.737Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM game_players WHERE game_id = ?","rows":1,"ms":16}
+[2026-03-12T13:07:00.750Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM game_players WHERE game_id = ?","rows":1,"ms":16}
+[2026-03-12T13:07:00.754Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM game_players WHERE game_id = ?","rows":1,"ms":15}
+[2026-03-12T13:07:00.770Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM game_players WHERE game_id = ?","rows":1,"ms":19}
+[2026-03-12T13:07:00.772Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM game_players WHERE game_id = ?","rows":1,"ms":16}
+[2026-03-12T13:07:02.227Z] [DEBUG] API GET /games | {"body":{}}
+[2026-03-12T13:07:02.228Z] [DEBUG] DEV mode auth bypass | {"userId":412606522}
+[2026-03-12T13:07:02.228Z] [DEBUG] API GET /games | {"body":{}}
+[2026-03-12T13:07:02.229Z] [DEBUG] DEV mode auth bypass | {"userId":412606522}
+[2026-03-12T13:07:02.244Z] [DB] Q | {"sql":"SELECT * FROM games ORDER BY created_at DESC LIMIT 50","rows":5,"ms":15}
+[2026-03-12T13:07:02.245Z] [DB] Q | {"sql":"SELECT * FROM games ORDER BY created_at DESC LIMIT 50","rows":5,"ms":16}
+[2026-03-12T13:07:02.280Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM game_players WHERE game_id = ?","rows":1,"ms":35}
+[2026-03-12T13:07:02.281Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM game_players WHERE game_id = ?","rows":1,"ms":36}
+[2026-03-12T13:07:02.296Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM game_players WHERE game_id = ?","rows":1,"ms":16}
+[2026-03-12T13:07:02.297Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM game_players WHERE game_id = ?","rows":1,"ms":16}
+[2026-03-12T13:07:02.313Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM game_players WHERE game_id = ?","rows":1,"ms":16}
+[2026-03-12T13:07:02.314Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM game_players WHERE game_id = ?","rows":1,"ms":17}
+[2026-03-12T13:07:02.331Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM game_players WHERE game_id = ?","rows":1,"ms":18}
+[2026-03-12T13:07:02.333Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM game_players WHERE game_id = ?","rows":1,"ms":19}
+[2026-03-12T13:07:02.348Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM game_players WHERE game_id = ?","rows":1,"ms":16}
+[2026-03-12T13:07:02.350Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM game_players WHERE game_id = ?","rows":1,"ms":17}
+[2026-03-12T13:07:03.049Z] [DEBUG] API GET /leaderboard | {"body":{}}
+[2026-03-12T13:07:03.050Z] [DEBUG] DEV mode auth bypass | {"userId":412606522}
+[2026-03-12T13:07:03.050Z] [DEBUG] API GET /leaderboard | {"body":{}}
+[2026-03-12T13:07:03.051Z] [DEBUG] DEV mode auth bypass | {"userId":412606522}
+[2026-03-12T13:07:03.066Z] [DB] Q | {"sql":"SELECT id, nickname, rating, wins, games_played, total_kills, total_deaths, mvp_count FROM players O","rows":3,"ms":16}
+[2026-03-12T13:07:03.068Z] [DB] Q | {"sql":"SELECT id, nickname, rating, wins, games_played, total_kills, total_deaths, mvp_count FROM players O","rows":3,"ms":16}
+[2026-03-12T13:07:04.420Z] [DEBUG] API GET /leaderboard | {"body":{}}
+[2026-03-12T13:07:04.421Z] [DEBUG] DEV mode auth bypass | {"userId":412606522}
+[2026-03-12T13:07:04.422Z] [DEBUG] API GET /leaderboard | {"body":{}}
+[2026-03-12T13:07:04.422Z] [DEBUG] DEV mode auth bypass | {"userId":412606522}
+[2026-03-12T13:07:04.452Z] [DB] Q | {"sql":"SELECT id, nickname, rating, wins, games_played, total_kills, total_deaths, mvp_count FROM players O","rows":3,"ms":30}
+[2026-03-12T13:07:04.453Z] [DB] Q | {"sql":"SELECT id, nickname, rating, wins, games_played, total_kills, total_deaths, mvp_count FROM players O","rows":3,"ms":30}
+[2026-03-12T13:07:15.333Z] [DEBUG] API GET /leaderboard/teams | {"body":{}}
+[2026-03-12T13:07:15.334Z] [DEBUG] DEV mode auth bypass | {"userId":412606522}
+[2026-03-12T13:07:15.366Z] [DB] Q | {"sql":"SELECT id, name, rating FROM teams ORDER BY rating DESC LIMIT 20","rows":1,"ms":32}
+[2026-03-12T13:07:16.108Z] [DEBUG] API GET /leaderboard/season | {"body":{}}
+[2026-03-12T13:07:16.108Z] [DEBUG] DEV mode auth bypass | {"userId":412606522}
+[2026-03-12T13:07:16.146Z] [DB] Q | {"sql":"SELECT * FROM seasons WHERE is_active = 1 LIMIT 1","rows":0,"ms":37}
+[2026-03-12T13:07:16.742Z] [DEBUG] API GET /leaderboard/teams | {"body":{}}
+[2026-03-12T13:07:16.743Z] [DEBUG] DEV mode auth bypass | {"userId":412606522}
+[2026-03-12T13:07:16.760Z] [DB] Q | {"sql":"SELECT id, name, rating FROM teams ORDER BY rating DESC LIMIT 20","rows":1,"ms":17}
+[2026-03-12T13:07:35.893Z] [DEBUG] API GET /leaderboard/teams | {"body":{}}
+[2026-03-12T13:07:35.894Z] [DEBUG] DEV mode auth bypass | {"userId":412606522}
+[2026-03-12T13:07:35.913Z] [DB] Q | {"sql":"SELECT id, name, rating FROM teams ORDER BY rating DESC LIMIT 20","rows":1,"ms":18}
+[2026-03-12T13:07:41.794Z] [DEBUG] API GET /leaderboard/teams | {"body":{}}
+[2026-03-12T13:07:41.795Z] [DEBUG] DEV mode auth bypass | {"userId":412606522}
+[2026-03-12T13:07:41.812Z] [DB] Q | {"sql":"SELECT id, name, rating FROM teams ORDER BY rating DESC LIMIT 20","rows":1,"ms":17}
+[2026-03-12T13:07:43.424Z] [DEBUG] API GET /leaderboard/season | {"body":{}}
+[2026-03-12T13:07:43.425Z] [DEBUG] DEV mode auth bypass | {"userId":412606522}
+[2026-03-12T13:07:43.447Z] [DB] Q | {"sql":"SELECT * FROM seasons WHERE is_active = 1 LIMIT 1","rows":0,"ms":21}
+[2026-03-12T13:07:44.047Z] [DEBUG] API GET /leaderboard/teams | {"body":{}}
+[2026-03-12T13:07:44.048Z] [DEBUG] DEV mode auth bypass | {"userId":412606522}
+[2026-03-12T13:07:44.065Z] [DB] Q | {"sql":"SELECT id, name, rating FROM teams ORDER BY rating DESC LIMIT 20","rows":1,"ms":15}
+[2026-03-12T13:07:44.560Z] [DEBUG] API GET /leaderboard | {"body":{}}
+[2026-03-12T13:07:44.561Z] [DEBUG] DEV mode auth bypass | {"userId":412606522}
+[2026-03-12T13:07:44.578Z] [DB] Q | {"sql":"SELECT id, nickname, rating, wins, games_played, total_kills, total_deaths, mvp_count FROM players O","rows":3,"ms":17}
+[2026-03-12T13:07:52.745Z] [DEBUG] API GET /games | {"body":{}}
+[2026-03-12T13:07:52.745Z] [DEBUG] DEV mode auth bypass | {"userId":412606522}
+[2026-03-12T13:07:52.746Z] [DEBUG] API GET /games | {"body":{}}
+[2026-03-12T13:07:52.746Z] [DEBUG] DEV mode auth bypass | {"userId":412606522}
+[2026-03-12T13:07:52.772Z] [DB] Q | {"sql":"SELECT * FROM games ORDER BY created_at DESC LIMIT 50","rows":5,"ms":25}
+[2026-03-12T13:07:52.773Z] [DB] Q | {"sql":"SELECT * FROM games ORDER BY created_at DESC LIMIT 50","rows":5,"ms":26}
+[2026-03-12T13:07:52.789Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM game_players WHERE game_id = ?","rows":1,"ms":16}
+[2026-03-12T13:07:52.790Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM game_players WHERE game_id = ?","rows":1,"ms":17}
+[2026-03-12T13:07:52.807Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM game_players WHERE game_id = ?","rows":1,"ms":16}
+[2026-03-12T13:07:52.808Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM game_players WHERE game_id = ?","rows":1,"ms":19}
+[2026-03-12T13:07:52.824Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM game_players WHERE game_id = ?","rows":1,"ms":17}
+[2026-03-12T13:07:52.825Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM game_players WHERE game_id = ?","rows":1,"ms":17}
+[2026-03-12T13:07:52.841Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM game_players WHERE game_id = ?","rows":1,"ms":16}
+[2026-03-12T13:07:52.842Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM game_players WHERE game_id = ?","rows":1,"ms":16}
+[2026-03-12T13:07:52.859Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM game_players WHERE game_id = ?","rows":1,"ms":16}
+[2026-03-12T13:07:52.861Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM game_players WHERE game_id = ?","rows":1,"ms":19}
+[2026-03-12T13:07:58.597Z] [DEBUG] API GET /games | {"body":{}}
+[2026-03-12T13:07:58.597Z] [DEBUG] DEV mode auth bypass | {"userId":412606522}
+[2026-03-12T13:07:58.598Z] [DEBUG] API GET /games | {"body":{}}
+[2026-03-12T13:07:58.599Z] [DEBUG] DEV mode auth bypass | {"userId":412606522}
+[2026-03-12T13:07:58.615Z] [DB] Q | {"sql":"SELECT * FROM games ORDER BY created_at DESC LIMIT 50","rows":5,"ms":16}
+[2026-03-12T13:07:58.616Z] [DB] Q | {"sql":"SELECT * FROM games ORDER BY created_at DESC LIMIT 50","rows":5,"ms":17}
+[2026-03-12T13:07:58.634Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM game_players WHERE game_id = ?","rows":1,"ms":18}
+[2026-03-12T13:07:58.635Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM game_players WHERE game_id = ?","rows":1,"ms":18}
+[2026-03-12T13:07:58.650Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM game_players WHERE game_id = ?","rows":1,"ms":16}
+[2026-03-12T13:07:58.653Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM game_players WHERE game_id = ?","rows":1,"ms":17}
+[2026-03-12T13:07:58.676Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM game_players WHERE game_id = ?","rows":1,"ms":25}
+[2026-03-12T13:07:58.677Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM game_players WHERE game_id = ?","rows":1,"ms":24}
+[2026-03-12T13:07:58.692Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM game_players WHERE game_id = ?","rows":1,"ms":16}
+[2026-03-12T13:07:58.694Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM game_players WHERE game_id = ?","rows":1,"ms":16}
+[2026-03-12T13:07:58.710Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM game_players WHERE game_id = ?","rows":1,"ms":17}
+[2026-03-12T13:07:58.730Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM game_players WHERE game_id = ?","rows":1,"ms":36}
+[2026-03-12T13:08:02.072Z] [DEBUG] API GET /games | {"body":{}}
+[2026-03-12T13:08:02.073Z] [DEBUG] DEV mode auth bypass | {"userId":412606522}
+[2026-03-12T13:08:02.074Z] [DEBUG] API GET /games | {"body":{}}
+[2026-03-12T13:08:02.075Z] [DEBUG] DEV mode auth bypass | {"userId":412606522}
+[2026-03-12T13:08:02.090Z] [DB] Q | {"sql":"SELECT * FROM games ORDER BY created_at DESC LIMIT 50","rows":5,"ms":16}
+[2026-03-12T13:08:02.091Z] [DB] Q | {"sql":"SELECT * FROM games ORDER BY created_at DESC LIMIT 50","rows":5,"ms":16}
+[2026-03-12T13:08:02.107Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM game_players WHERE game_id = ?","rows":1,"ms":17}
+[2026-03-12T13:08:02.108Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM game_players WHERE game_id = ?","rows":1,"ms":16}
+[2026-03-12T13:08:02.123Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM game_players WHERE game_id = ?","rows":1,"ms":16}
+[2026-03-12T13:08:02.133Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM game_players WHERE game_id = ?","rows":1,"ms":16}
+[2026-03-12T13:08:02.146Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM game_players WHERE game_id = ?","rows":1,"ms":22}
+[2026-03-12T13:08:02.154Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM game_players WHERE game_id = ?","rows":1,"ms":20}
+[2026-03-12T13:08:02.177Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM game_players WHERE game_id = ?","rows":1,"ms":30}
+[2026-03-12T13:08:02.179Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM game_players WHERE game_id = ?","rows":1,"ms":24}
+[2026-03-12T13:08:02.194Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM game_players WHERE game_id = ?","rows":1,"ms":15}
+[2026-03-12T13:08:02.195Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM game_players WHERE game_id = ?","rows":1,"ms":16}
+[2026-03-12T13:08:03.347Z] [DEBUG] API GET /games/5 | {"body":{}}
+[2026-03-12T13:08:03.347Z] [DEBUG] DEV mode auth bypass | {"userId":412606522}
+[2026-03-12T13:08:03.349Z] [DEBUG] API GET /games/5 | {"body":{}}
+[2026-03-12T13:08:03.349Z] [DEBUG] DEV mode auth bypass | {"userId":412606522}
+[2026-03-12T13:08:03.382Z] [DB] Q | {"sql":"SELECT * FROM games WHERE id = ?","rows":1,"ms":34}
+[2026-03-12T13:08:03.383Z] [DB] Q | {"sql":"SELECT * FROM games WHERE id = ?","rows":1,"ms":33}
+[2026-03-12T13:08:03.418Z] [DB] Q | {"sql":"SELECT gp.*, p.nickname, p.rating, t.name as team_name\n       FROM game_players gp\n       JOIN playe","rows":2,"ms":34}
+[2026-03-12T13:08:03.420Z] [DB] Q | {"sql":"SELECT gp.*, p.nickname, p.rating, t.name as team_name\n       FROM game_players gp\n       JOIN playe","rows":2,"ms":38}
+[2026-03-12T13:08:03.451Z] [DB] Q | {"sql":"SELECT * FROM rounds WHERE game_id = ? ORDER BY round_number","rows":2,"ms":32}
+[2026-03-12T13:08:03.453Z] [DB] Q | {"sql":"SELECT * FROM rounds WHERE game_id = ? ORDER BY round_number","rows":2,"ms":32}
+[2026-03-12T13:08:03.493Z] [DB] Q | {"sql":"SELECT id FROM players WHERE telegram_id = ?","rows":1,"ms":39}
+[2026-03-12T13:08:03.494Z] [DB] Q | {"sql":"SELECT id FROM players WHERE telegram_id = ?","rows":1,"ms":42}
+[2026-03-12T13:08:06.967Z] [DEBUG] API GET /games | {"body":{}}
+[2026-03-12T13:08:06.968Z] [DEBUG] DEV mode auth bypass | {"userId":412606522}
+[2026-03-12T13:08:06.968Z] [DEBUG] API GET /games | {"body":{}}
+[2026-03-12T13:08:06.969Z] [DEBUG] DEV mode auth bypass | {"userId":412606522}
+[2026-03-12T13:08:06.985Z] [DB] Q | {"sql":"SELECT * FROM games ORDER BY created_at DESC LIMIT 50","rows":5,"ms":17}
+[2026-03-12T13:08:06.987Z] [DB] Q | {"sql":"SELECT * FROM games ORDER BY created_at DESC LIMIT 50","rows":5,"ms":18}
+[2026-03-12T13:08:07.003Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM game_players WHERE game_id = ?","rows":1,"ms":16}
+[2026-03-12T13:08:07.004Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM game_players WHERE game_id = ?","rows":1,"ms":17}
+[2026-03-12T13:08:07.022Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM game_players WHERE game_id = ?","rows":1,"ms":18}
+[2026-03-12T13:08:07.023Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM game_players WHERE game_id = ?","rows":1,"ms":19}
+[2026-03-12T13:08:07.038Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM game_players WHERE game_id = ?","rows":1,"ms":16}
+[2026-03-12T13:08:07.039Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM game_players WHERE game_id = ?","rows":1,"ms":15}
+[2026-03-12T13:08:07.055Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM game_players WHERE game_id = ?","rows":1,"ms":16}
+[2026-03-12T13:08:07.056Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM game_players WHERE game_id = ?","rows":1,"ms":16}
+[2026-03-12T13:08:07.071Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM game_players WHERE game_id = ?","rows":1,"ms":16}
+[2026-03-12T13:08:07.072Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM game_players WHERE game_id = ?","rows":1,"ms":16}
+[2026-03-12T13:08:31.097Z] [DEBUG] API POST /admin/games | {"body":{"date":"16 квітня 2026","time":"11.00","location":"Розівка","game_mode":"random_teams","total_rounds":3}}
+[2026-03-12T13:08:31.097Z] [DEBUG] DEV mode auth bypass | {"userId":412606522}
+[2026-03-12T13:08:31.130Z] [DB] Q | {"sql":"SELECT id FROM seasons WHERE is_active=1 LIMIT 1","rows":0,"ms":33}
+[2026-03-12T13:08:31.163Z] [DB] INS | {"sql":"INSERT INTO games (date,time,location,game_mode,total_rounds,status,season_id,checkin_lat,checkin_ln","id":6,"ms":32}
+[2026-03-12T13:08:31.164Z] [INFO] API create game | {"id":6}
+[2026-03-12T13:08:37.669Z] [DEBUG] API GET /games | {"body":{}}
+[2026-03-12T13:08:37.670Z] [DEBUG] DEV mode auth bypass | {"userId":412606522}
+[2026-03-12T13:08:37.671Z] [DEBUG] API GET /games | {"body":{}}
+[2026-03-12T13:08:37.671Z] [DEBUG] DEV mode auth bypass | {"userId":412606522}
+[2026-03-12T13:08:37.688Z] [DB] Q | {"sql":"SELECT * FROM games ORDER BY created_at DESC LIMIT 50","rows":6,"ms":15}
+[2026-03-12T13:08:37.689Z] [DB] Q | {"sql":"SELECT * FROM games ORDER BY created_at DESC LIMIT 50","rows":6,"ms":19}
+[2026-03-12T13:08:37.706Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM game_players WHERE game_id = ?","rows":1,"ms":18}
+[2026-03-12T13:08:37.708Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM game_players WHERE game_id = ?","rows":1,"ms":17}
+[2026-03-12T13:08:37.727Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM game_players WHERE game_id = ?","rows":1,"ms":19}
+[2026-03-12T13:08:37.728Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM game_players WHERE game_id = ?","rows":1,"ms":20}
+[2026-03-12T13:08:37.749Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM game_players WHERE game_id = ?","rows":1,"ms":20}
+[2026-03-12T13:08:37.750Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM game_players WHERE game_id = ?","rows":1,"ms":23}
+[2026-03-12T13:08:37.767Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM game_players WHERE game_id = ?","rows":1,"ms":17}
+[2026-03-12T13:08:37.769Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM game_players WHERE game_id = ?","rows":1,"ms":17}
+[2026-03-12T13:08:37.787Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM game_players WHERE game_id = ?","rows":1,"ms":18}
+[2026-03-12T13:08:37.788Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM game_players WHERE game_id = ?","rows":1,"ms":19}
+[2026-03-12T13:08:37.804Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM game_players WHERE game_id = ?","rows":1,"ms":16}
+[2026-03-12T13:08:37.805Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM game_players WHERE game_id = ?","rows":1,"ms":17}
+[2026-03-12T13:08:38.640Z] [DEBUG] API GET /games/6 | {"body":{}}
+[2026-03-12T13:08:38.640Z] [DEBUG] DEV mode auth bypass | {"userId":412606522}
+[2026-03-12T13:08:38.641Z] [DEBUG] API GET /games/6 | {"body":{}}
+[2026-03-12T13:08:38.641Z] [DEBUG] DEV mode auth bypass | {"userId":412606522}
+[2026-03-12T13:08:38.656Z] [DB] Q | {"sql":"SELECT * FROM games WHERE id = ?","rows":1,"ms":16}
+[2026-03-12T13:08:38.657Z] [DB] Q | {"sql":"SELECT * FROM games WHERE id = ?","rows":1,"ms":15}
+[2026-03-12T13:08:38.673Z] [DB] Q | {"sql":"SELECT gp.*, p.nickname, p.rating, t.name as team_name\n       FROM game_players gp\n       JOIN playe","rows":0,"ms":16}
+[2026-03-12T13:08:38.674Z] [DB] Q | {"sql":"SELECT gp.*, p.nickname, p.rating, t.name as team_name\n       FROM game_players gp\n       JOIN playe","rows":0,"ms":16}
+[2026-03-12T13:08:38.690Z] [DB] Q | {"sql":"SELECT * FROM rounds WHERE game_id = ? ORDER BY round_number","rows":0,"ms":15}
+[2026-03-12T13:08:38.691Z] [DB] Q | {"sql":"SELECT * FROM rounds WHERE game_id = ? ORDER BY round_number","rows":0,"ms":16}
+[2026-03-12T13:08:38.706Z] [DB] Q | {"sql":"SELECT id FROM players WHERE telegram_id = ?","rows":1,"ms":16}
+[2026-03-12T13:08:38.707Z] [DB] Q | {"sql":"SELECT id FROM players WHERE telegram_id = ?","rows":1,"ms":16}
+[2026-03-12T13:08:40.263Z] [DEBUG] API POST /games/6/join | {"body":{}}
+[2026-03-12T13:08:40.263Z] [DEBUG] DEV mode auth bypass | {"userId":412606522}
+[2026-03-12T13:08:40.296Z] [DB] Q | {"sql":"SELECT id, team_id FROM players WHERE telegram_id = ?","rows":1,"ms":31}
+[2026-03-12T13:08:40.327Z] [DB] Q | {"sql":"SELECT id FROM game_players WHERE game_id = ? AND player_id = ?","rows":0,"ms":31}
+[2026-03-12T13:08:40.361Z] [DB] INS | {"sql":"INSERT INTO game_players (game_id, player_id, team_id) VALUES (?,?,?)","id":6,"ms":31}
+[2026-03-12T13:08:40.378Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM game_players WHERE game_id = ?","rows":1,"ms":15}
+[2026-03-12T13:08:40.378Z] [INFO] API join game | {"gid":6,"playerId":1}
+[2026-03-12T13:08:40.386Z] [DEBUG] API GET /games/6 | {"body":{}}
+[2026-03-12T13:08:40.387Z] [DEBUG] DEV mode auth bypass | {"userId":412606522}
+[2026-03-12T13:08:40.404Z] [DB] Q | {"sql":"SELECT * FROM games WHERE id = ?","rows":1,"ms":17}
+[2026-03-12T13:08:40.421Z] [DB] Q | {"sql":"SELECT gp.*, p.nickname, p.rating, t.name as team_name\n       FROM game_players gp\n       JOIN playe","rows":1,"ms":16}
+[2026-03-12T13:08:40.438Z] [DB] Q | {"sql":"SELECT * FROM rounds WHERE game_id = ? ORDER BY round_number","rows":0,"ms":15}
+[2026-03-12T13:08:40.454Z] [DB] Q | {"sql":"SELECT id FROM players WHERE telegram_id = ?","rows":1,"ms":16}
+[2026-03-12T13:08:48.253Z] [DEBUG] Update | {"uid":7692747297}
+[2026-03-12T13:08:48.254Z] [INFO] CMD /start | {"tgId":7692747297,"username":"jankoandrv"}
+[2026-03-12T13:08:48.287Z] [DB] Q | {"sql":"SELECT * FROM players WHERE telegram_id = ?","rows":0,"ms":33}
+[2026-03-12T13:08:48.322Z] [ERROR] Bot error | {"msg":"GrammyError in middleware: Call to 'sendMessage' failed! (400: Bad Request: inline keyboard button Web App URL 'http://localhost:3000' is invalid: Only HTTPS links are allowed)","stack":"GrammyError: Call to 'sendMessage' failed! (400: Bad Request: inline keyboard button Web App URL 'http://localhost:3000' is invalid: Only HTTPS links are allowed)\n    at toGrammyError (C:\\AirSoft Club Telegram Bot\\node_modules\\grammy\\out\\core\\error.js:47:12)\n    at ApiClient.callApi (C:\\AirSoft Club"}
+[2026-03-12T13:09:32.565Z] [DEBUG] API POST /admin/games/6/status | {"body":{"status":"checkin"}}
+[2026-03-12T13:09:32.566Z] [DEBUG] DEV mode auth bypass | {"userId":412606522}
+[2026-03-12T13:09:32.714Z] [DB] Q | {"sql":"SELECT * FROM games WHERE id=?","rows":1,"ms":147}
+[2026-03-12T13:09:32.747Z] [DB] INS | {"sql":"UPDATE games SET status=? WHERE id=?","id":0,"ms":32}
+[2026-03-12T13:09:32.757Z] [DEBUG] API GET /games/6 | {"body":{}}
+[2026-03-12T13:09:32.757Z] [DEBUG] DEV mode auth bypass | {"userId":412606522}
+[2026-03-12T13:09:32.881Z] [DB] Q | {"sql":"SELECT * FROM games WHERE id = ?","rows":1,"ms":123}
+[2026-03-12T13:09:32.899Z] [DB] Q | {"sql":"SELECT gp.*, p.nickname, p.rating, t.name as team_name\n       FROM game_players gp\n       JOIN playe","rows":1,"ms":17}
+[2026-03-12T13:09:32.918Z] [DB] Q | {"sql":"SELECT * FROM rounds WHERE game_id = ? ORDER BY round_number","rows":0,"ms":17}
+[2026-03-12T13:09:32.937Z] [DB] Q | {"sql":"SELECT id FROM players WHERE telegram_id = ?","rows":1,"ms":17}
+[2026-03-12T13:11:06.246Z] [DEBUG] API GET /games/6 | {"body":{}}
+[2026-03-12T13:11:06.247Z] [DEBUG] DEV mode auth bypass | {"userId":412606522}
+[2026-03-12T13:11:06.270Z] [DB] Q | {"sql":"SELECT * FROM games WHERE id = ?","rows":1,"ms":22}
+[2026-03-12T13:11:06.291Z] [DB] Q | {"sql":"SELECT gp.*, p.nickname, p.rating, t.name as team_name\n       FROM game_players gp\n       JOIN playe","rows":1,"ms":21}
+[2026-03-12T13:11:06.309Z] [DB] Q | {"sql":"SELECT * FROM rounds WHERE game_id = ? ORDER BY round_number","rows":0,"ms":16}
+[2026-03-12T13:11:06.326Z] [DB] Q | {"sql":"SELECT id FROM players WHERE telegram_id = ?","rows":1,"ms":17}
+[2026-03-12T13:11:16.404Z] [DEBUG] API POST /games/6/checkin | {"body":{}}
+[2026-03-12T13:11:16.405Z] [DEBUG] DEV mode auth bypass | {"userId":412606522}
+[2026-03-12T13:11:16.441Z] [DB] Q | {"sql":"SELECT id, nickname FROM players WHERE telegram_id = ?","rows":1,"ms":36}
+[2026-03-12T13:11:16.487Z] [DB] INS | {"sql":"UPDATE game_players SET attendance='checked_in', checkin_time=NOW() WHERE game_id=? AND player_id=?","id":0,"ms":45}
+[2026-03-12T13:11:16.488Z] [INFO] API checkin | {"gid":6,"nickname":"krupchynskyi_ai"}
+[2026-03-12T13:11:16.509Z] [DEBUG] API GET /games/6 | {"body":{}}
+[2026-03-12T13:11:16.509Z] [DEBUG] DEV mode auth bypass | {"userId":412606522}
+[2026-03-12T13:11:16.532Z] [DB] Q | {"sql":"SELECT * FROM games WHERE id = ?","rows":1,"ms":22}
+[2026-03-12T13:11:16.549Z] [DB] Q | {"sql":"SELECT gp.*, p.nickname, p.rating, t.name as team_name\n       FROM game_players gp\n       JOIN playe","rows":1,"ms":16}
+[2026-03-12T13:11:16.567Z] [DB] Q | {"sql":"SELECT * FROM rounds WHERE game_id = ? ORDER BY round_number","rows":0,"ms":17}
+[2026-03-12T13:11:16.585Z] [DB] Q | {"sql":"SELECT id FROM players WHERE telegram_id = ?","rows":1,"ms":18}
+[2026-03-12T13:11:17.539Z] [DEBUG] API POST /admin/games/6/status | {"body":{"status":"active"}}
+[2026-03-12T13:11:17.539Z] [DEBUG] DEV mode auth bypass | {"userId":412606522}
+[2026-03-12T13:11:17.556Z] [DB] Q | {"sql":"SELECT * FROM games WHERE id=?","rows":1,"ms":15}
+[2026-03-12T13:11:17.574Z] [DB] INS | {"sql":"UPDATE games SET status=? WHERE id=?","id":0,"ms":18}
+[2026-03-12T13:11:17.607Z] [DB] INS | {"sql":"UPDATE game_players SET attendance='no_show' WHERE game_id=? AND attendance='registered'","id":0,"ms":32}
+[2026-03-12T13:11:17.640Z] [DB] Q | {"sql":"SELECT id FROM game_players WHERE game_id=? AND attendance='checked_in'","rows":1,"ms":31}
+[2026-03-12T13:11:17.672Z] [DB] INS | {"sql":"UPDATE game_players SET game_team=? WHERE id=?","id":0,"ms":31}
+[2026-03-12T13:11:17.703Z] [DB] INS | {"sql":"UPDATE games SET current_round=1 WHERE id=?","id":0,"ms":31}
+[2026-03-12T13:11:17.735Z] [DB] INS | {"sql":"INSERT INTO rounds (game_id,round_number,status,started_at) VALUES (?,1,'active',NOW())","id":17,"ms":32}
+[2026-03-12T13:11:17.767Z] [DB] Q | {"sql":"SELECT id FROM rounds WHERE game_id=? AND round_number=1","rows":1,"ms":31}
+[2026-03-12T13:11:17.799Z] [DB] Q | {"sql":"SELECT player_id,game_team FROM game_players WHERE game_id=? AND attendance='checked_in'","rows":1,"ms":32}
+[2026-03-12T13:11:17.832Z] [DB] INS | {"sql":"INSERT INTO round_players (round_id,player_id,game_team,is_alive,kills) VALUES (?,?,?,1,0)","id":17,"ms":32}
+[2026-03-12T13:11:17.838Z] [DEBUG] API GET /games/6 | {"body":{}}
+[2026-03-12T13:11:17.839Z] [DEBUG] DEV mode auth bypass | {"userId":412606522}
+[2026-03-12T13:11:17.855Z] [DB] Q | {"sql":"SELECT * FROM games WHERE id = ?","rows":1,"ms":16}
+[2026-03-12T13:11:17.873Z] [DB] Q | {"sql":"SELECT gp.*, p.nickname, p.rating, t.name as team_name\n       FROM game_players gp\n       JOIN playe","rows":1,"ms":16}
+[2026-03-12T13:11:17.889Z] [DB] Q | {"sql":"SELECT * FROM rounds WHERE game_id = ? ORDER BY round_number","rows":1,"ms":16}
+[2026-03-12T13:11:17.909Z] [DB] Q | {"sql":"SELECT id FROM players WHERE telegram_id = ?","rows":1,"ms":19}
+[2026-03-12T13:11:17.917Z] [DEBUG] API GET /games/6/round | {"body":{}}
+[2026-03-12T13:11:17.918Z] [DEBUG] DEV mode auth bypass | {"userId":412606522}
+[2026-03-12T13:11:17.935Z] [DB] Q | {"sql":"SELECT * FROM games WHERE id = ?","rows":1,"ms":16}
+[2026-03-12T13:11:17.967Z] [DB] Q | {"sql":"SELECT * FROM rounds WHERE game_id=? AND round_number=? AND status='active'","rows":1,"ms":32}
+[2026-03-12T13:11:18.003Z] [DB] Q | {"sql":"SELECT rp.*, p.nickname FROM round_players rp JOIN players p ON rp.player_id=p.id WHERE rp.round_id=","rows":1,"ms":35}
+[2026-03-12T13:11:22.938Z] [DEBUG] API GET /games/6 | {"body":{}}
+[2026-03-12T13:11:22.939Z] [DEBUG] DEV mode auth bypass | {"userId":412606522}
+[2026-03-12T13:11:22.959Z] [DB] Q | {"sql":"SELECT * FROM games WHERE id = ?","rows":1,"ms":20}
+[2026-03-12T13:11:22.976Z] [DB] Q | {"sql":"SELECT gp.*, p.nickname, p.rating, t.name as team_name\n       FROM game_players gp\n       JOIN playe","rows":1,"ms":15}
+[2026-03-12T13:11:22.992Z] [DB] Q | {"sql":"SELECT * FROM rounds WHERE game_id = ? ORDER BY round_number","rows":1,"ms":16}
+[2026-03-12T13:11:23.008Z] [DB] Q | {"sql":"SELECT id FROM players WHERE telegram_id = ?","rows":1,"ms":15}
+[2026-03-12T13:11:23.015Z] [DEBUG] API GET /games/6/round | {"body":{}}
+[2026-03-12T13:11:23.016Z] [DEBUG] DEV mode auth bypass | {"userId":412606522}
+[2026-03-12T13:11:23.033Z] [DB] Q | {"sql":"SELECT * FROM games WHERE id = ?","rows":1,"ms":16}
+[2026-03-12T13:11:23.050Z] [DB] Q | {"sql":"SELECT * FROM rounds WHERE game_id=? AND round_number=? AND status='active'","rows":1,"ms":16}
+[2026-03-12T13:11:23.068Z] [DB] Q | {"sql":"SELECT rp.*, p.nickname FROM round_players rp JOIN players p ON rp.player_id=p.id WHERE rp.round_id=","rows":1,"ms":17}
+[2026-03-12T13:11:28.244Z] [DEBUG] API GET /games/6 | {"body":{}}
+[2026-03-12T13:11:28.245Z] [DEBUG] DEV mode auth bypass | {"userId":412606522}
+[2026-03-12T13:11:28.263Z] [DB] Q | {"sql":"SELECT * FROM games WHERE id = ?","rows":1,"ms":18}
+[2026-03-12T13:11:28.281Z] [DB] Q | {"sql":"SELECT gp.*, p.nickname, p.rating, t.name as team_name\n       FROM game_players gp\n       JOIN playe","rows":1,"ms":16}
+[2026-03-12T13:11:28.297Z] [DB] Q | {"sql":"SELECT * FROM rounds WHERE game_id = ? ORDER BY round_number","rows":1,"ms":16}
+[2026-03-12T13:11:28.314Z] [DB] Q | {"sql":"SELECT id FROM players WHERE telegram_id = ?","rows":1,"ms":15}
+[2026-03-12T13:11:28.327Z] [DEBUG] API GET /games/6/round | {"body":{}}
+[2026-03-12T13:11:28.327Z] [DEBUG] DEV mode auth bypass | {"userId":412606522}
+[2026-03-12T13:11:28.344Z] [DB] Q | {"sql":"SELECT * FROM games WHERE id = ?","rows":1,"ms":15}
+[2026-03-12T13:11:28.361Z] [DB] Q | {"sql":"SELECT * FROM rounds WHERE game_id=? AND round_number=? AND status='active'","rows":1,"ms":16}
+[2026-03-12T13:11:28.378Z] [DB] Q | {"sql":"SELECT rp.*, p.nickname FROM round_players rp JOIN players p ON rp.player_id=p.id WHERE rp.round_id=","rows":1,"ms":16}
+[2026-03-12T13:11:33.235Z] [DEBUG] API GET /games/6 | {"body":{}}
+[2026-03-12T13:11:33.235Z] [DEBUG] DEV mode auth bypass | {"userId":412606522}
+[2026-03-12T13:11:33.255Z] [DB] Q | {"sql":"SELECT * FROM games WHERE id = ?","rows":1,"ms":19}
+[2026-03-12T13:11:33.273Z] [DB] Q | {"sql":"SELECT gp.*, p.nickname, p.rating, t.name as team_name\n       FROM game_players gp\n       JOIN playe","rows":1,"ms":17}
+[2026-03-12T13:11:33.289Z] [DB] Q | {"sql":"SELECT * FROM rounds WHERE game_id = ? ORDER BY round_number","rows":1,"ms":16}
+[2026-03-12T13:11:33.305Z] [DB] Q | {"sql":"SELECT id FROM players WHERE telegram_id = ?","rows":1,"ms":15}
+[2026-03-12T13:11:33.317Z] [DEBUG] API GET /games/6/round | {"body":{}}
+[2026-03-12T13:11:33.317Z] [DEBUG] DEV mode auth bypass | {"userId":412606522}
+[2026-03-12T13:11:33.334Z] [DB] Q | {"sql":"SELECT * FROM games WHERE id = ?","rows":1,"ms":15}
+[2026-03-12T13:11:33.350Z] [DB] Q | {"sql":"SELECT * FROM rounds WHERE game_id=? AND round_number=? AND status='active'","rows":1,"ms":16}
+[2026-03-12T13:11:33.367Z] [DB] Q | {"sql":"SELECT rp.*, p.nickname FROM round_players rp JOIN players p ON rp.player_id=p.id WHERE rp.round_id=","rows":1,"ms":15}
+[2026-03-12T13:11:38.233Z] [DEBUG] API GET /games/6 | {"body":{}}
+[2026-03-12T13:11:38.234Z] [DEBUG] DEV mode auth bypass | {"userId":412606522}
+[2026-03-12T13:11:38.250Z] [DB] Q | {"sql":"SELECT * FROM games WHERE id = ?","rows":1,"ms":16}
+[2026-03-12T13:11:38.267Z] [DB] Q | {"sql":"SELECT gp.*, p.nickname, p.rating, t.name as team_name\n       FROM game_players gp\n       JOIN playe","rows":1,"ms":16}
+[2026-03-12T13:11:38.283Z] [DB] Q | {"sql":"SELECT * FROM rounds WHERE game_id = ? ORDER BY round_number","rows":1,"ms":16}
+[2026-03-12T13:11:38.300Z] [DB] Q | {"sql":"SELECT id FROM players WHERE telegram_id = ?","rows":1,"ms":15}
+[2026-03-12T13:11:38.311Z] [DEBUG] API GET /games/6/round | {"body":{}}
+[2026-03-12T13:11:38.312Z] [DEBUG] DEV mode auth bypass | {"userId":412606522}
+[2026-03-12T13:11:38.328Z] [DB] Q | {"sql":"SELECT * FROM games WHERE id = ?","rows":1,"ms":16}
+[2026-03-12T13:11:38.344Z] [DB] Q | {"sql":"SELECT * FROM rounds WHERE game_id=? AND round_number=? AND status='active'","rows":1,"ms":15}
+[2026-03-12T13:11:38.361Z] [DB] Q | {"sql":"SELECT rp.*, p.nickname FROM round_players rp JOIN players p ON rp.player_id=p.id WHERE rp.round_id=","rows":1,"ms":15}
+[2026-03-12T13:11:43.227Z] [DEBUG] API GET /games/6 | {"body":{}}
+[2026-03-12T13:11:43.228Z] [DEBUG] DEV mode auth bypass | {"userId":412606522}
+[2026-03-12T13:11:43.244Z] [DB] Q | {"sql":"SELECT * FROM games WHERE id = ?","rows":1,"ms":16}
+[2026-03-12T13:11:43.261Z] [DB] Q | {"sql":"SELECT gp.*, p.nickname, p.rating, t.name as team_name\n       FROM game_players gp\n       JOIN playe","rows":1,"ms":16}
+[2026-03-12T13:11:43.280Z] [DB] Q | {"sql":"SELECT * FROM rounds WHERE game_id = ? ORDER BY round_number","rows":1,"ms":19}
+[2026-03-12T13:11:43.296Z] [DB] Q | {"sql":"SELECT id FROM players WHERE telegram_id = ?","rows":1,"ms":15}
+[2026-03-12T13:11:43.308Z] [DEBUG] API GET /games/6/round | {"body":{}}
+[2026-03-12T13:11:43.308Z] [DEBUG] DEV mode auth bypass | {"userId":412606522}
+[2026-03-12T13:11:43.327Z] [DB] Q | {"sql":"SELECT * FROM games WHERE id = ?","rows":1,"ms":18}
+[2026-03-12T13:11:43.345Z] [DB] Q | {"sql":"SELECT * FROM rounds WHERE game_id=? AND round_number=? AND status='active'","rows":1,"ms":17}
+[2026-03-12T13:11:43.361Z] [DB] Q | {"sql":"SELECT rp.*, p.nickname FROM round_players rp JOIN players p ON rp.player_id=p.id WHERE rp.round_id=","rows":1,"ms":16}
+[2026-03-12T13:11:48.231Z] [DEBUG] API GET /games/6 | {"body":{}}
+[2026-03-12T13:11:48.232Z] [DEBUG] DEV mode auth bypass | {"userId":412606522}
+[2026-03-12T13:11:48.248Z] [DB] Q | {"sql":"SELECT * FROM games WHERE id = ?","rows":1,"ms":16}
+[2026-03-12T13:11:48.265Z] [DB] Q | {"sql":"SELECT gp.*, p.nickname, p.rating, t.name as team_name\n       FROM game_players gp\n       JOIN playe","rows":1,"ms":16}
+[2026-03-12T13:11:48.282Z] [DB] Q | {"sql":"SELECT * FROM rounds WHERE game_id = ? ORDER BY round_number","rows":1,"ms":17}
+[2026-03-12T13:11:48.298Z] [DB] Q | {"sql":"SELECT id FROM players WHERE telegram_id = ?","rows":1,"ms":16}
+[2026-03-12T13:11:48.311Z] [DEBUG] API GET /games/6/round | {"body":{}}
+[2026-03-12T13:11:48.312Z] [DEBUG] DEV mode auth bypass | {"userId":412606522}
+[2026-03-12T13:11:48.333Z] [DB] Q | {"sql":"SELECT * FROM games WHERE id = ?","rows":1,"ms":20}
+[2026-03-12T13:11:48.352Z] [DB] Q | {"sql":"SELECT * FROM rounds WHERE game_id=? AND round_number=? AND status='active'","rows":1,"ms":19}
+[2026-03-12T13:11:48.373Z] [DB] Q | {"sql":"SELECT rp.*, p.nickname FROM round_players rp JOIN players p ON rp.player_id=p.id WHERE rp.round_id=","rows":1,"ms":20}
+[2026-03-12T13:11:53.237Z] [DEBUG] API GET /games/6 | {"body":{}}
+[2026-03-12T13:11:53.237Z] [DEBUG] DEV mode auth bypass | {"userId":412606522}
+[2026-03-12T13:11:53.255Z] [DB] Q | {"sql":"SELECT * FROM games WHERE id = ?","rows":1,"ms":17}
+[2026-03-12T13:11:53.272Z] [DB] Q | {"sql":"SELECT gp.*, p.nickname, p.rating, t.name as team_name\n       FROM game_players gp\n       JOIN playe","rows":1,"ms":16}
+[2026-03-12T13:11:53.288Z] [DB] Q | {"sql":"SELECT * FROM rounds WHERE game_id = ? ORDER BY round_number","rows":1,"ms":16}
+[2026-03-12T13:11:53.305Z] [DB] Q | {"sql":"SELECT id FROM players WHERE telegram_id = ?","rows":1,"ms":15}
+[2026-03-12T13:11:53.321Z] [DEBUG] API GET /games/6/round | {"body":{}}
+[2026-03-12T13:11:53.322Z] [DEBUG] DEV mode auth bypass | {"userId":412606522}
+[2026-03-12T13:11:53.341Z] [DB] Q | {"sql":"SELECT * FROM games WHERE id = ?","rows":1,"ms":19}
+[2026-03-12T13:11:53.358Z] [DB] Q | {"sql":"SELECT * FROM rounds WHERE game_id=? AND round_number=? AND status='active'","rows":1,"ms":17}
+[2026-03-12T13:11:53.375Z] [DB] Q | {"sql":"SELECT rp.*, p.nickname FROM round_players rp JOIN players p ON rp.player_id=p.id WHERE rp.round_id=","rows":1,"ms":16}
+[2026-03-12T13:11:58.235Z] [DEBUG] API GET /games/6 | {"body":{}}
+[2026-03-12T13:11:58.236Z] [DEBUG] DEV mode auth bypass | {"userId":412606522}
+[2026-03-12T13:11:58.255Z] [DB] Q | {"sql":"SELECT * FROM games WHERE id = ?","rows":1,"ms":19}
+[2026-03-12T13:11:58.280Z] [DB] Q | {"sql":"SELECT gp.*, p.nickname, p.rating, t.name as team_name\n       FROM game_players gp\n       JOIN playe","rows":1,"ms":24}
+[2026-03-12T13:11:58.304Z] [DB] Q | {"sql":"SELECT * FROM rounds WHERE game_id = ? ORDER BY round_number","rows":1,"ms":23}
+[2026-03-12T13:11:58.320Z] [DB] Q | {"sql":"SELECT id FROM players WHERE telegram_id = ?","rows":1,"ms":16}
+[2026-03-12T13:11:58.333Z] [DEBUG] API GET /games/6/round | {"body":{}}
+[2026-03-12T13:11:58.334Z] [DEBUG] DEV mode auth bypass | {"userId":412606522}
+[2026-03-12T13:11:58.373Z] [DB] Q | {"sql":"SELECT * FROM games WHERE id = ?","rows":1,"ms":30}
+[2026-03-12T13:11:58.393Z] [DB] Q | {"sql":"SELECT * FROM rounds WHERE game_id=? AND round_number=? AND status='active'","rows":1,"ms":17}
+[2026-03-12T13:11:58.416Z] [DB] Q | {"sql":"SELECT rp.*, p.nickname FROM round_players rp JOIN players p ON rp.player_id=p.id WHERE rp.round_id=","rows":1,"ms":19}
+[2026-03-12T13:12:04.009Z] [DEBUG] API GET /games/6 | {"body":{}}
+[2026-03-12T13:12:04.009Z] [DEBUG] DEV mode auth bypass | {"userId":412606522}
+[2026-03-12T13:12:04.027Z] [DB] Q | {"sql":"SELECT * FROM games WHERE id = ?","rows":1,"ms":18}
+[2026-03-12T13:12:04.044Z] [DB] Q | {"sql":"SELECT gp.*, p.nickname, p.rating, t.name as team_name\n       FROM game_players gp\n       JOIN playe","rows":1,"ms":16}
+[2026-03-12T13:12:04.061Z] [DB] Q | {"sql":"SELECT * FROM rounds WHERE game_id = ? ORDER BY round_number","rows":1,"ms":16}
+[2026-03-12T13:12:04.077Z] [DB] Q | {"sql":"SELECT id FROM players WHERE telegram_id = ?","rows":1,"ms":15}
+[2026-03-12T13:12:04.122Z] [DEBUG] API GET /games/6/round | {"body":{}}
+[2026-03-12T13:12:04.122Z] [DEBUG] DEV mode auth bypass | {"userId":412606522}
+[2026-03-12T13:12:04.140Z] [DB] Q | {"sql":"SELECT * FROM games WHERE id = ?","rows":1,"ms":16}
+[2026-03-12T13:12:04.156Z] [DB] Q | {"sql":"SELECT * FROM rounds WHERE game_id=? AND round_number=? AND status='active'","rows":1,"ms":16}
+[2026-03-12T13:12:04.173Z] [DB] Q | {"sql":"SELECT rp.*, p.nickname FROM round_players rp JOIN players p ON rp.player_id=p.id WHERE rp.round_id=","rows":1,"ms":16}
+[2026-03-12T13:12:08.227Z] [DEBUG] API GET /games/6 | {"body":{}}
+[2026-03-12T13:12:08.228Z] [DEBUG] DEV mode auth bypass | {"userId":412606522}
+[2026-03-12T13:12:08.245Z] [DB] Q | {"sql":"SELECT * FROM games WHERE id = ?","rows":1,"ms":16}
+[2026-03-12T13:12:08.263Z] [DB] Q | {"sql":"SELECT gp.*, p.nickname, p.rating, t.name as team_name\n       FROM game_players gp\n       JOIN playe","rows":1,"ms":18}
+[2026-03-12T13:12:08.286Z] [DB] Q | {"sql":"SELECT * FROM rounds WHERE game_id = ? ORDER BY round_number","rows":1,"ms":21}
+[2026-03-12T13:12:08.304Z] [DB] Q | {"sql":"SELECT id FROM players WHERE telegram_id = ?","rows":1,"ms":17}
+[2026-03-12T13:12:08.318Z] [DEBUG] API GET /games/6/round | {"body":{}}
+[2026-03-12T13:12:08.318Z] [DEBUG] DEV mode auth bypass | {"userId":412606522}
+[2026-03-12T13:12:08.342Z] [DB] Q | {"sql":"SELECT * FROM games WHERE id = ?","rows":1,"ms":23}
+[2026-03-12T13:12:08.360Z] [DB] Q | {"sql":"SELECT * FROM rounds WHERE game_id=? AND round_number=? AND status='active'","rows":1,"ms":18}
+[2026-03-12T13:12:08.377Z] [DB] Q | {"sql":"SELECT rp.*, p.nickname FROM round_players rp JOIN players p ON rp.player_id=p.id WHERE rp.round_id=","rows":1,"ms":16}
+[2026-03-12T13:12:13.230Z] [DEBUG] API GET /games/6 | {"body":{}}
+[2026-03-12T13:12:13.231Z] [DEBUG] DEV mode auth bypass | {"userId":412606522}
+[2026-03-12T13:12:13.248Z] [DB] Q | {"sql":"SELECT * FROM games WHERE id = ?","rows":1,"ms":16}
+[2026-03-12T13:12:13.265Z] [DB] Q | {"sql":"SELECT gp.*, p.nickname, p.rating, t.name as team_name\n       FROM game_players gp\n       JOIN playe","rows":1,"ms":17}
+[2026-03-12T13:12:13.288Z] [DB] Q | {"sql":"SELECT * FROM rounds WHERE game_id = ? ORDER BY round_number","rows":1,"ms":21}
+[2026-03-12T13:12:13.304Z] [DB] Q | {"sql":"SELECT id FROM players WHERE telegram_id = ?","rows":1,"ms":16}
+[2026-03-12T13:12:13.315Z] [DEBUG] API GET /games/6/round | {"body":{}}
+[2026-03-12T13:12:13.316Z] [DEBUG] DEV mode auth bypass | {"userId":412606522}
+[2026-03-12T13:12:13.334Z] [DB] Q | {"sql":"SELECT * FROM games WHERE id = ?","rows":1,"ms":18}
+[2026-03-12T13:12:13.351Z] [DB] Q | {"sql":"SELECT * FROM rounds WHERE game_id=? AND round_number=? AND status='active'","rows":1,"ms":16}
+[2026-03-12T13:12:13.368Z] [DB] Q | {"sql":"SELECT rp.*, p.nickname FROM round_players rp JOIN players p ON rp.player_id=p.id WHERE rp.round_id=","rows":1,"ms":17}
+[2026-03-12T13:12:15.329Z] [INFO] =============================
+[2026-03-12T13:12:15.329Z] [INFO]   AIRSOFT CLUB BOT + APP v2  
+[2026-03-12T13:12:15.330Z] [INFO] =============================
+[2026-03-12T13:12:15.331Z] [INFO] Connecting MySQL... | {"host":"s5.thehost.com.ua","database":"airsoft_db"}
+[2026-03-12T13:12:15.442Z] [INFO] MySQL OK
+[2026-03-12T13:12:15.475Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM players","rows":1,"ms":32}
+[2026-03-12T13:12:15.510Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM teams","rows":1,"ms":35}
+[2026-03-12T13:12:15.543Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM games","rows":1,"ms":31}
+[2026-03-12T13:12:15.544Z] [INFO] DB | {"players":4,"teams":1,"games":6}
+[2026-03-12T13:12:15.572Z] [INFO] Bot running!
+[2026-03-12T13:12:15.573Z] [INFO] Express server on port 3000
+[2026-03-12T13:12:15.573Z] [INFO] Mini App URL: http://localhost:3000
+[2026-03-12T13:12:17.932Z] [DEBUG] API GET /games/6 | {"body":{}}
+[2026-03-12T13:12:17.933Z] [DEBUG] DEV mode auth bypass | {"userId":412606522}
+[2026-03-12T13:12:17.967Z] [DB] Q | {"sql":"SELECT * FROM games WHERE id = ?","rows":1,"ms":33}
+[2026-03-12T13:12:18.002Z] [DB] Q | {"sql":"SELECT gp.*, p.nickname, p.rating, t.name as team_name\n       FROM game_players gp\n       JOIN playe","rows":1,"ms":35}
+[2026-03-12T13:12:18.037Z] [DB] Q | {"sql":"SELECT * FROM rounds WHERE game_id = ? ORDER BY round_number","rows":1,"ms":35}
+[2026-03-12T13:12:18.069Z] [DB] Q | {"sql":"SELECT id FROM players WHERE telegram_id = ?","rows":1,"ms":32}
+[2026-03-12T13:12:18.077Z] [DEBUG] API GET /games/6/round | {"body":{}}
+[2026-03-12T13:12:18.078Z] [DEBUG] DEV mode auth bypass | {"userId":412606522}
+[2026-03-12T13:12:18.095Z] [DB] Q | {"sql":"SELECT * FROM games WHERE id = ?","rows":1,"ms":16}
+[2026-03-12T13:12:18.127Z] [DB] Q | {"sql":"SELECT * FROM rounds WHERE game_id=? AND round_number=? AND status='active'","rows":1,"ms":31}
+[2026-03-12T13:12:18.159Z] [DB] Q | {"sql":"SELECT rp.*, p.nickname FROM round_players rp JOIN players p ON rp.player_id=p.id WHERE rp.round_id=","rows":1,"ms":32}
+[2026-03-12T13:12:19.393Z] [DEBUG] API POST /games/6/imdead | {"body":{}}
+[2026-03-12T13:12:19.393Z] [DEBUG] DEV mode auth bypass | {"userId":412606522}
+[2026-03-12T13:12:19.416Z] [DB] Q | {"sql":"SELECT id FROM players WHERE telegram_id = ?","rows":1,"ms":22}
+[2026-03-12T13:12:19.456Z] [DB] Q | {"sql":"SELECT current_round FROM games WHERE id = ?","rows":1,"ms":38}
+[2026-03-12T13:12:19.487Z] [DB] Q | {"sql":"SELECT id FROM rounds WHERE game_id = ? AND round_number = ? AND status = 'active'","rows":1,"ms":31}
+[2026-03-12T13:12:19.519Z] [DB] Q | {"sql":"SELECT is_alive FROM round_players WHERE round_id=? AND player_id=?","rows":1,"ms":31}
+[2026-03-12T13:12:19.551Z] [DB] INS | {"sql":"INSERT INTO round_kills (round_id,game_id,killed_player_id,killer_player_id,reported_by) VALUES (?,?","id":8,"ms":31}
+[2026-03-12T13:12:19.583Z] [DB] INS | {"sql":"UPDATE round_players SET is_alive=0 WHERE round_id=? AND player_id=?","id":0,"ms":31}
+[2026-03-12T13:12:19.584Z] [INFO] API self-report dead | {"gid":6,"playerId":1}
+[2026-03-12T13:12:19.591Z] [DEBUG] API GET /games/6 | {"body":{}}
+[2026-03-12T13:12:19.592Z] [DEBUG] DEV mode auth bypass | {"userId":412606522}
+[2026-03-12T13:12:19.608Z] [DB] Q | {"sql":"SELECT * FROM games WHERE id = ?","rows":1,"ms":16}
+[2026-03-12T13:12:19.625Z] [DB] Q | {"sql":"SELECT gp.*, p.nickname, p.rating, t.name as team_name\n       FROM game_players gp\n       JOIN playe","rows":1,"ms":15}
+[2026-03-12T13:12:19.641Z] [DB] Q | {"sql":"SELECT * FROM rounds WHERE game_id = ? ORDER BY round_number","rows":1,"ms":15}
+[2026-03-12T13:12:19.657Z] [DB] Q | {"sql":"SELECT id FROM players WHERE telegram_id = ?","rows":1,"ms":15}
+[2026-03-12T13:12:19.664Z] [DEBUG] API GET /games/6/round | {"body":{}}
+[2026-03-12T13:12:19.664Z] [DEBUG] DEV mode auth bypass | {"userId":412606522}
+[2026-03-12T13:12:19.681Z] [DB] Q | {"sql":"SELECT * FROM games WHERE id = ?","rows":1,"ms":15}
+[2026-03-12T13:12:19.697Z] [DB] Q | {"sql":"SELECT * FROM rounds WHERE game_id=? AND round_number=? AND status='active'","rows":1,"ms":15}
+[2026-03-12T13:12:19.713Z] [DB] Q | {"sql":"SELECT rp.*, p.nickname FROM round_players rp JOIN players p ON rp.player_id=p.id WHERE rp.round_id=","rows":1,"ms":16}
+[2026-03-12T13:12:22.937Z] [DEBUG] API GET /games/6 | {"body":{}}
+[2026-03-12T13:12:22.937Z] [DEBUG] DEV mode auth bypass | {"userId":412606522}
+[2026-03-12T13:12:22.954Z] [DB] Q | {"sql":"SELECT * FROM games WHERE id = ?","rows":1,"ms":15}
+[2026-03-12T13:12:22.971Z] [DB] Q | {"sql":"SELECT gp.*, p.nickname, p.rating, t.name as team_name\n       FROM game_players gp\n       JOIN playe","rows":1,"ms":16}
+[2026-03-12T13:12:22.987Z] [DB] Q | {"sql":"SELECT * FROM rounds WHERE game_id = ? ORDER BY round_number","rows":1,"ms":16}
+[2026-03-12T13:12:23.004Z] [DB] Q | {"sql":"SELECT id FROM players WHERE telegram_id = ?","rows":1,"ms":15}
+[2026-03-12T13:12:23.012Z] [DEBUG] API GET /games/6/round | {"body":{}}
+[2026-03-12T13:12:23.012Z] [DEBUG] DEV mode auth bypass | {"userId":412606522}
+[2026-03-12T13:12:23.028Z] [DB] Q | {"sql":"SELECT * FROM games WHERE id = ?","rows":1,"ms":16}
+[2026-03-12T13:12:23.045Z] [DB] Q | {"sql":"SELECT * FROM rounds WHERE game_id=? AND round_number=? AND status='active'","rows":1,"ms":15}
+[2026-03-12T13:12:23.061Z] [DB] Q | {"sql":"SELECT rp.*, p.nickname FROM round_players rp JOIN players p ON rp.player_id=p.id WHERE rp.round_id=","rows":1,"ms":16}
+[2026-03-12T13:12:23.736Z] [DEBUG] API POST /admin/games/6/end-round | {"body":{"winner_team":"A"}}
+[2026-03-12T13:12:23.737Z] [DEBUG] DEV mode auth bypass | {"userId":412606522}
+[2026-03-12T13:12:23.770Z] [DB] Q | {"sql":"SELECT * FROM games WHERE id=?","rows":1,"ms":33}
+[2026-03-12T13:12:23.802Z] [DB] Q | {"sql":"SELECT id FROM rounds WHERE game_id=? AND round_number=? AND status='active'","rows":1,"ms":31}
+[2026-03-12T13:12:23.836Z] [DB] INS | {"sql":"UPDATE rounds SET winner_game_team=?, status='finished', ended_at=NOW() WHERE id=?","id":0,"ms":31}
+[2026-03-12T13:12:23.867Z] [DB] INS | {"sql":"UPDATE games SET total_rounds=? WHERE id=?","id":0,"ms":31}
+[2026-03-12T13:12:23.868Z] [INFO] Round ended | {"gid":6,"round":1,"winner":"A"}
+[2026-03-12T13:12:23.874Z] [DEBUG] API GET /games/6 | {"body":{}}
+[2026-03-12T13:12:23.875Z] [DEBUG] DEV mode auth bypass | {"userId":412606522}
+[2026-03-12T13:12:23.891Z] [DB] Q | {"sql":"SELECT * FROM games WHERE id = ?","rows":1,"ms":16}
+[2026-03-12T13:12:23.909Z] [DB] Q | {"sql":"SELECT gp.*, p.nickname, p.rating, t.name as team_name\n       FROM game_players gp\n       JOIN playe","rows":1,"ms":16}
+[2026-03-12T13:12:23.925Z] [DB] Q | {"sql":"SELECT * FROM rounds WHERE game_id = ? ORDER BY round_number","rows":1,"ms":16}
+[2026-03-12T13:12:23.942Z] [DB] Q | {"sql":"SELECT id FROM players WHERE telegram_id = ?","rows":1,"ms":15}
+[2026-03-12T13:12:23.950Z] [DEBUG] API GET /games/6/round | {"body":{}}
+[2026-03-12T13:12:23.950Z] [DEBUG] DEV mode auth bypass | {"userId":412606522}
+[2026-03-12T13:12:23.966Z] [DB] Q | {"sql":"SELECT * FROM games WHERE id = ?","rows":1,"ms":15}
+[2026-03-12T13:12:23.983Z] [DB] Q | {"sql":"SELECT * FROM rounds WHERE game_id=? AND round_number=? AND status='active'","rows":0,"ms":15}
+[2026-03-12T13:12:25.521Z] [DEBUG] API POST /admin/games/6/start-round | {"body":{}}
+[2026-03-12T13:12:25.522Z] [DEBUG] DEV mode auth bypass | {"userId":412606522}
+[2026-03-12T13:12:25.539Z] [DB] Q | {"sql":"SELECT * FROM games WHERE id=?","rows":1,"ms":16}
+[2026-03-12T13:12:25.574Z] [DB] Q | {"sql":"SELECT id FROM rounds WHERE game_id=? AND status='active'","rows":0,"ms":34}
+[2026-03-12T13:12:25.610Z] [DB] INS | {"sql":"UPDATE games SET current_round=? WHERE id=?","id":0,"ms":35}
+[2026-03-12T13:12:25.642Z] [DB] INS | {"sql":"INSERT INTO rounds (game_id,round_number,status,started_at) VALUES (?,?,'active',NOW())","id":18,"ms":31}
+[2026-03-12T13:12:25.675Z] [DB] Q | {"sql":"SELECT id FROM rounds WHERE game_id=? AND round_number=?","rows":1,"ms":31}
+[2026-03-12T13:12:25.707Z] [DB] Q | {"sql":"SELECT player_id,game_team FROM game_players WHERE game_id=? AND attendance='checked_in'","rows":1,"ms":32}
+[2026-03-12T13:12:25.739Z] [DB] INS | {"sql":"INSERT INTO round_players (round_id,player_id,game_team,is_alive,kills) VALUES (?,?,?,1,0)","id":18,"ms":32}
+[2026-03-12T13:12:25.740Z] [INFO] Round started | {"gid":6,"round":2}
+[2026-03-12T13:12:25.747Z] [DEBUG] API GET /games/6 | {"body":{}}
+[2026-03-12T13:12:25.748Z] [DEBUG] DEV mode auth bypass | {"userId":412606522}
+[2026-03-12T13:12:25.764Z] [DB] Q | {"sql":"SELECT * FROM games WHERE id = ?","rows":1,"ms":16}
+[2026-03-12T13:12:25.782Z] [DB] Q | {"sql":"SELECT gp.*, p.nickname, p.rating, t.name as team_name\n       FROM game_players gp\n       JOIN playe","rows":1,"ms":16}
+[2026-03-12T13:12:25.799Z] [DB] Q | {"sql":"SELECT * FROM rounds WHERE game_id = ? ORDER BY round_number","rows":2,"ms":16}
+[2026-03-12T13:12:25.815Z] [DB] Q | {"sql":"SELECT id FROM players WHERE telegram_id = ?","rows":1,"ms":16}
+[2026-03-12T13:12:25.823Z] [DEBUG] API GET /games/6/round | {"body":{}}
+[2026-03-12T13:12:25.824Z] [DEBUG] DEV mode auth bypass | {"userId":412606522}
+[2026-03-12T13:12:25.840Z] [DB] Q | {"sql":"SELECT * FROM games WHERE id = ?","rows":1,"ms":15}
+[2026-03-12T13:12:25.856Z] [DB] Q | {"sql":"SELECT * FROM rounds WHERE game_id=? AND round_number=? AND status='active'","rows":1,"ms":16}
+[2026-03-12T13:12:25.873Z] [DB] Q | {"sql":"SELECT rp.*, p.nickname FROM round_players rp JOIN players p ON rp.player_id=p.id WHERE rp.round_id=","rows":1,"ms":16}
+[2026-03-12T13:12:27.121Z] [DEBUG] API POST /admin/games/6/end-round | {"body":{"winner_team":"A"}}
+[2026-03-12T13:12:27.121Z] [DEBUG] DEV mode auth bypass | {"userId":412606522}
+[2026-03-12T13:12:27.138Z] [DB] Q | {"sql":"SELECT * FROM games WHERE id=?","rows":1,"ms":16}
+[2026-03-12T13:12:27.155Z] [DB] Q | {"sql":"SELECT id FROM rounds WHERE game_id=? AND round_number=? AND status='active'","rows":1,"ms":17}
+[2026-03-12T13:12:27.172Z] [DB] INS | {"sql":"UPDATE rounds SET winner_game_team=?, status='finished', ended_at=NOW() WHERE id=?","id":0,"ms":15}
+[2026-03-12T13:12:27.189Z] [DB] INS | {"sql":"UPDATE games SET total_rounds=? WHERE id=?","id":0,"ms":16}
+[2026-03-12T13:12:27.190Z] [INFO] Round ended | {"gid":6,"round":2,"winner":"A"}
+[2026-03-12T13:12:27.214Z] [DEBUG] API GET /games/6 | {"body":{}}
+[2026-03-12T13:12:27.214Z] [DEBUG] DEV mode auth bypass | {"userId":412606522}
+[2026-03-12T13:12:27.232Z] [DB] Q | {"sql":"SELECT * FROM games WHERE id = ?","rows":1,"ms":16}
+[2026-03-12T13:12:27.251Z] [DB] Q | {"sql":"SELECT gp.*, p.nickname, p.rating, t.name as team_name\n       FROM game_players gp\n       JOIN playe","rows":1,"ms":18}
+[2026-03-12T13:12:27.267Z] [DB] Q | {"sql":"SELECT * FROM rounds WHERE game_id = ? ORDER BY round_number","rows":2,"ms":16}
+[2026-03-12T13:12:27.285Z] [DB] Q | {"sql":"SELECT id FROM players WHERE telegram_id = ?","rows":1,"ms":16}
+[2026-03-12T13:12:27.293Z] [DEBUG] API GET /games/6/round | {"body":{}}
+[2026-03-12T13:12:27.294Z] [DEBUG] DEV mode auth bypass | {"userId":412606522}
+[2026-03-12T13:12:27.311Z] [DB] Q | {"sql":"SELECT * FROM games WHERE id = ?","rows":1,"ms":16}
+[2026-03-12T13:12:27.329Z] [DB] Q | {"sql":"SELECT * FROM rounds WHERE game_id=? AND round_number=? AND status='active'","rows":0,"ms":17}
+[2026-03-12T13:12:27.935Z] [DEBUG] API GET /games/6 | {"body":{}}
+[2026-03-12T13:12:27.936Z] [DEBUG] DEV mode auth bypass | {"userId":412606522}
+[2026-03-12T13:12:27.952Z] [DB] Q | {"sql":"SELECT * FROM games WHERE id = ?","rows":1,"ms":16}
+[2026-03-12T13:12:27.971Z] [DB] Q | {"sql":"SELECT gp.*, p.nickname, p.rating, t.name as team_name\n       FROM game_players gp\n       JOIN playe","rows":1,"ms":16}
+[2026-03-12T13:12:28.002Z] [DB] Q | {"sql":"SELECT * FROM rounds WHERE game_id = ? ORDER BY round_number","rows":2,"ms":31}
+[2026-03-12T13:12:28.020Z] [DB] Q | {"sql":"SELECT id FROM players WHERE telegram_id = ?","rows":1,"ms":17}
+[2026-03-12T13:12:28.028Z] [DEBUG] API GET /games/6/round | {"body":{}}
+[2026-03-12T13:12:28.028Z] [DEBUG] DEV mode auth bypass | {"userId":412606522}
+[2026-03-12T13:12:28.044Z] [DB] Q | {"sql":"SELECT * FROM games WHERE id = ?","rows":1,"ms":15}
+[2026-03-12T13:12:28.093Z] [DB] Q | {"sql":"SELECT * FROM rounds WHERE game_id=? AND round_number=? AND status='active'","rows":0,"ms":24}
+[2026-03-12T13:12:28.603Z] [DEBUG] API POST /admin/games/6/start-round | {"body":{}}
+[2026-03-12T13:12:28.604Z] [DEBUG] DEV mode auth bypass | {"userId":412606522}
+[2026-03-12T13:12:28.620Z] [DB] Q | {"sql":"SELECT * FROM games WHERE id=?","rows":1,"ms":16}
+[2026-03-12T13:12:28.647Z] [DB] Q | {"sql":"SELECT id FROM rounds WHERE game_id=? AND status='active'","rows":0,"ms":27}
+[2026-03-12T13:12:28.664Z] [DB] INS | {"sql":"UPDATE games SET current_round=? WHERE id=?","id":0,"ms":16}
+[2026-03-12T13:12:28.680Z] [DB] INS | {"sql":"INSERT INTO rounds (game_id,round_number,status,started_at) VALUES (?,?,'active',NOW())","id":19,"ms":16}
+[2026-03-12T13:12:28.696Z] [DB] Q | {"sql":"SELECT id FROM rounds WHERE game_id=? AND round_number=?","rows":1,"ms":15}
+[2026-03-12T13:12:28.712Z] [DB] Q | {"sql":"SELECT player_id,game_team FROM game_players WHERE game_id=? AND attendance='checked_in'","rows":1,"ms":15}
+[2026-03-12T13:12:28.728Z] [DB] INS | {"sql":"INSERT INTO round_players (round_id,player_id,game_team,is_alive,kills) VALUES (?,?,?,1,0)","id":19,"ms":16}
+[2026-03-12T13:12:28.728Z] [INFO] Round started | {"gid":6,"round":3}
+[2026-03-12T13:12:28.736Z] [DEBUG] API GET /games/6 | {"body":{}}
+[2026-03-12T13:12:28.737Z] [DEBUG] DEV mode auth bypass | {"userId":412606522}
+[2026-03-12T13:12:28.753Z] [DB] Q | {"sql":"SELECT * FROM games WHERE id = ?","rows":1,"ms":16}
+[2026-03-12T13:12:28.770Z] [DB] Q | {"sql":"SELECT gp.*, p.nickname, p.rating, t.name as team_name\n       FROM game_players gp\n       JOIN playe","rows":1,"ms":16}
+[2026-03-12T13:12:28.786Z] [DB] Q | {"sql":"SELECT * FROM rounds WHERE game_id = ? ORDER BY round_number","rows":3,"ms":15}
+[2026-03-12T13:12:28.803Z] [DB] Q | {"sql":"SELECT id FROM players WHERE telegram_id = ?","rows":1,"ms":15}
+[2026-03-12T13:12:28.810Z] [DEBUG] API GET /games/6/round | {"body":{}}
+[2026-03-12T13:12:28.810Z] [DEBUG] DEV mode auth bypass | {"userId":412606522}
+[2026-03-12T13:12:28.826Z] [DB] Q | {"sql":"SELECT * FROM games WHERE id = ?","rows":1,"ms":16}
+[2026-03-12T13:12:28.842Z] [DB] Q | {"sql":"SELECT * FROM rounds WHERE game_id=? AND round_number=? AND status='active'","rows":1,"ms":15}
+[2026-03-12T13:12:28.859Z] [DB] Q | {"sql":"SELECT rp.*, p.nickname FROM round_players rp JOIN players p ON rp.player_id=p.id WHERE rp.round_id=","rows":1,"ms":16}
+[2026-03-12T13:12:31.955Z] [DEBUG] API POST /admin/games/6/end-round | {"body":{"winner_team":"A"}}
+[2026-03-12T13:12:31.956Z] [DEBUG] DEV mode auth bypass | {"userId":412606522}
+[2026-03-12T13:12:31.974Z] [DB] Q | {"sql":"SELECT * FROM games WHERE id=?","rows":1,"ms":17}
+[2026-03-12T13:12:31.990Z] [DB] Q | {"sql":"SELECT id FROM rounds WHERE game_id=? AND round_number=? AND status='active'","rows":1,"ms":16}
+[2026-03-12T13:12:32.018Z] [DB] INS | {"sql":"UPDATE rounds SET winner_game_team=?, status='finished', ended_at=NOW() WHERE id=?","id":0,"ms":26}
+[2026-03-12T13:12:32.034Z] [DB] INS | {"sql":"UPDATE games SET total_rounds=? WHERE id=?","id":0,"ms":16}
+[2026-03-12T13:12:32.035Z] [INFO] Round ended | {"gid":6,"round":3,"winner":"A"}
+[2026-03-12T13:12:32.042Z] [DEBUG] API GET /games/6 | {"body":{}}
+[2026-03-12T13:12:32.043Z] [DEBUG] DEV mode auth bypass | {"userId":412606522}
+[2026-03-12T13:12:32.059Z] [DB] Q | {"sql":"SELECT * FROM games WHERE id = ?","rows":1,"ms":15}
+[2026-03-12T13:12:32.076Z] [DB] Q | {"sql":"SELECT gp.*, p.nickname, p.rating, t.name as team_name\n       FROM game_players gp\n       JOIN playe","rows":1,"ms":16}
+[2026-03-12T13:12:32.105Z] [DB] Q | {"sql":"SELECT * FROM rounds WHERE game_id = ? ORDER BY round_number","rows":3,"ms":29}
+[2026-03-12T13:12:32.122Z] [DB] Q | {"sql":"SELECT id FROM players WHERE telegram_id = ?","rows":1,"ms":15}
+[2026-03-12T13:12:32.129Z] [DEBUG] API GET /games/6/round | {"body":{}}
+[2026-03-12T13:12:32.130Z] [DEBUG] DEV mode auth bypass | {"userId":412606522}
+[2026-03-12T13:12:32.146Z] [DB] Q | {"sql":"SELECT * FROM games WHERE id = ?","rows":1,"ms":16}
+[2026-03-12T13:12:32.163Z] [DB] Q | {"sql":"SELECT * FROM rounds WHERE game_id=? AND round_number=? AND status='active'","rows":0,"ms":15}
+[2026-03-12T13:12:32.974Z] [DEBUG] API GET /games/6 | {"body":{}}
+[2026-03-12T13:12:32.975Z] [DEBUG] DEV mode auth bypass | {"userId":412606522}
+[2026-03-12T13:12:32.998Z] [DB] Q | {"sql":"SELECT * FROM games WHERE id = ?","rows":1,"ms":23}
+[2026-03-12T13:12:33.035Z] [DB] Q | {"sql":"SELECT gp.*, p.nickname, p.rating, t.name as team_name\n       FROM game_players gp\n       JOIN playe","rows":1,"ms":36}
+[2026-03-12T13:12:33.053Z] [DB] Q | {"sql":"SELECT * FROM rounds WHERE game_id = ? ORDER BY round_number","rows":3,"ms":17}
+[2026-03-12T13:12:33.078Z] [DB] Q | {"sql":"SELECT id FROM players WHERE telegram_id = ?","rows":1,"ms":24}
+[2026-03-12T13:12:33.090Z] [DEBUG] API GET /games/6/round | {"body":{}}
+[2026-03-12T13:12:33.091Z] [DEBUG] DEV mode auth bypass | {"userId":412606522}
+[2026-03-12T13:12:33.114Z] [DB] Q | {"sql":"SELECT * FROM games WHERE id = ?","rows":1,"ms":21}
+[2026-03-12T13:12:33.138Z] [DB] Q | {"sql":"SELECT * FROM rounds WHERE game_id=? AND round_number=? AND status='active'","rows":0,"ms":23}
+[2026-03-12T13:12:33.739Z] [DEBUG] API POST /admin/games/6/status | {"body":{"status":"finished"}}
+[2026-03-12T13:12:33.745Z] [DEBUG] DEV mode auth bypass | {"userId":412606522}
+[2026-03-12T13:12:33.764Z] [DB] Q | {"sql":"SELECT * FROM games WHERE id=?","rows":1,"ms":18}
+[2026-03-12T13:12:33.798Z] [DB] INS | {"sql":"UPDATE games SET status=? WHERE id=?","id":0,"ms":32}
+[2026-03-12T13:12:33.814Z] [DB] Q | {"sql":"SELECT id FROM rounds WHERE game_id=? AND status='active'","rows":0,"ms":16}
+[2026-03-12T13:12:33.832Z] [DB] INS | {"sql":"UPDATE games SET total_rounds=? WHERE id=?","id":0,"ms":18}
+[2026-03-12T13:12:33.833Z] [INFO] === CALCULATING SCORES === | {"gid":6}
+[2026-03-12T13:12:33.850Z] [DB] Q | {"sql":"SELECT * FROM games WHERE id=?","rows":1,"ms":17}
+[2026-03-12T13:12:33.883Z] [DB] Q | {"sql":"SELECT winner_game_team, COUNT(*) as wins FROM rounds WHERE game_id=? AND winner_game_team IS NOT NU","rows":1,"ms":32}
+[2026-03-12T13:12:33.917Z] [DB] Q | {"sql":"SELECT killed_player_id, COUNT(*) as deaths FROM round_kills WHERE game_id=? GROUP BY killed_player_","rows":1,"ms":34}
+[2026-03-12T13:12:33.949Z] [DB] Q | {"sql":"SELECT * FROM game_players WHERE game_id=? AND attendance='checked_in'","rows":1,"ms":31}
+[2026-03-12T13:12:33.982Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM round_players rp JOIN rounds r ON rp.round_id=r.id WHERE r.game_id=? AND r","rows":1,"ms":32}
+[2026-03-12T13:12:34.014Z] [DB] INS | {"sql":"UPDATE players SET games_played=games_played+1, wins=wins+?, total_deaths=total_deaths+?, rating=rat","id":0,"ms":31}
+[2026-03-12T13:12:34.072Z] [DB] INS | {"sql":"UPDATE game_players SET deaths_total=?, result=? WHERE game_id=? AND player_id=?","id":0,"ms":57}
+[2026-03-12T13:12:34.073Z] [INFO] Player scored | {"player":1,"isWinner":true,"deaths":1,"roundsSurvived":2,"points":21}
+[2026-03-12T13:12:34.106Z] [DB] Q | {"sql":"SELECT * FROM players WHERE id=?","rows":1,"ms":33}
+[2026-03-12T13:12:34.158Z] [DB] Q | {"sql":"SELECT badge_name FROM player_badges WHERE player_id=?","rows":0,"ms":51}
+[2026-03-12T13:12:34.190Z] [DB] INS | {"sql":"INSERT INTO player_badges (player_id,badge_name,badge_emoji) VALUES (?,?,?)","id":1,"ms":30}
+[2026-03-12T13:12:34.192Z] [INFO] Badge awarded | {"playerId":1,"badge":"First Blood"}
+[2026-03-12T13:12:34.224Z] [DB] Q | {"sql":"SELECT player_id FROM game_players WHERE game_id=? AND attendance='no_show'","rows":0,"ms":32}
+[2026-03-12T13:12:34.276Z] [DB] Q | {"sql":"SELECT DISTINCT team_id FROM game_players WHERE game_id=? AND game_team=? AND team_id IS NOT NULL","rows":0,"ms":52}
+[2026-03-12T13:12:34.277Z] [INFO] === SCORES CALCULATED === | {"gid":6,"winner":"A"}
+[2026-03-12T13:12:35.282Z] [DEBUG] API GET /games/6 | {"body":{}}
+[2026-03-12T13:12:35.282Z] [DEBUG] DEV mode auth bypass | {"userId":412606522}
+[2026-03-12T13:12:35.299Z] [DB] Q | {"sql":"SELECT * FROM games WHERE id = ?","rows":1,"ms":15}
+[2026-03-12T13:12:35.316Z] [DB] Q | {"sql":"SELECT gp.*, p.nickname, p.rating, t.name as team_name\n       FROM game_players gp\n       JOIN playe","rows":1,"ms":16}
+[2026-03-12T13:12:35.334Z] [DB] Q | {"sql":"SELECT * FROM rounds WHERE game_id = ? ORDER BY round_number","rows":3,"ms":17}
+[2026-03-12T13:12:35.350Z] [DB] Q | {"sql":"SELECT id FROM players WHERE telegram_id = ?","rows":1,"ms":16}
+[2026-03-12T13:12:42.041Z] [DEBUG] API GET /profile | {"body":{}}
+[2026-03-12T13:12:42.042Z] [DEBUG] DEV mode auth bypass | {"userId":412606522}
+[2026-03-12T13:12:42.044Z] [DEBUG] API GET /profile | {"body":{}}
+[2026-03-12T13:12:42.044Z] [DEBUG] DEV mode auth bypass | {"userId":412606522}
+[2026-03-12T13:12:42.080Z] [DB] Q | {"sql":"SELECT p.*, t.name AS team_name\n       FROM players p LEFT JOIN teams t ON p.team_id = t.id\n       W","rows":1,"ms":36}
+[2026-03-12T13:12:42.115Z] [DB] Q | {"sql":"SELECT badge_name, badge_emoji FROM player_badges WHERE player_id = ?","rows":1,"ms":34}
+[2026-03-12T13:12:42.132Z] [DB] Q | {"sql":"SELECT p.*, t.name AS team_name\n       FROM players p LEFT JOIN teams t ON p.team_id = t.id\n       W","rows":1,"ms":87}
+[2026-03-12T13:12:42.148Z] [DB] Q | {"sql":"SELECT g.id, g.date, g.time, g.game_mode, g.status, gp.result, gp.kills_total, gp.deaths_total\n     ","rows":5,"ms":32}
+[2026-03-12T13:12:42.150Z] [INFO] Profile API | {"tgId":412606522,"isAdmin":true,"admins":[412606522]}
+[2026-03-12T13:12:42.170Z] [DB] Q | {"sql":"SELECT badge_name, badge_emoji FROM player_badges WHERE player_id = ?","rows":1,"ms":37}
+[2026-03-12T13:12:42.205Z] [DB] Q | {"sql":"SELECT g.id, g.date, g.time, g.game_mode, g.status, gp.result, gp.kills_total, gp.deaths_total\n     ","rows":5,"ms":34}
+[2026-03-12T13:12:42.207Z] [INFO] Profile API | {"tgId":412606522,"isAdmin":true,"admins":[412606522]}
+[2026-03-12T13:12:54.298Z] [DEBUG] API GET /games | {"body":{}}
+[2026-03-12T13:12:54.298Z] [DEBUG] DEV mode auth bypass | {"userId":412606522}
+[2026-03-12T13:12:54.299Z] [DEBUG] API GET /games | {"body":{}}
+[2026-03-12T13:12:54.300Z] [DEBUG] DEV mode auth bypass | {"userId":412606522}
+[2026-03-12T13:12:54.331Z] [DB] Q | {"sql":"SELECT * FROM games ORDER BY created_at DESC LIMIT 50","rows":6,"ms":32}
+[2026-03-12T13:12:54.333Z] [DB] Q | {"sql":"SELECT * FROM games ORDER BY created_at DESC LIMIT 50","rows":6,"ms":32}
+[2026-03-12T13:12:54.362Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM game_players WHERE game_id = ?","rows":1,"ms":31}
+[2026-03-12T13:12:54.367Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM game_players WHERE game_id = ?","rows":1,"ms":34}
+[2026-03-12T13:12:54.379Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM game_players WHERE game_id = ?","rows":1,"ms":15}
+[2026-03-12T13:12:54.386Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM game_players WHERE game_id = ?","rows":1,"ms":17}
+[2026-03-12T13:12:54.395Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM game_players WHERE game_id = ?","rows":1,"ms":16}
+[2026-03-12T13:12:54.403Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM game_players WHERE game_id = ?","rows":1,"ms":17}
+[2026-03-12T13:12:54.412Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM game_players WHERE game_id = ?","rows":1,"ms":15}
+[2026-03-12T13:12:54.420Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM game_players WHERE game_id = ?","rows":1,"ms":15}
+[2026-03-12T13:12:54.428Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM game_players WHERE game_id = ?","rows":1,"ms":15}
+[2026-03-12T13:12:54.436Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM game_players WHERE game_id = ?","rows":1,"ms":16}
+[2026-03-12T13:12:54.444Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM game_players WHERE game_id = ?","rows":1,"ms":15}
+[2026-03-12T13:12:54.453Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM game_players WHERE game_id = ?","rows":1,"ms":17}
+[2026-03-12T13:12:55.655Z] [DEBUG] API GET /leaderboard | {"body":{}}
+[2026-03-12T13:12:55.656Z] [DEBUG] DEV mode auth bypass | {"userId":412606522}
+[2026-03-12T13:12:55.657Z] [DEBUG] API GET /leaderboard | {"body":{}}
+[2026-03-12T13:12:55.657Z] [DEBUG] DEV mode auth bypass | {"userId":412606522}
+[2026-03-12T13:12:55.688Z] [DB] Q | {"sql":"SELECT id, nickname, rating, wins, games_played, total_kills, total_deaths, mvp_count FROM players O","rows":4,"ms":32}
+[2026-03-12T13:12:55.689Z] [DB] Q | {"sql":"SELECT id, nickname, rating, wins, games_played, total_kills, total_deaths, mvp_count FROM players O","rows":4,"ms":32}
+[2026-03-12T13:15:30.873Z] [INFO] =============================
+[2026-03-12T13:15:30.874Z] [INFO]   AIRSOFT CLUB BOT + APP v2  
+[2026-03-12T13:15:30.875Z] [INFO] =============================
+[2026-03-12T13:15:30.876Z] [INFO] Connecting MySQL... | {"host":"s5.thehost.com.ua","database":"airsoft_db"}
+[2026-03-12T13:15:30.996Z] [INFO] MySQL OK
+[2026-03-12T13:15:31.039Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM players","rows":1,"ms":42}
+[2026-03-12T13:15:31.067Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM teams","rows":1,"ms":28}
+[2026-03-12T13:15:31.097Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM games","rows":1,"ms":27}
+[2026-03-12T13:15:31.099Z] [INFO] DB | {"players":4,"teams":1,"games":6}
+[2026-03-12T13:15:31.134Z] [INFO] Bot running!
+[2026-03-12T13:15:31.135Z] [INFO] Express server on port 3000
+[2026-03-12T13:15:31.136Z] [INFO] Mini App URL: http://localhost:3000
+[2026-03-12T13:16:20.809Z] [INFO] =============================
+[2026-03-12T13:16:20.810Z] [INFO]   AIRSOFT CLUB BOT + APP v2  
+[2026-03-12T13:16:20.811Z] [INFO] =============================
+[2026-03-12T13:16:20.813Z] [INFO] Connecting MySQL... | {"host":"s5.thehost.com.ua","database":"airsoft_db"}
+[2026-03-12T13:16:20.936Z] [INFO] MySQL OK
+[2026-03-12T13:16:20.973Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM players","rows":1,"ms":37}
+[2026-03-12T13:16:21.007Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM teams","rows":1,"ms":33}
+[2026-03-12T13:16:21.039Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM games","rows":1,"ms":32}
+[2026-03-12T13:16:21.040Z] [INFO] DB | {"players":4,"teams":1,"games":6}
+[2026-03-12T13:16:21.070Z] [INFO] Bot running!
+[2026-03-12T13:16:21.071Z] [INFO] Express server on port 3000
+[2026-03-12T13:16:21.072Z] [INFO] Mini App URL: http://localhost:3000
+[2026-03-12T13:16:27.412Z] [INFO] =============================
+[2026-03-12T13:16:27.412Z] [INFO]   AIRSOFT CLUB BOT + APP v2  
+[2026-03-12T13:16:27.413Z] [INFO] =============================
+[2026-03-12T13:16:27.413Z] [INFO] Connecting MySQL... | {"host":"s5.thehost.com.ua","database":"airsoft_db"}
+[2026-03-12T13:16:27.521Z] [INFO] MySQL OK
+[2026-03-12T13:16:27.553Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM players","rows":1,"ms":32}
+[2026-03-12T13:16:27.590Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM teams","rows":1,"ms":36}
+[2026-03-12T13:16:27.623Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM games","rows":1,"ms":32}
+[2026-03-12T13:16:27.623Z] [INFO] DB | {"players":4,"teams":1,"games":6}
+[2026-03-12T13:16:27.647Z] [INFO] Bot running!
+[2026-03-12T13:16:27.648Z] [INFO] Express server on port 3000
+[2026-03-12T13:16:27.649Z] [INFO] Mini App URL: http://localhost:3000
+[2026-03-12T13:16:37.559Z] [INFO] =============================
+[2026-03-12T13:16:37.561Z] [INFO]   AIRSOFT CLUB BOT + APP v2  
+[2026-03-12T13:16:37.561Z] [INFO] =============================
+[2026-03-12T13:16:37.562Z] [INFO] Connecting MySQL... | {"host":"s5.thehost.com.ua","database":"airsoft_db"}
+[2026-03-12T13:16:37.673Z] [INFO] MySQL OK
+[2026-03-12T13:16:37.705Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM players","rows":1,"ms":31}
+[2026-03-12T13:16:37.737Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM teams","rows":1,"ms":30}
+[2026-03-12T13:16:37.769Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM games","rows":1,"ms":31}
+[2026-03-12T13:16:37.770Z] [INFO] DB | {"players":4,"teams":1,"games":6}
+[2026-03-12T13:16:37.796Z] [INFO] Bot running!
+[2026-03-12T13:16:37.799Z] [INFO] Express server on port 3000
+[2026-03-12T13:16:37.799Z] [INFO] Mini App URL: http://localhost:3000
+[2026-03-12T13:17:54.243Z] [DEBUG] API GET /profile | {"body":{}}
+[2026-03-12T13:17:54.243Z] [DEBUG] DEV mode auth bypass | {"userId":412606522}
+[2026-03-12T13:17:54.254Z] [DEBUG] API GET /profile | {"body":{}}
+[2026-03-12T13:17:54.255Z] [DEBUG] DEV mode auth bypass | {"userId":412606522}
+[2026-03-12T13:17:54.284Z] [DB] Q | {"sql":"SELECT p.*, t.name AS team_name\n       FROM players p LEFT JOIN teams t ON p.team_id = t.id\n       W","rows":1,"ms":39}
+[2026-03-12T13:17:54.321Z] [DB] Q | {"sql":"SELECT badge_name, badge_emoji FROM player_badges WHERE player_id = ?","rows":1,"ms":35}
+[2026-03-12T13:17:54.340Z] [DB] Q | {"sql":"SELECT p.*, t.name AS team_name\n       FROM players p LEFT JOIN teams t ON p.team_id = t.id\n       W","rows":1,"ms":85}
+[2026-03-12T13:17:54.368Z] [DB] Q | {"sql":"SELECT g.id, g.date, g.time, g.game_mode, g.status, gp.result, gp.kills_total, gp.deaths_total\n     ","rows":5,"ms":39}
+[2026-03-12T13:17:54.391Z] [INFO] Profile API | {"tgId":412606522,"isAdmin":true,"admins":[412606522]}
+[2026-03-12T13:17:54.407Z] [DEBUG] API GET /profile | {"body":{}}
+[2026-03-12T13:17:54.408Z] [DEBUG] DEV mode auth bypass | {"userId":412606522}
+[2026-03-12T13:17:54.417Z] [DB] Q | {"sql":"SELECT badge_name, badge_emoji FROM player_badges WHERE player_id = ?","rows":1,"ms":73}
+[2026-03-12T13:17:54.430Z] [DB] Q | {"sql":"SELECT p.*, t.name AS team_name\n       FROM players p LEFT JOIN teams t ON p.team_id = t.id\n       W","rows":1,"ms":20}
+[2026-03-12T13:17:54.447Z] [DB] Q | {"sql":"SELECT badge_name, badge_emoji FROM player_badges WHERE player_id = ?","rows":1,"ms":16}
+[2026-03-12T13:17:54.454Z] [DB] Q | {"sql":"SELECT g.id, g.date, g.time, g.game_mode, g.status, gp.result, gp.kills_total, gp.deaths_total\n     ","rows":5,"ms":35}
+[2026-03-12T13:17:54.455Z] [INFO] Profile API | {"tgId":412606522,"isAdmin":true,"admins":[412606522]}
+[2026-03-12T13:17:54.472Z] [DB] Q | {"sql":"SELECT g.id, g.date, g.time, g.game_mode, g.status, gp.result, gp.kills_total, gp.deaths_total\n     ","rows":5,"ms":19}
+[2026-03-12T13:17:54.478Z] [INFO] Profile API | {"tgId":412606522,"isAdmin":true,"admins":[412606522]}
+[2026-03-12T13:17:54.486Z] [DEBUG] API GET /profile | {"body":{}}
+[2026-03-12T13:17:54.486Z] [DEBUG] DEV mode auth bypass | {"userId":412606522}
+[2026-03-12T13:17:54.503Z] [DB] Q | {"sql":"SELECT p.*, t.name AS team_name\n       FROM players p LEFT JOIN teams t ON p.team_id = t.id\n       W","rows":1,"ms":16}
+[2026-03-12T13:17:54.520Z] [DB] Q | {"sql":"SELECT badge_name, badge_emoji FROM player_badges WHERE player_id = ?","rows":1,"ms":16}
+[2026-03-12T13:17:54.538Z] [DB] Q | {"sql":"SELECT g.id, g.date, g.time, g.game_mode, g.status, gp.result, gp.kills_total, gp.deaths_total\n     ","rows":5,"ms":16}
+[2026-03-12T13:17:54.539Z] [INFO] Profile API | {"tgId":412606522,"isAdmin":true,"admins":[412606522]}
+[2026-03-12T13:17:54.543Z] [DEBUG] API GET /profile | {"body":{}}
+[2026-03-12T13:17:54.544Z] [DEBUG] DEV mode auth bypass | {"userId":412606522}
+[2026-03-12T13:17:54.566Z] [DB] Q | {"sql":"SELECT p.*, t.name AS team_name\n       FROM players p LEFT JOIN teams t ON p.team_id = t.id\n       W","rows":1,"ms":22}
+[2026-03-12T13:17:54.583Z] [DB] Q | {"sql":"SELECT badge_name, badge_emoji FROM player_badges WHERE player_id = ?","rows":1,"ms":16}
+[2026-03-12T13:17:54.604Z] [DB] Q | {"sql":"SELECT g.id, g.date, g.time, g.game_mode, g.status, gp.result, gp.kills_total, gp.deaths_total\n     ","rows":5,"ms":19}
+[2026-03-12T13:17:54.605Z] [INFO] Profile API | {"tgId":412606522,"isAdmin":true,"admins":[412606522]}
+[2026-03-12T13:18:06.687Z] [INFO] =============================
+[2026-03-12T13:18:06.688Z] [INFO]   AIRSOFT CLUB BOT + APP v2  
+[2026-03-12T13:18:06.689Z] [INFO] =============================
+[2026-03-12T13:18:06.690Z] [INFO] Connecting MySQL... | {"host":"s5.thehost.com.ua","database":"airsoft_db"}
+[2026-03-12T13:18:06.811Z] [INFO] MySQL OK
+[2026-03-12T13:18:06.849Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM players","rows":1,"ms":37}
+[2026-03-12T13:18:06.892Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM teams","rows":1,"ms":42}
+[2026-03-12T13:18:06.928Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM games","rows":1,"ms":35}
+[2026-03-12T13:18:06.929Z] [INFO] DB | {"players":4,"teams":1,"games":6}
+[2026-03-12T13:18:06.965Z] [INFO] Bot running!
+[2026-03-12T13:18:06.966Z] [INFO] Express server on port 3000
+[2026-03-12T13:18:06.968Z] [INFO] Mini App URL: http://localhost:3000
+[2026-03-12T13:18:15.579Z] [INFO] =============================
+[2026-03-12T13:18:15.581Z] [INFO]   AIRSOFT CLUB BOT + APP v2  
+[2026-03-12T13:18:15.581Z] [INFO] =============================
+[2026-03-12T13:18:15.583Z] [INFO] Connecting MySQL... | {"host":"s5.thehost.com.ua","database":"airsoft_db"}
+[2026-03-12T13:18:15.697Z] [INFO] MySQL OK
+[2026-03-12T13:18:15.730Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM players","rows":1,"ms":32}
+[2026-03-12T13:18:15.763Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM teams","rows":1,"ms":32}
+[2026-03-12T13:18:15.795Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM games","rows":1,"ms":31}
+[2026-03-12T13:18:15.796Z] [INFO] DB | {"players":4,"teams":1,"games":6}
+[2026-03-12T13:18:15.832Z] [INFO] Bot running!
+[2026-03-12T13:18:15.834Z] [INFO] Express server on port 3000
+[2026-03-12T13:18:15.834Z] [INFO] Mini App URL: http://localhost:3000
+[2026-03-12T13:18:20.168Z] [DEBUG] API GET /teams | {"body":{}}
+[2026-03-12T13:18:20.168Z] [DEBUG] DEV mode auth bypass | {"userId":412606522}
+[2026-03-12T13:18:20.170Z] [DEBUG] API GET /teams/my/invites | {"body":{}}
+[2026-03-12T13:18:20.170Z] [DEBUG] DEV mode auth bypass | {"userId":412606522}
+[2026-03-12T13:18:20.174Z] [DEBUG] API GET /teams | {"body":{}}
+[2026-03-12T13:18:20.174Z] [DEBUG] DEV mode auth bypass | {"userId":412606522}
+[2026-03-12T13:18:20.175Z] [DEBUG] API GET /teams/my/invites | {"body":{}}
+[2026-03-12T13:18:20.175Z] [DEBUG] DEV mode auth bypass | {"userId":412606522}
+[2026-03-12T13:18:20.211Z] [DB] Q | {"sql":"SELECT t.*, p.nickname as captain_name,\n        (SELECT COUNT(*) FROM players WHERE team_id = t.id) ","rows":1,"ms":41}
+[2026-03-12T13:18:20.262Z] [DB] Q | {"sql":"SELECT id FROM players WHERE telegram_id = ?","rows":1,"ms":86}
+[2026-03-12T13:18:20.263Z] [DB] Q | {"sql":"SELECT id FROM players WHERE telegram_id = ?","rows":1,"ms":92}
+[2026-03-12T13:18:20.269Z] [DB] Q | {"sql":"SELECT t.*, p.nickname as captain_name,\n        (SELECT COUNT(*) FROM players WHERE team_id = t.id) ","rows":1,"ms":95}
+[2026-03-12T13:18:20.295Z] [DB] Q | {"sql":"SELECT ti.*, t.name as team_name, p.nickname as invited_by_name\n       FROM team_invites ti\n       J","rows":0,"ms":31}
+[2026-03-12T13:18:20.297Z] [DB] Q | {"sql":"SELECT ti.*, t.name as team_name, p.nickname as invited_by_name\n       FROM team_invites ti\n       J","rows":0,"ms":34}
+[2026-03-12T13:18:21.373Z] [DEBUG] API GET /teams/1 | {"body":{}}
+[2026-03-12T13:18:21.373Z] [DEBUG] DEV mode auth bypass | {"userId":412606522}
+[2026-03-12T13:18:21.374Z] [DEBUG] API GET /teams/1 | {"body":{}}
+[2026-03-12T13:18:21.374Z] [DEBUG] DEV mode auth bypass | {"userId":412606522}
+[2026-03-12T13:18:21.406Z] [DB] Q | {"sql":"SELECT t.*, p.nickname as captain_name\n       FROM teams t LEFT JOIN players p ON t.captain_id = p.i","rows":1,"ms":32}
+[2026-03-12T13:18:21.407Z] [DB] Q | {"sql":"SELECT t.*, p.nickname as captain_name\n       FROM teams t LEFT JOIN players p ON t.captain_id = p.i","rows":1,"ms":32}
+[2026-03-12T13:18:21.439Z] [DB] Q | {"sql":"SELECT id, nickname, rating, games_played, wins FROM players WHERE team_id = ? ORDER BY rating DESC","rows":0,"ms":32}
+[2026-03-12T13:18:21.440Z] [DB] Q | {"sql":"SELECT id, nickname, rating, games_played, wins FROM players WHERE team_id = ? ORDER BY rating DESC","rows":0,"ms":33}
+[2026-03-12T13:18:21.473Z] [DB] Q | {"sql":"SELECT id, team_id FROM players WHERE telegram_id = ?","rows":1,"ms":33}
+[2026-03-12T13:18:21.474Z] [DB] Q | {"sql":"SELECT id, team_id FROM players WHERE telegram_id = ?","rows":1,"ms":34}
+[2026-03-12T13:18:21.510Z] [DB] Q | {"sql":"SELECT * FROM team_applications WHERE team_id = ? AND player_id = ? AND status = 'pending'","rows":0,"ms":37}
+[2026-03-12T13:18:21.512Z] [DB] Q | {"sql":"SELECT * FROM team_applications WHERE team_id = ? AND player_id = ? AND status = 'pending'","rows":0,"ms":37}
+[2026-03-12T13:18:26.243Z] [DEBUG] API POST /teams/1/apply | {"body":{"message":""}}
+[2026-03-12T13:18:26.244Z] [DEBUG] DEV mode auth bypass | {"userId":412606522}
+[2026-03-12T13:18:26.261Z] [DB] Q | {"sql":"SELECT id, team_id FROM players WHERE telegram_id = ?","rows":1,"ms":15}
+[2026-03-12T13:18:26.292Z] [DB] Q | {"sql":"SELECT id FROM team_applications WHERE team_id = ? AND player_id = ? AND status = 'pending'","rows":0,"ms":31}
+[2026-03-12T13:18:26.330Z] [DB] INS | {"sql":"INSERT INTO team_applications (team_id, player_id, status, message) VALUES (?, ?, 'pending', ?)","id":1,"ms":37}
+[2026-03-12T13:18:26.331Z] [INFO] Team application | {"teamId":1,"playerId":1}
+[2026-03-12T13:18:27.419Z] [DEBUG] API GET /teams/1 | {"body":{}}
+[2026-03-12T13:18:27.420Z] [DEBUG] DEV mode auth bypass | {"userId":412606522}
+[2026-03-12T13:18:27.436Z] [DB] Q | {"sql":"SELECT t.*, p.nickname as captain_name\n       FROM teams t LEFT JOIN players p ON t.captain_id = p.i","rows":1,"ms":15}
+[2026-03-12T13:18:27.453Z] [DB] Q | {"sql":"SELECT id, nickname, rating, games_played, wins FROM players WHERE team_id = ? ORDER BY rating DESC","rows":0,"ms":15}
+[2026-03-12T13:18:27.469Z] [DB] Q | {"sql":"SELECT id, team_id FROM players WHERE telegram_id = ?","rows":1,"ms":16}
+[2026-03-12T13:18:27.486Z] [DB] Q | {"sql":"SELECT * FROM team_applications WHERE team_id = ? AND player_id = ? AND status = 'pending'","rows":1,"ms":16}
+[2026-03-12T13:18:27.495Z] [DEBUG] API GET /profile | {"body":{}}
+[2026-03-12T13:18:27.496Z] [DEBUG] DEV mode auth bypass | {"userId":412606522}
+[2026-03-12T13:18:27.529Z] [DB] Q | {"sql":"SELECT p.*, t.name AS team_name\n       FROM players p LEFT JOIN teams t ON p.team_id = t.id\n       W","rows":1,"ms":32}
+[2026-03-12T13:18:27.562Z] [DB] Q | {"sql":"SELECT badge_name, badge_emoji FROM player_badges WHERE player_id = ?","rows":1,"ms":32}
+[2026-03-12T13:18:27.596Z] [DB] Q | {"sql":"SELECT g.id, g.date, g.time, g.game_mode, g.status, gp.result, gp.kills_total, gp.deaths_total\n     ","rows":5,"ms":34}
+[2026-03-12T13:18:27.597Z] [INFO] Profile API | {"tgId":412606522,"isAdmin":true,"admins":[412606522]}
+[2026-03-12T13:18:32.160Z] [DEBUG] API GET /games | {"body":{}}
+[2026-03-12T13:18:32.161Z] [DEBUG] DEV mode auth bypass | {"userId":412606522}
+[2026-03-12T13:18:32.162Z] [DEBUG] API GET /games | {"body":{}}
+[2026-03-12T13:18:32.162Z] [DEBUG] DEV mode auth bypass | {"userId":412606522}
+[2026-03-12T13:18:32.196Z] [DB] Q | {"sql":"SELECT * FROM games ORDER BY created_at DESC LIMIT 50","rows":6,"ms":35}
+[2026-03-12T13:18:32.198Z] [DB] Q | {"sql":"SELECT * FROM games ORDER BY created_at DESC LIMIT 50","rows":6,"ms":34}
+[2026-03-12T13:18:32.228Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM game_players WHERE game_id = ?","rows":1,"ms":30}
+[2026-03-12T13:18:32.229Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM game_players WHERE game_id = ?","rows":1,"ms":31}
+[2026-03-12T13:18:32.244Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM game_players WHERE game_id = ?","rows":1,"ms":15}
+[2026-03-12T13:18:32.246Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM game_players WHERE game_id = ?","rows":1,"ms":16}
+[2026-03-12T13:18:32.267Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM game_players WHERE game_id = ?","rows":1,"ms":23}
+[2026-03-12T13:18:32.270Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM game_players WHERE game_id = ?","rows":1,"ms":22}
+[2026-03-12T13:18:32.285Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM game_players WHERE game_id = ?","rows":1,"ms":17}
+[2026-03-12T13:18:32.287Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM game_players WHERE game_id = ?","rows":1,"ms":16}
+[2026-03-12T13:18:32.305Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM game_players WHERE game_id = ?","rows":1,"ms":19}
+[2026-03-12T13:18:32.307Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM game_players WHERE game_id = ?","rows":1,"ms":20}
+[2026-03-12T13:18:32.336Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM game_players WHERE game_id = ?","rows":1,"ms":28}
+[2026-03-12T13:18:32.338Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM game_players WHERE game_id = ?","rows":1,"ms":31}
+[2026-03-12T13:18:35.174Z] [DEBUG] API GET /leaderboard | {"body":{}}
+[2026-03-12T13:18:35.174Z] [DEBUG] DEV mode auth bypass | {"userId":412606522}
+[2026-03-12T13:18:35.176Z] [DEBUG] API GET /leaderboard | {"body":{}}
+[2026-03-12T13:18:35.176Z] [DEBUG] DEV mode auth bypass | {"userId":412606522}
+[2026-03-12T13:18:35.210Z] [DB] Q | {"sql":"SELECT id, nickname, rating, wins, games_played, total_kills, total_deaths, mvp_count FROM players O","rows":4,"ms":33}
+[2026-03-12T13:18:35.215Z] [DB] Q | {"sql":"SELECT id, nickname, rating, wins, games_played, total_kills, total_deaths, mvp_count FROM players O","rows":4,"ms":36}
+[2026-03-12T13:19:08.977Z] [INFO] Shutdown...

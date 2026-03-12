@@ -5,11 +5,13 @@ import Profile from "./pages/Profile";
 import Games from "./pages/Games";
 import GameDetail from "./pages/GameDetail";
 import Leaderboard from "./pages/Leaderboard";
+import Teams from "./pages/Teams";
 import Admin from "./pages/Admin";
 
 const TABS = [
   { id: "profile", icon: "👤", activeIcon: "👤", label: "Профіль" },
   { id: "games", icon: "🎮", activeIcon: "🎮", label: "Ігри" },
+  { id: "teams", icon: "🏠", activeIcon: "🏠", label: "Команди" },
   { id: "leaderboard", icon: "🏆", activeIcon: "🏆", label: "Рейтинг" },
   { id: "admin", icon: "⚙️", activeIcon: "⚙️", label: "Адмін" },
 ];
@@ -145,6 +147,7 @@ export default function App() {
               isAdmin={isAdmin}
             />
           )}
+          {tab === "teams" && <Teams onReloadProfile={loadProfile} />}
           {tab === "leaderboard" && <Leaderboard />}
           {tab === "admin" && <Admin />}
         </div>
@@ -155,7 +158,7 @@ export default function App() {
         {/* Gradient fade above nav */}
         <div className="h-6 bg-gradient-to-t from-slate-900 to-transparent pointer-events-none" />
 
-        <div className="bg-slate-900/95 backdrop-blur-xl border-t border-slate-700/50 px-2 pb-[env(safe-area-inset-bottom,16px)]">
+        <div className="bg-slate-900/95 backdrop-blur-xl border-t border-slate-700/50 px-2 pb-[env(safe-area-inset-bottom,8px)]">
           <div className="flex items-stretch">
             {visibleTabs.map((t) => {
               const isActive = tab === t.id;
