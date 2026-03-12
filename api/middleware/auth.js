@@ -41,10 +41,10 @@ function validateInitData(initData) {
  * Express middleware — validates TG auth or allows dev mode
  */
 function authMiddleware(req, res, next) {
-  // ---- DEV MODE: пропускаємо auth для локальної розробки ----
+  // ---- DEV MODE: bypass auth for local development ----
   if (process.env.DEV_MODE === "true") {
     req.tgUser = {
-      id: parseInt(process.env.DEV_USER_ID || config.ADMINS[0] || 412606522),
+      id: parseInt(process.env.DEV_USER_ID || config.ADMINS[0] || 0),
       first_name: "Dev",
       last_name: "User",
       username: "dev_user",
@@ -62,12 +62,12 @@ function authMiddleware(req, res, next) {
 
   const user = validateInitData(initData);
   if (!user) {
-    log.warn("Invalid Telegram auth");
+    log.warn("Invalid Telegram auth", { initDataLength: initData.length });
     return res.status(401).json({ error: "Invalid auth" });
   }
 
   req.tgUser = user;
-  log.debug("API auth OK", { userId: user.id, username: user.username });
+  log.info("API auth", { userId: user.id, username: user.username, isAdmin: config.ADMINS.includes(user.id) });
   next();
 }
 

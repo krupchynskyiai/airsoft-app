@@ -17,7 +17,7 @@ router.get("/profile", async (req, res) => {
     );
 
     if (!player) {
-      return res.json({ registered: false });
+      return res.json({ registered: false, is_admin: false });
     }
 
     const badges = await q(
