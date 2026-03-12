@@ -155,7 +155,7 @@ export default function App() {
         {/* Gradient fade above nav */}
         <div className="h-6 bg-gradient-to-t from-slate-900 to-transparent pointer-events-none" />
 
-        <div className="bg-slate-900/95 backdrop-blur-xl border-t border-slate-700/50 px-2 pb-[env(safe-area-inset-bottom,8px)]">
+        <div className="bg-slate-900/95 backdrop-blur-xl border-t border-slate-700/50 px-2 pb-[env(safe-area-inset-bottom,16px)]">
           <div className="flex items-stretch">
             {visibleTabs.map((t) => {
               const isActive = tab === t.id;
