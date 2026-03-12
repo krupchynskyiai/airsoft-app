@@ -8,7 +8,6 @@ const log = require("./utils/logger");
 const { initDB } = require("./database/connection");
 const { q1 } = require("./database/helpers");
 const { esc } = require("./utils/markdown");
-const { sendMenu } = require("./menus/main");
 const { createPlayer } = require("./services/players");
 const { handleGeoCheckin, handleGameGeo } = require("./handlers/games");
 const { handleTextSteps } = require("./handlers/admin");
@@ -30,7 +29,6 @@ bot.use(async (ctx, next) => {
 // Register all bot handlers
 // ============================================
 
-require("./handlers/start").register(bot);
 require("./handlers/profile").register(bot);
 require("./handlers/games").register(bot);
 require("./handlers/manage").register(bot);
@@ -39,7 +37,35 @@ require("./handlers/admin").register(bot);
 require("./handlers/voting").register(bot);
 
 // ============================================
-// Registration callbacks
+// /start — тільки кнопка "Увійти"
+// ============================================
+
+bot.command("start", async (ctx) => {
+  const tgId = ctx.from.id;
+  log.info("CMD /start", { tgId, username: ctx.from.username });
+
+  const existing = await q1("SELECT * FROM players WHERE telegram_id = ?", [tgId]);
+
+  const webappUrl = process.env.WEBAPP_URL || "https://yourdomain.com";
+
+  if (existing) {
+    const kb = new InlineKeyboard().webApp("🎯 Увійти", webappUrl);
+    return ctx.reply(
+      `👋 Вітаю, *${esc(existing.nickname)}*\\!\n\nНатисни кнопку щоб відкрити додаток:`,
+      { parse_mode: "MarkdownV2", reply_markup: kb }
+    );
+  }
+
+  // Not registered — still show app button (registration happens in app)
+  const kb = new InlineKeyboard().webApp("🎯 Увійти", webappUrl);
+  return ctx.reply(
+    `🎯 *Ласкаво просимо до Airsoft Club\\!*\n\nНатисни кнопку щоб зареєструватись та увійти:`,
+    { parse_mode: "MarkdownV2", reply_markup: kb }
+  );
+});
+
+// ============================================
+// Registration callbacks (for bot-based flow)
 // ============================================
 
 bot.callbackQuery("has_team_yes", async (ctx) => {
@@ -72,24 +98,25 @@ bot.on("message:text", async (ctx) => {
   const step = ctx.session.step;
   const text = ctx.message.text;
 
+  const webappUrl = process.env.WEBAPP_URL || "https://yourdomain.com";
+
+  // No step — show "Увійти" button
   if (!step) {
     const p = await q1("SELECT nickname FROM players WHERE telegram_id=?", [ctx.from.id]);
-    if (p) return sendMenu(ctx, `👋 *${esc(p.nickname)}*, обери дію:`);
-    ctx.session.step = "reg_nick";
-    return ctx.reply(`🎯 *Ласкаво просимо\\!*\nВведи нікнейм:`, { parse_mode: "MarkdownV2" });
+    const kb = new InlineKeyboard().webApp("🎯 Увійти", webappUrl);
+    if (p) {
+      return ctx.reply(
+        `👋 *${esc(p.nickname)}*, натисни кнопку щоб відкрити додаток:`,
+        { parse_mode: "MarkdownV2", reply_markup: kb }
+      );
+    }
+    return ctx.reply(
+      `🎯 Натисни кнопку щоб увійти:`,
+      { reply_markup: kb }
+    );
   }
 
-  if (step === "reg_nick") {
-    const nick = text.trim();
-    const dup = await q1("SELECT id FROM players WHERE nickname=?", [nick]);
-    if (dup) return ctx.reply("⚠️ Нікнейм зайнятий\\. Спробуй інший:", { parse_mode: "MarkdownV2" });
-    ctx.session.data.nickname = nick;
-    ctx.session.step = "reg_team";
-    return ctx.reply("Чи є у тебе команда?", {
-      reply_markup: new InlineKeyboard().text("✅ Так", "has_team_yes").text("❌ Ні", "has_team_no"),
-    });
-  }
-
+  // Game creation steps (from bot admin flow)
   if (step === "cg_date") { ctx.session.data.date = text; ctx.session.step = "cg_time"; return ctx.reply("🕐 Введи час \\(наприклад: 10:00\\):", { parse_mode: "MarkdownV2" }); }
   if (step === "cg_time") { ctx.session.data.time = text; ctx.session.step = "cg_loc"; return ctx.reply("📍 Введи локацію:"); }
   if (step === "cg_loc") {
@@ -104,6 +131,7 @@ bot.on("message:text", async (ctx) => {
     });
   }
 
+  // Admin text steps
   const handled = await handleTextSteps(ctx);
   if (handled !== false) return;
 });

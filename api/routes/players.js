@@ -32,8 +32,11 @@ router.get("/profile", async (req, res) => {
       [player.id]
     );
 
+    const config = require("../../config");
+
     res.json({
       registered: true,
+      is_admin: config.ADMINS.includes(tgId),
       player: {
         id: player.id,
         nickname: player.nickname,
