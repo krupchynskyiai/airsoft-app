@@ -427,9 +427,7 @@ router.post("/games/:id/checkin-review", async (req, res) => {
     }
 
     if (reg.attendance !== "checkin_pending") {
-      return res
-        .status(400)
-        .json({ error: "Check-in not in pending state" });
+      return res.status(400).json({ error: "Check-in not in pending state" });
     }
 
     if (action === "confirm") {
@@ -490,14 +488,12 @@ async function calculateGameScores(gid) {
 
   const g = await q1("SELECT * FROM games WHERE id=?", [gid]);
 
-  // Count checked-in players
   const playerCountRow = await q1(
     "SELECT COUNT(*) as c FROM game_players WHERE game_id=? AND attendance='checked_in'",
     [gid],
   );
   const playerCount = playerCountRow?.c || 1;
 
-  // Logarithmic multiplier: base = 6 players (x1.0)
   const multiplier = Math.max(1, Math.log(playerCount) / Math.log(6));
 
   log.info("Score multiplier", {
@@ -505,14 +501,12 @@ async function calculateGameScores(gid) {
     multiplier: multiplier.toFixed(2),
   });
 
-  // Round wins per team → overall winner
   const roundWins = await q(
     "SELECT winner_game_team, COUNT(*) as wins FROM rounds WHERE game_id=? AND winner_game_team IS NOT NULL GROUP BY winner_game_team ORDER BY wins DESC",
     [gid],
   );
   const winnerTeam = roundWins.length ? roundWins[0].winner_game_team : null;
 
-  // Deaths per player
   const deathStats = await q(
     "SELECT killed_player_id, COUNT(*) as deaths FROM round_kills WHERE game_id=? GROUP BY killed_player_id",
     [gid],
@@ -522,17 +516,42 @@ async function calculateGameScores(gid) {
     deathMap[d.killed_player_id] = d.deaths;
   });
 
-  // All checked-in players
+  // Беремо рейтинг гравця прямо тут
   const gps = await q(
-    "SELECT * FROM game_players WHERE game_id=? AND attendance='checked_in'",
+    `SELECT gp.*, p.rating
+     FROM game_players gp
+     JOIN players p ON p.id = gp.player_id
+     WHERE gp.game_id=? AND gp.attendance='checked_in'`,
     [gid],
   );
+
+  function clamp(min, val, max) {
+    return Math.max(min, Math.min(val, max));
+  }
 
   for (const gp of gps) {
     const isWinner = gp.game_team === winnerTeam;
     const playerDeaths = deathMap[gp.player_id] || 0;
+    const myRating = gp.rating || 0;
 
-    // Rounds survived (alive at end)
+    // Суперники = всі checked-in, хто не в моїй команді
+    // Для FFA теж спрацює, бо в кожного свій game_team
+    const opponents = gps.filter(
+      (p) => p.player_id !== gp.player_id && p.game_team !== gp.game_team,
+    );
+
+    const avgOpponentRating = opponents.length
+      ? opponents.reduce((sum, p) => sum + (p.rating || 0), 0) /
+        opponents.length
+      : myRating;
+
+    const ratingDiff = avgOpponentRating - myRating;
+
+    // М'який коефіцієнт складності:
+    // сильніші суперники => більше очок
+    // слабші суперники => менше бонусу, але не штраф
+    const difficultyFactor = clamp(0.85, 1 + ratingDiff / 1000, 1.35);
+
     const survivedRow = await q1(
       `SELECT COUNT(*) as c FROM round_players rp 
        JOIN rounds r ON rp.round_id = r.id 
@@ -541,7 +560,6 @@ async function calculateGameScores(gid) {
     );
     const roundsSurvived = survivedRow?.c || 0;
 
-    // Rounds survived AND team won that round
     const aliveAndWonRow = await q1(
       `SELECT COUNT(*) as c FROM round_players rp
        JOIN rounds r ON rp.round_id = r.id
@@ -551,7 +569,6 @@ async function calculateGameScores(gid) {
     );
     const roundsAliveAndWon = aliveAndWonRow?.c || 0;
 
-    // Rounds survived BUT team lost that round
     const aliveLostRow = await q1(
       `SELECT COUNT(*) as c FROM round_players rp
        JOIN rounds r ON rp.round_id = r.id
@@ -561,22 +578,23 @@ async function calculateGameScores(gid) {
     );
     const roundsAliveLost = aliveLostRow?.c || 0;
 
-    // ---- SCORING FORMULA ----
-    // base:          5 * mult    — participation
-    // winBonus:      10 * mult   — team won overall
-    // survivalPts:   3 * mult    — per each round survived
-    // aliveWinBonus: 2 * mult    — survived + team won THAT round
-    // aliveLoseBonus: 1 * mult   — survived but team LOST that round
+    // Стабільна база
     const basePts = Math.round(5 * multiplier);
-    const winBonus = isWinner ? Math.round(10 * multiplier) : 0;
-    const survivalPts = Math.round(3 * multiplier * roundsSurvived);
-    const aliveWinBonus = Math.round(2 * multiplier * roundsAliveAndWon);
-    const aliveLoseBonus = Math.round(1 * multiplier * roundsAliveLost);
 
-    const totalPts =
-      basePts + winBonus + survivalPts + aliveWinBonus + aliveLoseBonus;
+    // Результативна частина
+    const rawWinBonus = isWinner ? 10 * multiplier : 0;
+    const rawSurvivalPts = 3 * multiplier * roundsSurvived;
+    const rawAliveWinBonus = 2 * multiplier * roundsAliveAndWon;
+    const rawAliveLoseBonus = 1 * multiplier * roundsAliveLost;
 
-    // Update player
+    const performanceRaw =
+      rawWinBonus + rawSurvivalPts + rawAliveWinBonus + rawAliveLoseBonus;
+
+    // difficulty bonus applied only to performance
+    const performancePts = Math.round(performanceRaw * difficultyFactor);
+
+    const totalPts = basePts + performancePts;
+
     await ins(
       "UPDATE players SET games_played=games_played+1, wins=wins+?, total_deaths=total_deaths+?, rating=rating+? WHERE id=?",
       [isWinner ? 1 : 0, playerDeaths, totalPts, gp.player_id],
@@ -589,22 +607,28 @@ async function calculateGameScores(gid) {
 
     log.info("Player scored", {
       player: gp.player_id,
+      myRating,
+      avgOpponentRating: Math.round(avgOpponentRating),
+      ratingDiff: Math.round(ratingDiff),
+      difficultyFactor: difficultyFactor.toFixed(2),
       isWinner,
       deaths: playerDeaths,
       roundsSurvived,
       roundsAliveAndWon,
       roundsAliveLost,
       multiplier: multiplier.toFixed(2),
-      breakdown: `base=${basePts} win=${winBonus} surv=${survivalPts} aliveWin=${aliveWinBonus} aliveLose=${aliveLoseBonus}`,
+      basePts,
+      performanceRaw: Math.round(performanceRaw),
+      performancePts,
       total: totalPts,
     });
 
-    // Season stats
     if (g.season_id) {
       const ex = await q1(
         "SELECT * FROM season_stats WHERE player_id=? AND season_id=?",
         [gp.player_id, g.season_id],
       );
+
       if (ex) {
         await ins(
           "UPDATE season_stats SET season_games=season_games+1, season_wins=season_wins+?, season_deaths=season_deaths+?, season_rating=season_rating+? WHERE id=?",
@@ -618,14 +642,12 @@ async function calculateGameScores(gid) {
       }
     }
 
-    // Badges
     const updatedPlayer = await q1("SELECT * FROM players WHERE id=?", [
       gp.player_id,
     ]);
     await checkBadgesAPI(gp.player_id, updatedPlayer);
   }
 
-  // No-show penalty (flat, not scaled)
   const noShows = await q(
     "SELECT player_id FROM game_players WHERE game_id=? AND attendance='no_show'",
     [gid],
@@ -637,7 +659,6 @@ async function calculateGameScores(gid) {
     log.info("No-show penalty", { player: ns.player_id });
   }
 
-  // Team bonus (scaled)
   if (winnerTeam) {
     const teamBonus = Math.round(20 * multiplier);
     const winningPlayers = await q(
