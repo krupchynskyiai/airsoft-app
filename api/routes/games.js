@@ -123,13 +123,21 @@ router.post("/:id/join", async (req, res) => {
     );
     if (!player) return res.status(400).json({ error: "Not registered" });
 
-    // Blacklist check
-    const bl = await q1(
-      "SELECT id FROM player_blacklist WHERE player_id=? AND active=1",
-      [player.id],
-    );
-    if (bl) {
-      return res.status(403).json({ error: "Ти у чорному списку і не можеш записатися на гру" });
+    // Blacklist check (best-effort: якщо таблиці ще немає — ігноруємо)
+    try {
+      const bl = await q1(
+        "SELECT id FROM player_blacklist WHERE player_id=? AND active=1",
+        [player.id],
+      );
+      if (bl) {
+        return res
+          .status(403)
+          .json({
+            error: "Ти у чорному списку і не можеш записатися на гру",
+          });
+      }
+    } catch (e) {
+      log.error("Blacklist check error (ignored)", { e: e.message });
     }
 
     // already joined?
@@ -154,44 +162,54 @@ router.post("/:id/join", async (req, res) => {
 
     // check limit
     if (game.max_players && cnt.c >= game.max_players) {
-      // Add to waitlist instead of error
-      const alreadyWaiting = await q1(
-        "SELECT id FROM game_waitlist WHERE game_id=? AND player_id=?",
-        [gid, player.id],
-      );
-      if (!alreadyWaiting) {
-        await ins(
-          "INSERT INTO game_waitlist (game_id, player_id, created_at) VALUES (?,?,NOW())",
+      // Спроба додати у лист очікування; якщо таблиці немає — поводимось як раніше (game full)
+      try {
+        const alreadyWaiting = await q1(
+          "SELECT id FROM game_waitlist WHERE game_id=? AND player_id=?",
           [gid, player.id],
         );
-      }
+        if (!alreadyWaiting) {
+          await ins(
+            "INSERT INTO game_waitlist (game_id, player_id, created_at) VALUES (?,?,NOW())",
+            [gid, player.id],
+          );
+        }
 
-      // Notify player in Telegram about waitlist
-      try {
-        const info = `📅 Дата: ${game.date}
+        // Notify player in Telegram about waitlist (best-effort)
+        try {
+          const info = `📅 Дата: ${game.date}
 ⏰ Час: ${game.time || "—"}
 📍 Локація: ${game.location}
 ⏱ Тривалість: ${game.duration || "—"}`;
 
-        await bot.api.sendMessage(
-          tgId,
-          `🕒 <b>Лист очікування</b>
+          await bot.api.sendMessage(
+            tgId,
+            `🕒 <b>Лист очікування</b>
 
 🎮 Гра #${gid}
 
 Ти доданий до листа очікування. Коли звільниться місце, тебе автоматично запишемо в гру.
 
 ${info}`,
-          { parse_mode: "HTML" },
-        );
-      } catch (e) {
-        log.error("Waitlist notify error", { e: e.message });
-      }
+            { parse_mode: "HTML" },
+          );
+        } catch (e) {
+          log.error("Waitlist notify error", { e: e.message });
+        }
 
-      return res.json({
-        success: true,
-        waitlisted: true,
-      });
+        return res.json({
+          success: true,
+          waitlisted: true,
+        });
+      } catch (e) {
+        // Якщо немає таблиці game_waitlist — повертаємось до старої поведінки "гра заповнена"
+        log.error("Waitlist insert error, fallback to full", {
+          e: e.message,
+        });
+        return res.status(400).json({
+          error: "Game is full",
+        });
+      }
     }
 
     // join player
@@ -349,63 +367,68 @@ router.post("/:id/cancel", async (req, res) => {
 
     let newCount = beforeCnt.c - 1;
 
-    // If there is a waitlist, auto-add first waiting player
-    const waitCandidate = await q1(
-      `SELECT w.player_id, p.team_id, p.telegram_id, p.nickname
-       FROM game_waitlist w
-       JOIN players p ON p.id = w.player_id
-       LEFT JOIN player_blacklist b ON b.player_id = w.player_id AND b.active=1
-       WHERE w.game_id=? AND b.player_id IS NULL
-       ORDER BY w.created_at ASC
-       LIMIT 1`,
-      [gid],
-    );
-
-    if (waitCandidate) {
-      await ins(
-        "INSERT INTO game_players (game_id, player_id, team_id) VALUES (?,?,?)",
-        [gid, waitCandidate.player_id, waitCandidate.team_id],
+    // If there is a waitlist, auto-add first waiting player (best-effort)
+    try {
+      const waitCandidate = await q1(
+        `SELECT w.player_id, p.team_id, p.telegram_id, p.nickname
+         FROM game_waitlist w
+         JOIN players p ON p.id = w.player_id
+         LEFT JOIN player_blacklist b ON b.player_id = w.player_id AND b.active=1
+         WHERE w.game_id=? AND b.player_id IS NULL
+         ORDER BY w.created_at ASC
+         LIMIT 1`,
+        [gid],
       );
-      await ins(
-        "DELETE FROM game_waitlist WHERE game_id=? AND player_id=?",
-        [gid, waitCandidate.player_id],
-      );
-      newCount += 1;
 
-      // Notify player that they were moved from waitlist into the game
-      try {
-        if (waitCandidate.telegram_id) {
-          const deepLink = config.BOT_USERNAME
-            ? `https://t.me/${config.BOT_USERNAME}?startapp=game_${gid}`
-            : undefined;
+      if (waitCandidate) {
+        await ins(
+          "INSERT INTO game_players (game_id, player_id, team_id) VALUES (?,?,?)",
+          [gid, waitCandidate.player_id, waitCandidate.team_id],
+        );
+        await ins(
+          "DELETE FROM game_waitlist WHERE game_id=? AND player_id=?",
+          [gid, waitCandidate.player_id],
+        );
+        newCount += 1;
 
-          const info = `📅 Дата: ${game.date}
+        // Notify player that they were moved from waitlist into the game
+        try {
+          if (waitCandidate.telegram_id) {
+            const deepLink = config.BOT_USERNAME
+              ? `https://t.me/${config.BOT_USERNAME}?startapp=game_${gid}`
+              : undefined;
+
+            const info = `📅 Дата: ${game.date}
 ⏰ Час: ${game.time || "—"}
 📍 Локація: ${game.location}
 ⏱ Тривалість: ${game.duration || "—"}`;
 
-          await bot.api.sendMessage(
-            waitCandidate.telegram_id,
-            `✅ <b>Ти потрапив у гру з листа очікування</b>
+            await bot.api.sendMessage(
+              waitCandidate.telegram_id,
+              `✅ <b>Ти потрапив у гру з листа очікування</b>
 
 🎮 Гра #${gid}
 
 ${info}`,
-            {
-              parse_mode: "HTML",
-              reply_markup: deepLink
-                ? {
-                    inline_keyboard: [
-                      [{ text: "📋 Відкрити гру", url: deepLink }],
-                    ],
-                  }
-                : undefined,
-            },
-          );
+              {
+                parse_mode: "HTML",
+                reply_markup: deepLink
+                  ? {
+                      inline_keyboard: [
+                        [{ text: "📋 Відкрити гру", url: deepLink }],
+                      ],
+                    }
+                  : undefined,
+              },
+            );
+          }
+        } catch (e) {
+          log.error("Waitlist promote notify error", { e: e.message });
         }
-      } catch (e) {
-        log.error("Waitlist promote notify error", { e: e.message });
       }
+    } catch (e) {
+      // Якщо немає game_waitlist / player_blacklist — тихо ігноруємо
+      log.error("Waitlist promote error (ignored)", { e: e.message });
     }
 
     const remaining =

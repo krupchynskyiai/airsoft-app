@@ -557,64 +557,69 @@ router.post("/games/:id/kick-player", async (req, res) => {
 
     let newCount = beforeCnt.c - 1;
 
-    // Try to promote first player from waitlist
-    const waitCandidate = await q1(
-      `SELECT w.player_id, p.team_id, p.telegram_id, p.nickname
-       FROM game_waitlist w
-       JOIN players p ON p.id = w.player_id
-       LEFT JOIN player_blacklist b ON b.player_id = w.player_id AND b.active=1
-       WHERE w.game_id=? AND b.player_id IS NULL
-       ORDER BY w.created_at ASC
-       LIMIT 1`,
-      [gid],
-    );
-
-    if (waitCandidate) {
-      await ins(
-        "INSERT INTO game_players (game_id, player_id, team_id) VALUES (?,?,?)",
-        [gid, waitCandidate.player_id, waitCandidate.team_id],
+    // Try to promote first player from waitlist (best-effort)
+    try {
+      const waitCandidate = await q1(
+        `SELECT w.player_id, p.team_id, p.telegram_id, p.nickname
+         FROM game_waitlist w
+         JOIN players p ON p.id = w.player_id
+         LEFT JOIN player_blacklist b ON b.player_id = w.player_id AND b.active=1
+         WHERE w.game_id=? AND b.player_id IS NULL
+         ORDER BY w.created_at ASC
+         LIMIT 1`,
+        [gid],
       );
-      await ins(
-        "DELETE FROM game_waitlist WHERE game_id=? AND player_id=?",
-        [gid, waitCandidate.player_id],
-      );
-      newCount += 1;
 
-      // Notify player that they were moved from waitlist into the game
-      try {
-        if (waitCandidate.telegram_id) {
-          const deepLink = config.BOT_USERNAME
-            ? `https://t.me/${config.BOT_USERNAME}?startapp=game_${gid}`
-            : undefined;
+      if (waitCandidate) {
+        await ins(
+          "INSERT INTO game_players (game_id, player_id, team_id) VALUES (?,?,?)",
+          [gid, waitCandidate.player_id, waitCandidate.team_id],
+        );
+        await ins(
+          "DELETE FROM game_waitlist WHERE game_id=? AND player_id=?",
+          [gid, waitCandidate.player_id],
+        );
+        newCount += 1;
 
-          const info = `📅 Дата: ${game.date}
+        // Notify player that they were moved from waitlist into the game
+        try {
+          if (waitCandidate.telegram_id) {
+            const deepLink = config.BOT_USERNAME
+              ? `https://t.me/${config.BOT_USERNAME}?startapp=game_${gid}`
+              : undefined;
+
+            const info = `📅 Дата: ${game.date}
 ⏰ Час: ${game.time || "—"}
 📍 Локація: ${game.location}
 ⏱ Тривалість: ${game.duration || "—"}
 🪙 Вартість участі: <b>${game.payment || 0} грн</b>`;
 
-          await bot.api.sendMessage(
-            waitCandidate.telegram_id,
-            `✅ <b>Ти потрапив у гру з листа очікування</b>
+            await bot.api.sendMessage(
+              waitCandidate.telegram_id,
+              `✅ <b>Ти потрапив у гру з листа очікування</b>
 
 🎮 Гра #${gid}
 
 ${info}`,
-            {
-              parse_mode: "HTML",
-              reply_markup: deepLink
-                ? {
-                    inline_keyboard: [
-                      [{ text: "📋 Відкрити гру", url: deepLink }],
-                    ],
-                  }
-                : undefined,
-            },
-          );
+              {
+                parse_mode: "HTML",
+                reply_markup: deepLink
+                  ? {
+                      inline_keyboard: [
+                        [{ text: "📋 Відкрити гру", url: deepLink }],
+                      ],
+                    }
+                  : undefined,
+              },
+            );
+          }
+        } catch (e) {
+          log.error("Admin waitlist promote notify error", { e: e.message });
         }
-      } catch (e) {
-        log.error("Admin waitlist promote notify error", { e: e.message });
       }
+    } catch (e) {
+      // Якщо немає game_waitlist / player_blacklist — тихо ігноруємо
+      log.error("Admin waitlist promote error (ignored)", { e: e.message });
     }
 
     const remaining =

@@ -66,12 +66,32 @@ function ProgressRing({ value, max, size = 72, stroke = 5, color = "#10b981" }) 
 // ---- Main Profile Component ----
 export default function Profile({ profile, onReload }) {
   const { haptic, showAlert } = useTelegram();
+  const [retryProfileOnce, setRetryProfileOnce] = useState(false);
   const [badgeCelebration, setBadgeCelebration] = useState(null);
   const [friendsInfo, setFriendsInfo] = useState({ friends: [], incoming: [] });
   const [friendsLoading, setFriendsLoading] = useState(false);
   const [friendsError, setFriendsError] = useState("");
 
+  // If профіль ще не зареєстрований, спробувати один раз перезавантажити,
+  // щоб дочекатися даних з Telegram / бекенду, перш ніж показувати форму.
+  useEffect(() => {
+    if (!profile?.registered && !retryProfileOnce) {
+      setRetryProfileOnce(true);
+      onReload();
+    }
+  }, [profile?.registered, retryProfileOnce, onReload]);
+
   if (!profile?.registered) {
+    if (!retryProfileOnce) {
+      // короткий локальний лоадер, поки триває перша спроба завантаження профілю
+      return (
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <div className="text-center text-sm text-gray-400">
+            Завантаження профілю...
+          </div>
+        </div>
+      );
+    }
     return <RegisterForm onDone={onReload} />;
   }
 
