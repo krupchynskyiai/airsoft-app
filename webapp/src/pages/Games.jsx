@@ -96,6 +96,10 @@ export default function Games({ onOpenGame }) {
         <div className="space-y-3">
           {games.map((g, idx) => {
             const st = STATUS_CONFIG[g.status] || STATUS_CONFIG.upcoming;
+            const freeSlots =
+              typeof g.max_players === "number"
+                ? Math.max(0, g.max_players - g.player_count)
+                : null;
             return (
               <button
                 key={g.id}
@@ -141,6 +145,15 @@ export default function Games({ onOpenGame }) {
                         <span className="font-semibold text-gray-300">{g.player_count}</span>
                         <span className="text-gray-500">гравців</span>
                       </div>
+                      {typeof g.max_players === "number" && (
+                        <div className="flex items-center gap-1.5 text-[11px] text-gray-400">
+                          <span>Вільних місць:</span>
+                          <span className="font-semibold text-gray-200">
+                            {freeSlots}
+                          </span>
+                          <span className="text-gray-500">з {g.max_players}</span>
+                        </div>
+                      )}
                       {typeof g.payment === "number" && (
                         <div className="flex items-center gap-1.5 text-sm text-gray-400">
                           <span className="text-base">🪙</span>

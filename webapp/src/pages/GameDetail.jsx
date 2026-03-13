@@ -150,6 +150,10 @@ export default function GameDetail({ gameId, onBack, isAdmin }) {
   }
 
   const { game: g, players, rounds, myRegistration, myWaitlist } = data;
+  const freeSlots =
+    typeof g.max_players === "number"
+      ? Math.max(0, g.max_players - players.length)
+      : null;
 
   return (
     <div className="pb-6">
@@ -190,6 +194,15 @@ export default function GameDetail({ gameId, onBack, isAdmin }) {
             {g.duration && (
               <p className="text-gray-300">
                 ⏱ Тривалість: <span className="font-semibold">{g.duration}</span>
+              </p>
+            )}
+            {typeof g.max_players === "number" && (
+              <p className="text-gray-300 text-sm">
+                👥 Вільних місць:{" "}
+                <span className="font-semibold">
+                  {freeSlots}
+                </span>{" "}
+                з {g.max_players}
               </p>
             )}
             {typeof g.payment === "number" && (
@@ -725,7 +738,7 @@ export default function GameDetail({ gameId, onBack, isAdmin }) {
                       }
                       className="ml-1 px-2 py-1 rounded-lg bg-red-800/60 text-[10px] font-semibold text-red-100 active:scale-95"
                     >
-                      Кік
+                      Kick
                     </button>
                   )}
               </div>
