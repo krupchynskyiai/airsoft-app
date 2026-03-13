@@ -6,10 +6,14 @@ import {
   checkinGame,
   reportDead,
   getRoundStatus,
+  getMvpState,
+  voteMvp,
   adminKillPlayer,
   adminEndRound,
   adminSetGameStatus,
   adminReviewCheckin,
+  adminKickFromGame,
+   adminMoveGameTeam,
 } from "../api";
 import { useTelegram } from "../hooks/useTelegram";
 
@@ -43,6 +47,8 @@ export default function GameDetail({ gameId, onBack, isAdmin }) {
   const [round, setRound] = useState(null);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(null);
+  const [mvpState, setMvpState] = useState(null);
+  const [mvpLoading, setMvpLoading] = useState(false);
   const { haptic, showAlert } = useTelegram();
 
   const load = useCallback(async () => {
@@ -95,6 +101,33 @@ export default function GameDetail({ gameId, onBack, isAdmin }) {
   const isActiveGame = data?.game?.status === "active";
   const hasActiveRound = round?.active || false;
   const isBetweenRounds = isActiveGame && !hasActiveRound;
+
+  // MVP voting state (latest finished round)
+  useEffect(() => {
+    if (!data?.game) return;
+    if (!isBetweenRounds) {
+      setMvpState(null);
+      return;
+    }
+    let cancelled = false;
+    async function loadMvp() {
+      try {
+        setMvpLoading(true);
+        const s = await getMvpState(gameId);
+        if (!cancelled) {
+          setMvpState(s.hasRound ? s : null);
+        }
+      } catch {
+        if (!cancelled) setMvpState(null);
+      } finally {
+        if (!cancelled) setMvpLoading(false);
+      }
+    }
+    loadMvp();
+    return () => {
+      cancelled = true;
+    };
+  }, [gameId, isBetweenRounds, data?.game]);
 
   if (loading) {
     return (
@@ -364,19 +397,101 @@ export default function GameDetail({ gameId, onBack, isAdmin }) {
         </div>
       )}
 
-      {/* ---- Between rounds: Start next round ---- */}
-      {isAdmin && isBetweenRounds && (
-        <div className="bg-emerald-950/20 border border-emerald-800/30 rounded-2xl p-5 mb-5 text-center">
-          <div className="text-3xl mb-2">⏸</div>
-          <h3 className="text-lg font-black mb-1">Перерва між раундами</h3>
-          <p className="text-sm text-gray-400 mb-4">Раундів зіграно: {rounds.filter(r => r.status === "finished").length}</p>
-          <button
-            onClick={() => doAction(() => adminStartRound(gameId))}
-            disabled={actionLoading}
-            className="w-full bg-gradient-to-r from-emerald-600 to-teal-600 py-4 rounded-2xl font-bold text-[15px] shadow-lg transition-all active:scale-[0.98] disabled:opacity-50"
-          >
-            {actionLoading ? <Spinner /> : "▶️ Почати наступний раунд"}
-          </button>
+      {/* ---- Between rounds: MVP voting + start next round ---- */}
+      {isBetweenRounds && (
+        <div className="space-y-3 mb-5">
+          {/* MVP voting block */}
+          {mvpState && (
+            <div className="bg-slate-900/50 border border-amber-700/40 rounded-2xl p-4">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <span className="text-lg">⭐</span>
+                  <div>
+                    <h3 className="text-sm font-bold text-amber-300 uppercase tracking-wider">
+                      MVP Раунду {mvpState.round_number}
+                    </h3>
+                    <p className="text-[11px] text-gray-400">
+                      Голосує тільки команда-переможець
+                    </p>
+                  </div>
+                </div>
+              </div>
+              {mvpLoading ? (
+                <div className="text-xs text-gray-500">Завантаження...</div>
+              ) : (
+                <div className="space-y-1.5 max-h-40 overflow-y-auto pr-1">
+                  {mvpState.candidates.map((c) => {
+                    const isMine = mvpState.myVoteTargetId === c.player_id;
+                    return (
+                      <div
+                        key={c.player_id}
+                        className="flex items-center justify-between py-1.5 px-2 rounded-xl bg-slate-800/60"
+                      >
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm">{isMine ? "✅" : "🪖"}</span>
+                          <span className="text-xs font-medium">
+                            {c.nickname}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-[10px] text-gray-400">
+                            Голосів:{" "}
+                            <span className="font-semibold text-amber-300">
+                              {c.mvp_votes}
+                            </span>
+                          </span>
+                          {mvpState.canVote && !isMine && (
+                            <button
+                              onClick={async () => {
+                                try {
+                                  haptic("impact");
+                                  await voteMvp(
+                                    gameId,
+                                    mvpState.round_id,
+                                    c.player_id,
+                                  );
+                                  showAlert(
+                                    `✅ Ти проголосував за ${c.nickname} як MVP`,
+                                  );
+                                  const s = await getMvpState(gameId);
+                                  setMvpState(s.hasRound ? s : null);
+                                } catch (e) {
+                                  showAlert(e.message);
+                                  haptic("error");
+                                }
+                              }}
+                              className="px-2 py-1 rounded-lg bg-emerald-600/70 text-[10px] font-bold text-white active:scale-95"
+                            >
+                              Голосувати
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Admin: start next round */}
+          {isAdmin && (
+            <div className="bg-emerald-950/20 border border-emerald-800/30 rounded-2xl p-5 text-center">
+              <div className="text-3xl mb-2">⏸</div>
+              <h3 className="text-lg font-black mb-1">Перерва між раундами</h3>
+              <p className="text-sm text-gray-400 mb-4">
+                Раундів зіграно:{" "}
+                {rounds.filter((r) => r.status === "finished").length}
+              </p>
+              <button
+                onClick={() => doAction(() => adminStartRound(gameId))}
+                disabled={actionLoading}
+                className="w-full bg-gradient-to-r from-emerald-600 to-teal-600 py-4 rounded-2xl font-bold text-[15px] shadow-lg transition-all active:scale-[0.98] disabled:opacity-50"
+              >
+                {actionLoading ? <Spinner /> : "▶️ Почати наступний раунд"}
+              </button>
+            </div>
+          )}
         </div>
       )}
 
@@ -491,7 +606,10 @@ export default function GameDetail({ gameId, onBack, isAdmin }) {
         </div>
         <div className="space-y-1">
           {players.map((p) => (
-            <div key={p.player_id} className="flex items-center justify-between py-2.5 px-2 rounded-xl hover:bg-slate-700/20 transition-colors">
+            <div
+              key={p.player_id}
+              className="flex items-center justify-between py-2.5 px-2 rounded-xl hover:bg-slate-700/20 transition-colors"
+            >
               <div className="flex items-center gap-3">
                 <div
                   className={`w-2.5 h-2.5 rounded-full ${
@@ -507,15 +625,80 @@ export default function GameDetail({ gameId, onBack, isAdmin }) {
                 <div>
                   <span className="text-sm font-medium">{p.nickname}</span>
                   {p.game_team && (
-                    <span className={`ml-2 text-[10px] font-bold px-1.5 py-0.5 rounded ${
-                      p.game_team === "A" ? "bg-blue-500/20 text-blue-400" : p.game_team === "B" ? "bg-red-500/20 text-red-400" : "bg-slate-600 text-gray-400"
-                    }`}>{p.game_team}</span>
+                    <span
+                      className={`ml-2 text-[10px] font-bold px-1.5 py-0.5 rounded ${
+                        p.game_team === "A"
+                          ? "bg-blue-500/20 text-blue-400"
+                          : p.game_team === "B"
+                          ? "bg-red-500/20 text-red-400"
+                          : "bg-slate-600 text-gray-400"
+                      }`}
+                    >
+                      {p.game_team}
+                    </span>
                   )}
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                {p.team_name && <span className="text-[11px] text-gray-500">{p.team_name}</span>}
+                {p.team_name && (
+                  <span className="text-[11px] text-gray-500">
+                    {p.team_name}
+                  </span>
+                )}
                 <span className="text-[10px] text-gray-600">⭐{p.rating}</span>
+                {isAdmin &&
+                  (g.status === "checkin" || g.status === "active") &&
+                  g.game_mode !== "ffa" &&
+                  (p.game_team === "A" || p.game_team === "B") && (
+                    <div className="flex items-center gap-1 ml-1">
+                      <button
+                        onClick={() =>
+                          doAction(
+                            () => adminMoveGameTeam(gameId, p.player_id, "A"),
+                            "Гравця переміщено в команду A",
+                          )
+                        }
+                        className={`px-2 py-1 rounded-lg text-[10px] font-semibold active:scale-95 transition-all ${
+                          p.game_team === "A"
+                            ? "bg-blue-600 text-white"
+                            : "bg-slate-700 text-gray-200"
+                        }`}
+                      >
+                        A
+                      </button>
+                      <button
+                        onClick={() =>
+                          doAction(
+                            () => adminMoveGameTeam(gameId, p.player_id, "B"),
+                            "Гравця переміщено в команду B",
+                          )
+                        }
+                        className={`px-2 py-1 rounded-lg text-[10px] font-semibold active:scale-95 transition-all ${
+                          p.game_team === "B"
+                            ? "bg-red-600 text-white"
+                            : "bg-slate-700 text-gray-200"
+                        }`}
+                      >
+                        B
+                      </button>
+                    </div>
+                  )}
+                {isAdmin &&
+                  g.status !== "finished" &&
+                  g.status !== "cancelled" &&
+                  p.attendance !== "no_show" && (
+                    <button
+                      onClick={() =>
+                        doAction(
+                          () => adminKickFromGame(gameId, p.player_id),
+                          "Гравця видалено з гри",
+                        )
+                      }
+                      className="ml-1 px-2 py-1 rounded-lg bg-red-800/60 text-[10px] font-semibold text-red-100 active:scale-95"
+                    >
+                      Кік
+                    </button>
+                  )}
               </div>
             </div>
           ))}

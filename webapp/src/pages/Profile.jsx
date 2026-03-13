@@ -1,5 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { registerPlayer, getTeamsList } from "../api";
+import {
+  registerPlayer,
+  getTeamsList,
+  getFriends,
+  sendFriendRequest,
+  respondFriendRequest,
+} from "../api";
 import { useTelegram } from "../hooks/useTelegram";
 import {
   Crosshair, Medal, Trophy, Crown, Flame, Star, Gem, Shield, Skull, Award
@@ -58,13 +64,76 @@ function ProgressRing({ value, max, size = 72, stroke = 5, color = "#10b981" }) 
 
 // ---- Main Profile Component ----
 export default function Profile({ profile, onReload }) {
+  const { haptic } = useTelegram();
+  const [badgeCelebration, setBadgeCelebration] = useState(null);
+  const [friendsInfo, setFriendsInfo] = useState({ friends: [], incoming: [] });
+  const [friendsLoading, setFriendsLoading] = useState(false);
+  const [friendNick, setFriendNick] = useState("");
+  const [friendsError, setFriendsError] = useState("");
+
   if (!profile?.registered) {
     return <RegisterForm onDone={onReload} />;
   }
 
   const p = profile.player;
-  const { haptic } = useTelegram();
-  const [badgeCelebration, setBadgeCelebration] = useState(null);
+
+  useEffect(() => {
+    async function loadFriends() {
+      setFriendsLoading(true);
+      setFriendsError("");
+      try {
+        const data = await getFriends();
+        setFriendsInfo({
+          friends: data.friends || [],
+          incoming: data.incoming || [],
+        });
+      } catch (e) {
+        console.error(e);
+        setFriendsError("Не вдалося завантажити друзів");
+      } finally {
+        setFriendsLoading(false);
+      }
+    }
+
+    loadFriends();
+  }, []);
+
+  async function handleSendFriend() {
+    const nick = friendNick.trim();
+    if (!nick) return;
+    try {
+      setFriendsError("");
+      await sendFriendRequest(nick);
+      setFriendNick("");
+      haptic("success");
+      const data = await getFriends();
+      setFriendsInfo({
+        friends: data.friends || [],
+        incoming: data.incoming || [],
+      });
+    } catch (e) {
+      console.error(e);
+      setFriendsError(e.message || "Помилка запиту в друзі");
+      haptic("error");
+    }
+  }
+
+  async function handleRespondFriend(requestId, action) {
+    try {
+      setFriendsError("");
+      await respondFriendRequest(requestId, action);
+      haptic("success");
+      const data = await getFriends();
+      setFriendsInfo({
+        friends: data.friends || [],
+        incoming: data.incoming || [],
+      });
+    } catch (e) {
+      console.error(e);
+      setFriendsError(e.message || "Помилка обробки запиту");
+      haptic("error");
+    }
+  }
 
   useEffect(() => {
     if (!p?.id || !Array.isArray(profile.badges) || profile.badges.length === 0) {
@@ -269,7 +338,9 @@ export default function Profile({ profile, onReload }) {
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               <span className="text-base">🎖</span>
-              <h3 className="text-sm font-bold text-gray-300 uppercase tracking-wider">Нагороди</h3>
+              <h3 className="text-sm font-bold text-gray-300 uppercase tracking-wider">
+                Нагороди
+              </h3>
             </div>
             <span className="text-xs text-gray-500 bg-slate-700 px-2 py-0.5 rounded-full">
               {profile.badges.length}
@@ -292,9 +363,15 @@ export default function Profile({ profile, onReload }) {
                       className="w-7 h-7 rounded-lg flex items-center justify-center"
                       style={{ backgroundColor: `${b.badge_color}25` }}
                     >
-                      <IconComponent size={16} color={b.badge_color} strokeWidth={2.5} />
+                      <IconComponent
+                        size={16}
+                        color={b.badge_color}
+                        strokeWidth={2.5}
+                      />
                     </div>
-                    <span className="text-xs font-semibold">{b.badge_name}</span>
+                    <span className="text-xs font-semibold">
+                      {b.badge_name}
+                    </span>
                   </div>
                 </div>
               );
@@ -302,6 +379,129 @@ export default function Profile({ profile, onReload }) {
           </div>
         </div>
       )}
+
+      {/* ---- Friends ---- */}
+      <div className="bg-slate-800/80 backdrop-blur-sm rounded-2xl p-4 mb-4 border border-slate-700/50">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <span className="text-base">🤝</span>
+            <h3 className="text-sm font-bold text-gray-300 uppercase tracking-wider">
+              Друзі
+            </h3>
+          </div>
+          <span className="text-xs text-gray-500 bg-slate-700 px-2 py-0.5 rounded-full">
+            {friendsInfo.friends.length}
+          </span>
+        </div>
+
+        {/* Add friend form */}
+        <div className="mb-3">
+          <label className="block text-[11px] text-gray-500 mb-1">
+            Додати друга по нікнейму
+          </label>
+          <div className="flex items-center gap-2">
+            <input
+              value={friendNick}
+              onChange={(e) => setFriendNick(e.target.value)}
+              placeholder="Нікнейм друга"
+              className="flex-1 bg-slate-900/70 border border-slate-700 rounded-xl px-3 py-2 text-xs focus:outline-none focus:ring-1 focus:ring-emerald-500/60"
+            />
+            <button
+              onClick={handleSendFriend}
+              disabled={!friendNick.trim() || friendsLoading}
+              className="px-3 py-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 text-[11px] font-bold text-black disabled:opacity-50 active:scale-95 transition-transform"
+            >
+              Запросити
+            </button>
+          </div>
+        </div>
+
+        {friendsError && (
+          <div className="mb-2 text-[11px] text-red-400">
+            {friendsError}
+          </div>
+        )}
+
+        {/* Friends list */}
+        {friendsInfo.friends.length === 0 ? (
+          <p className="text-xs text-gray-500 mb-3">
+            Додай друзів, щоб бачити, коли вони записані на гру.
+          </p>
+        ) : (
+          <div className="space-y-1.5 max-h-32 overflow-y-auto pr-1 mb-3">
+            {friendsInfo.friends.map((f) => (
+              <div
+                key={f.id}
+                className="flex items-center justify-between py-1.5 px-2 rounded-xl bg-slate-900/60"
+              >
+                <div className="flex items-center gap-2">
+                  <span className="text-sm">🪖</span>
+                  <span className="text-xs font-medium">{f.nickname}</span>
+                </div>
+                <span className="text-[10px] text-gray-500">
+                  ⭐{f.rating}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Incoming friend requests */}
+        <div className="border-t border-slate-700/60 pt-2 mt-1">
+          <div className="flex items-center justify-between mb-1.5">
+            <span className="text-[11px] text-gray-400 uppercase tracking-wider">
+              Вхідні запити
+            </span>
+            {friendsInfo.incoming.length > 0 && (
+              <span className="text-[10px] text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full">
+                {friendsInfo.incoming.length}
+              </span>
+            )}
+          </div>
+
+          {friendsLoading && friendsInfo.incoming.length === 0 ? (
+            <p className="text-[11px] text-gray-500">Завантаження...</p>
+          ) : friendsInfo.incoming.length === 0 ? (
+            <p className="text-[11px] text-gray-500">
+              Немає нових запитів.
+            </p>
+          ) : (
+            <div className="space-y-1.5 max-h-24 overflow-y-auto pr-1">
+              {friendsInfo.incoming.map((r) => (
+                <div
+                  key={r.request_id || r.id}
+                  className="flex items-center justify-between py-1.5 px-2 rounded-xl bg-slate-900/60"
+                >
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm">📩</span>
+                    <span className="text-xs font-medium">
+                      {r.from_nickname || r.nickname}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      onClick={() =>
+                        handleRespondFriend(r.request_id || r.id, "accept")
+                      }
+                      className="px-2 py-1 rounded-lg bg-emerald-600 text-[10px] font-bold text-black active:scale-95"
+                    >
+                      Прийняти
+                    </button>
+                    <button
+                      onClick={() =>
+                        handleRespondFriend(r.request_id || r.id, "reject")
+                      }
+                      className="px-2 py-1 rounded-lg bg-slate-700 text-[10px] font-bold text-gray-200 active:scale-95"
+                    >
+                      Відхилити
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
 
       {/* ---- Recent games ---- */}
       {profile.recentGames?.length > 0 && (

@@ -149,19 +149,50 @@ router.post("/games/:id/status", async (req, res) => {
 
       if (g.game_mode === "random_teams") {
         const ps = await q(
-          "SELECT id FROM game_players WHERE game_id=? AND attendance='checked_in'",
+          `SELECT gp.id, p.rating
+           FROM game_players gp
+           JOIN players p ON p.id = gp.player_id
+           WHERE gp.game_id=? AND gp.attendance='checked_in'`,
           [gid],
         );
 
-        const shuffled = ps.sort(() => Math.random() - 0.5);
-        const half = Math.ceil(shuffled.length / 2);
+        // AUTO TEAM BALANCER — balance by rating
+        const sorted = ps
+          .map((row) => ({
+            id: row.id,
+            rating: typeof row.rating === "number" ? row.rating : 0,
+          }))
+          .sort((a, b) => b.rating - a.rating);
 
-        for (let i = 0; i < shuffled.length; i++) {
-          await ins("UPDATE game_players SET game_team=? WHERE id=?", [
-            i < half ? "A" : "B",
-            shuffled[i].id,
-          ]);
+        let totalA = 0;
+        let totalB = 0;
+        const teamA = [];
+        const teamB = [];
+
+        for (const p of sorted) {
+          if (totalA <= totalB) {
+            teamA.push(p.id);
+            totalA += p.rating;
+          } else {
+            teamB.push(p.id);
+            totalB += p.rating;
+          }
         }
+
+        for (const id of teamA) {
+          await ins("UPDATE game_players SET game_team='A' WHERE id=?", [id]);
+        }
+        for (const id of teamB) {
+          await ins("UPDATE game_players SET game_team='B' WHERE id=?", [id]);
+        }
+
+        log.info("Random teams balanced", {
+          gid,
+          totalA,
+          totalB,
+          countA: teamA.length,
+          countB: teamB.length,
+        });
       }
 
       if (g.game_mode === "ffa") {
@@ -408,6 +439,190 @@ router.post("/games/:id/kill", async (req, res) => {
   }
 });
 
+// POST /api/admin/games/:id/move-player — manually switch player between teams (A/B)
+router.post("/games/:id/move-player", async (req, res) => {
+  try {
+    const gid = parseInt(req.params.id);
+    const { player_id, target_team } = req.body;
+
+    if (!player_id || !["A", "B"].includes(target_team)) {
+      return res.status(400).json({ error: "player_id and target_team A|B required" });
+    }
+
+    const game = await q1("SELECT id, game_mode FROM games WHERE id=?", [gid]);
+    if (!game) {
+      return res.status(404).json({ error: "Game not found" });
+    }
+
+    if (game.game_mode === "ffa") {
+      return res.status(400).json({ error: "Manual team switch is not available for FFA mode" });
+    }
+
+    const gp = await q1(
+      "SELECT id, attendance, game_team FROM game_players WHERE game_id=? AND player_id=?",
+      [gid, player_id],
+    );
+
+    if (!gp) {
+      return res.status(404).json({ error: "Player not in this game" });
+    }
+
+    // Only meaningful after check-in; require checked_in
+    if (gp.attendance !== "checked_in") {
+      return res.status(400).json({ error: "Player must be checked-in to move between teams" });
+    }
+
+    if (gp.game_team === target_team) {
+      return res.json({ success: true, game_team: gp.game_team });
+    }
+
+    await ins(
+      "UPDATE game_players SET game_team=? WHERE id=?",
+      [target_team, gp.id],
+    );
+
+    // If there is an active round, also move in round_players so live board stays consistent
+    const activeRound = await q1(
+      "SELECT id FROM rounds WHERE game_id=? AND status='active' ORDER BY round_number DESC LIMIT 1",
+      [gid],
+    );
+
+    if (activeRound) {
+      await ins(
+        "UPDATE round_players SET game_team=? WHERE round_id=? AND player_id=?",
+        [target_team, activeRound.id, player_id],
+      );
+    }
+
+    log.info("Admin moved player between teams", {
+      gid,
+      playerId: player_id,
+      from: gp.game_team,
+      to: target_team,
+      activeRoundId: activeRound?.id || null,
+    });
+
+    res.json({ success: true, game_team: target_team });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// POST /api/admin/games/:id/kick-player — remove registered player from game
+router.post("/games/:id/kick-player", async (req, res) => {
+  try {
+    const gid = parseInt(req.params.id);
+    const { player_id } = req.body;
+
+    if (!player_id) {
+      return res.status(400).json({ error: "player_id required" });
+    }
+
+    const game = await q1(
+      "SELECT id, date, time, location, status, max_players, payment FROM games WHERE id=?",
+      [gid],
+    );
+    if (!game) {
+      return res.status(404).json({ error: "Game not found" });
+    }
+
+    if (["active", "finished", "cancelled"].includes(game.status)) {
+      return res
+        .status(400)
+        .json({ error: "Cannot kick players for this game status" });
+    }
+
+    const registration = await q1(
+      "SELECT id, attendance FROM game_players WHERE game_id=? AND player_id=?",
+      [gid, player_id],
+    );
+    if (!registration) {
+      return res
+        .status(404)
+        .json({ error: "Player not registered for this game" });
+    }
+
+    const beforeCnt = await q1(
+      "SELECT COUNT(*) as c FROM game_players WHERE game_id=?",
+      [gid],
+    );
+
+    await ins("DELETE FROM game_players WHERE id=?", [registration.id]);
+
+    const newCount = beforeCnt.c - 1;
+    const remaining =
+      game.max_players != null ? game.max_players - newCount : null;
+
+    log.info("Admin kicked game player", {
+      gid,
+      playerId: player_id,
+      before: beforeCnt.c,
+      after: newCount,
+      remaining,
+    });
+
+    // Telegram notification about free slots (same logic as cancel)
+    if (config.CHANNEL_ID && game.max_players) {
+      try {
+        const deepLink = `https://t.me/${config.BOT_USERNAME}?startapp=game_${gid}`;
+
+        const remainingBefore = game.max_players - beforeCnt.c;
+        const remainingAfter = game.max_players - newCount;
+
+        const info = `📅 Дата: ${game.date}
+⏰ Час: ${game.time || "—"}
+📍 Локація: ${game.location}
+🪙 Вартість участі: <b>${game.payment} грн</b>`;
+
+        let msg;
+
+        if (remainingBefore === 0 && remainingAfter > 0) {
+          msg = `✅ <b>З'явилося вільне місце!</b>
+
+🎮 Гра #${gid}
+👥 Вільних місць: <b>${remainingAfter}</b>
+
+${info}`;
+        } else if (remainingAfter > 0) {
+          msg = `ℹ️ <b>Оновлена кількість місць</b>
+
+🎮 Гра #${gid}
+👥 Вільних місць: <b>${remainingAfter}</b>
+
+${info}`;
+        }
+
+        if (msg) {
+          await bot.api.sendMessage(config.CHANNEL_ID, msg, {
+            parse_mode: "HTML",
+            reply_markup: {
+              inline_keyboard: [
+                [
+                  {
+                    text: "🔥 Записатися",
+                    url: deepLink,
+                  },
+                ],
+              ],
+            },
+          });
+        }
+      } catch (e) {
+        log.error("Admin kick notify error", { e: e.message });
+      }
+    }
+
+    res.json({
+      success: true,
+      total: newCount,
+      remaining,
+      max_players: game.max_players,
+    });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 // POST /api/admin/games/:id/checkin-review
 router.post("/games/:id/checkin-review", async (req, res) => {
   try {
@@ -646,6 +861,55 @@ async function calculateGameScores(gid) {
       gp.player_id,
     ]);
     await checkBadgesAPI(gp.player_id, updatedPlayer);
+  }
+
+  // MVP votes → increment mvp_count for players with highest votes per round
+  const mvpVotes = await q(
+    "SELECT round_id, target_player_id, COUNT(*) as votes FROM round_mvp_votes WHERE game_id=? GROUP BY round_id, target_player_id",
+    [gid],
+  );
+
+  if (mvpVotes.length) {
+    const byRound = new Map();
+    for (const v of mvpVotes) {
+      if (!byRound.has(v.round_id)) byRound.set(v.round_id, []);
+      byRound.get(v.round_id).push(v);
+    }
+
+    const mvpIds = new Set();
+    for (const [roundId, arr] of byRound.entries()) {
+      let max = 0;
+      for (const v of arr) {
+        if (v.votes > max) max = v.votes;
+      }
+      for (const v of arr) {
+        if (v.votes === max && max > 0) {
+          mvpIds.add(v.target_player_id);
+        }
+      }
+    }
+
+    for (const pid of mvpIds) {
+      await ins(
+        "UPDATE players SET mvp_count=mvp_count+1 WHERE id=?",
+        [pid],
+      );
+
+      if (g.season_id) {
+        const ex = await q1(
+          "SELECT * FROM season_stats WHERE player_id=? AND season_id=?",
+          [pid, g.season_id],
+        );
+        if (ex) {
+          await ins(
+            "UPDATE season_stats SET season_games=season_games, season_wins=season_wins, season_deaths=season_deaths, season_rating=season_rating WHERE id=?",
+            [ex.id],
+          );
+        }
+      }
+
+      log.info("MVP counted", { gid, playerId: pid });
+    }
   }
 
   const noShows = await q(

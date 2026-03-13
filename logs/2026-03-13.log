@@ -6257,3 +6257,136 @@
 [2026-03-13T13:37:47.567Z] [DB] Q | {"sql":"SELECT id, nickname, rating, wins, games_played, total_kills, total_deaths, mvp_count FROM players O","rows":5,"ms":18}
 [2026-03-13T13:37:47.569Z] [DB] Q | {"sql":"SELECT id, nickname, rating, wins, games_played, total_kills, total_deaths, mvp_count FROM players O","rows":5,"ms":17}
 [2026-03-13T13:37:55.142Z] [INFO] Shutdown...
+[2026-03-13T16:10:36.796Z] [INFO] =============================
+[2026-03-13T16:10:36.797Z] [INFO]   AIRSOFT CLUB BOT + APP v2  
+[2026-03-13T16:10:36.798Z] [INFO] =============================
+[2026-03-13T16:10:36.799Z] [INFO] Connecting MySQL... | {"host":"s5.thehost.com.ua","database":"airsoft_db"}
+[2026-03-13T16:10:37.032Z] [INFO] MySQL OK
+[2026-03-13T16:10:37.073Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM players","rows":1,"ms":39}
+[2026-03-13T16:10:37.116Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM teams","rows":1,"ms":42}
+[2026-03-13T16:10:37.157Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM games","rows":1,"ms":39}
+[2026-03-13T16:10:37.158Z] [INFO] DB | {"players":8,"teams":1,"games":1}
+[2026-03-13T16:10:37.207Z] [INFO] Bot running!
+[2026-03-13T16:10:37.208Z] [INFO] Express server on port 3000
+[2026-03-13T16:10:37.209Z] [INFO] Mini App URL: http://localhost:3000
+[2026-03-13T16:10:44.299Z] [INFO] =============================
+[2026-03-13T16:10:44.300Z] [INFO]   AIRSOFT CLUB BOT + APP v2  
+[2026-03-13T16:10:44.301Z] [INFO] =============================
+[2026-03-13T16:10:44.302Z] [INFO] Connecting MySQL... | {"host":"s5.thehost.com.ua","database":"airsoft_db"}
+[2026-03-13T16:10:44.437Z] [INFO] MySQL OK
+[2026-03-13T16:10:44.498Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM players","rows":1,"ms":60}
+[2026-03-13T16:10:44.530Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM teams","rows":1,"ms":31}
+[2026-03-13T16:10:44.568Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM games","rows":1,"ms":37}
+[2026-03-13T16:10:44.571Z] [INFO] DB | {"players":8,"teams":1,"games":1}
+[2026-03-13T16:10:44.609Z] [INFO] Bot running!
+[2026-03-13T16:10:44.610Z] [INFO] Express server on port 3000
+[2026-03-13T16:10:44.611Z] [INFO] Mini App URL: http://localhost:3000
+[2026-03-13T16:20:12.793Z] [INFO] =============================
+[2026-03-13T16:20:12.794Z] [INFO]   AIRSOFT CLUB BOT + APP v2  
+[2026-03-13T16:20:12.795Z] [INFO] =============================
+[2026-03-13T16:20:12.796Z] [INFO] Connecting MySQL... | {"host":"s5.thehost.com.ua","database":"airsoft_db"}
+[2026-03-13T16:20:12.928Z] [INFO] MySQL OK
+[2026-03-13T16:20:12.984Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM players","rows":1,"ms":55}
+[2026-03-13T16:20:13.018Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM teams","rows":1,"ms":32}
+[2026-03-13T16:20:13.092Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM games","rows":1,"ms":73}
+[2026-03-13T16:20:13.095Z] [INFO] DB | {"players":8,"teams":1,"games":1}
+[2026-03-13T16:20:13.143Z] [INFO] Bot running!
+[2026-03-13T16:20:13.145Z] [INFO] Express server on port 3000
+[2026-03-13T16:20:13.146Z] [INFO] Mini App URL: http://localhost:3000
+[2026-03-13T16:20:36.266Z] [INFO] =============================
+[2026-03-13T16:20:36.267Z] [INFO]   AIRSOFT CLUB BOT + APP v2  
+[2026-03-13T16:20:36.267Z] [INFO] =============================
+[2026-03-13T16:20:36.269Z] [INFO] Connecting MySQL... | {"host":"s5.thehost.com.ua","database":"airsoft_db"}
+[2026-03-13T16:20:36.417Z] [INFO] MySQL OK
+[2026-03-13T16:20:36.459Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM players","rows":1,"ms":40}
+[2026-03-13T16:20:36.495Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM teams","rows":1,"ms":35}
+[2026-03-13T16:20:36.529Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM games","rows":1,"ms":34}
+[2026-03-13T16:20:36.531Z] [INFO] DB | {"players":8,"teams":1,"games":1}
+[2026-03-13T16:20:36.576Z] [INFO] Bot running!
+[2026-03-13T16:20:36.577Z] [INFO] Express server on port 3000
+[2026-03-13T16:20:36.578Z] [INFO] Mini App URL: http://localhost:3000
+[2026-03-13T16:26:55.069Z] [INFO] =============================
+[2026-03-13T16:26:55.070Z] [INFO]   AIRSOFT CLUB BOT + APP v2  
+[2026-03-13T16:26:55.071Z] [INFO] =============================
+[2026-03-13T16:26:55.072Z] [INFO] Connecting MySQL... | {"host":"s5.thehost.com.ua","database":"airsoft_db"}
+[2026-03-13T16:26:55.214Z] [INFO] MySQL OK
+[2026-03-13T16:26:55.256Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM players","rows":1,"ms":41}
+[2026-03-13T16:26:55.296Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM teams","rows":1,"ms":39}
+[2026-03-13T16:26:55.336Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM games","rows":1,"ms":38}
+[2026-03-13T16:26:55.337Z] [INFO] DB | {"players":8,"teams":1,"games":1}
+[2026-03-13T16:26:55.371Z] [INFO] Bot running!
+[2026-03-13T16:26:55.372Z] [INFO] Express server on port 3000
+[2026-03-13T16:26:55.372Z] [INFO] Mini App URL: http://localhost:3000
+[2026-03-13T16:27:26.773Z] [INFO] =============================
+[2026-03-13T16:27:26.774Z] [INFO]   AIRSOFT CLUB BOT + APP v2  
+[2026-03-13T16:27:26.774Z] [INFO] =============================
+[2026-03-13T16:27:26.776Z] [INFO] Connecting MySQL... | {"host":"s5.thehost.com.ua","database":"airsoft_db"}
+[2026-03-13T16:27:26.933Z] [INFO] MySQL OK
+[2026-03-13T16:27:26.970Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM players","rows":1,"ms":35}
+[2026-03-13T16:27:27.011Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM teams","rows":1,"ms":40}
+[2026-03-13T16:27:27.048Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM games","rows":1,"ms":36}
+[2026-03-13T16:27:27.049Z] [INFO] DB | {"players":8,"teams":1,"games":1}
+[2026-03-13T16:27:27.090Z] [INFO] Bot running!
+[2026-03-13T16:27:27.091Z] [INFO] Express server on port 3000
+[2026-03-13T16:27:27.092Z] [INFO] Mini App URL: http://localhost:3000
+[2026-03-13T16:30:23.359Z] [INFO] =============================
+[2026-03-13T16:30:23.361Z] [INFO]   AIRSOFT CLUB BOT + APP v2  
+[2026-03-13T16:30:23.363Z] [INFO] =============================
+[2026-03-13T16:30:23.364Z] [INFO] Connecting MySQL... | {"host":"s5.thehost.com.ua","database":"airsoft_db"}
+[2026-03-13T16:30:23.510Z] [INFO] MySQL OK
+[2026-03-13T16:30:23.551Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM players","rows":1,"ms":39}
+[2026-03-13T16:30:23.587Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM teams","rows":1,"ms":34}
+[2026-03-13T16:30:23.628Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM games","rows":1,"ms":41}
+[2026-03-13T16:30:23.629Z] [INFO] DB | {"players":8,"teams":1,"games":1}
+[2026-03-13T16:30:23.667Z] [INFO] Bot running!
+[2026-03-13T16:30:23.668Z] [INFO] Express server on port 3000
+[2026-03-13T16:30:23.669Z] [INFO] Mini App URL: http://localhost:3000
+[2026-03-13T16:30:42.485Z] [INFO] =============================
+[2026-03-13T16:30:42.486Z] [INFO]   AIRSOFT CLUB BOT + APP v2  
+[2026-03-13T16:30:42.487Z] [INFO] =============================
+[2026-03-13T16:30:42.489Z] [INFO] Connecting MySQL... | {"host":"s5.thehost.com.ua","database":"airsoft_db"}
+[2026-03-13T16:30:42.611Z] [INFO] MySQL OK
+[2026-03-13T16:30:42.647Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM players","rows":1,"ms":35}
+[2026-03-13T16:30:42.682Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM teams","rows":1,"ms":34}
+[2026-03-13T16:30:42.716Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM games","rows":1,"ms":32}
+[2026-03-13T16:30:42.717Z] [INFO] DB | {"players":8,"teams":1,"games":1}
+[2026-03-13T16:30:42.756Z] [INFO] Bot running!
+[2026-03-13T16:30:42.758Z] [INFO] Express server on port 3000
+[2026-03-13T16:30:42.759Z] [INFO] Mini App URL: http://localhost:3000
+[2026-03-13T16:31:02.711Z] [INFO] =============================
+[2026-03-13T16:31:02.713Z] [INFO]   AIRSOFT CLUB BOT + APP v2  
+[2026-03-13T16:31:02.714Z] [INFO] =============================
+[2026-03-13T16:31:02.715Z] [INFO] Connecting MySQL... | {"host":"s5.thehost.com.ua","database":"airsoft_db"}
+[2026-03-13T16:31:02.878Z] [INFO] MySQL OK
+[2026-03-13T16:31:02.916Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM players","rows":1,"ms":37}
+[2026-03-13T16:31:02.955Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM teams","rows":1,"ms":38}
+[2026-03-13T16:31:02.994Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM games","rows":1,"ms":38}
+[2026-03-13T16:31:02.995Z] [INFO] DB | {"players":8,"teams":1,"games":1}
+[2026-03-13T16:31:03.042Z] [INFO] Bot running!
+[2026-03-13T16:31:03.043Z] [INFO] Express server on port 3000
+[2026-03-13T16:31:03.044Z] [INFO] Mini App URL: http://localhost:3000
+[2026-03-13T16:37:38.600Z] [INFO] =============================
+[2026-03-13T16:37:38.601Z] [INFO]   AIRSOFT CLUB BOT + APP v2  
+[2026-03-13T16:37:38.602Z] [INFO] =============================
+[2026-03-13T16:37:38.603Z] [INFO] Connecting MySQL... | {"host":"s5.thehost.com.ua","database":"airsoft_db"}
+[2026-03-13T16:37:38.738Z] [INFO] MySQL OK
+[2026-03-13T16:37:38.806Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM players","rows":1,"ms":66}
+[2026-03-13T16:37:38.873Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM teams","rows":1,"ms":66}
+[2026-03-13T16:37:38.929Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM games","rows":1,"ms":54}
+[2026-03-13T16:37:38.931Z] [INFO] DB | {"players":8,"teams":1,"games":1}
+[2026-03-13T16:37:38.975Z] [INFO] Bot running!
+[2026-03-13T16:37:38.977Z] [INFO] Express server on port 3000
+[2026-03-13T16:37:38.977Z] [INFO] Mini App URL: http://localhost:3000
+[2026-03-13T16:37:48.000Z] [INFO] =============================
+[2026-03-13T16:37:48.001Z] [INFO]   AIRSOFT CLUB BOT + APP v2  
+[2026-03-13T16:37:48.001Z] [INFO] =============================
+[2026-03-13T16:37:48.003Z] [INFO] Connecting MySQL... | {"host":"s5.thehost.com.ua","database":"airsoft_db"}
+[2026-03-13T16:37:48.138Z] [INFO] MySQL OK
+[2026-03-13T16:37:48.173Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM players","rows":1,"ms":33}
+[2026-03-13T16:37:48.207Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM teams","rows":1,"ms":33}
+[2026-03-13T16:37:48.244Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM games","rows":1,"ms":36}
+[2026-03-13T16:37:48.246Z] [INFO] DB | {"players":8,"teams":1,"games":1}
+[2026-03-13T16:37:48.291Z] [INFO] Bot running!
+[2026-03-13T16:37:48.292Z] [INFO] Express server on port 3000
+[2026-03-13T16:37:48.293Z] [INFO] Mini App URL: http://localhost:3000
+[2026-03-13T16:39:22.265Z] [INFO] Shutdown...

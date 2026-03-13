@@ -22,12 +22,43 @@ router.get("/", async (req, res) => {
     const games = await q(sql, params);
 
     // Attach player counts
+
     for (const g of games) {
       const cnt = await q1(
         "SELECT COUNT(*) as c FROM game_players WHERE game_id = ?",
         [g.id],
       );
       g.player_count = cnt.c;
+    }
+
+    // Attach friends in game (if user is registered and has friends)
+    const tgId = req.tgUser?.id;
+    if (tgId) {
+      const me = await q1(
+        "SELECT id FROM players WHERE telegram_id = ?",
+        [tgId],
+      );
+      if (me) {
+        const friendRows = await q(
+          "SELECT friend_id FROM friends WHERE player_id=? AND status='accepted'",
+          [me.id],
+        );
+        const friendIds = friendRows.map((r) => r.friend_id);
+        if (friendIds.length > 0) {
+          for (const g of games) {
+            const inGame = await q(
+              `SELECT p.nickname 
+               FROM game_players gp 
+               JOIN players p ON p.id = gp.player_id 
+               WHERE gp.game_id=? AND gp.player_id IN (${friendIds
+                 .map(() => "?")
+                 .join(",")})`,
+              [g.id, ...friendIds],
+            );
+            g.friends_in_game = inGame.map((r) => r.nickname);
+          }
+        }
+      }
     }
 
     res.json(games);
@@ -402,6 +433,159 @@ router.get("/:id/round", async (req, res) => {
     );
 
     res.json({ active: true, game, round, players });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// GET /api/games/:id/mvp-state — MVP voting state for latest finished round
+router.get("/:id/mvp-state", async (req, res) => {
+  try {
+    const gid = parseInt(req.params.id);
+    const tgId = req.tgUser.id;
+
+    const player = await q1(
+      "SELECT id FROM players WHERE telegram_id = ?",
+      [tgId],
+    );
+    if (!player) return res.status(400).json({ error: "Not registered" });
+
+    const game = await q1("SELECT * FROM games WHERE id = ?", [gid]);
+    if (!game) return res.status(404).json({ error: "Game not found" });
+
+    // latest finished round
+    const round = await q1(
+      "SELECT * FROM rounds WHERE game_id=? AND status='finished' ORDER BY round_number DESC LIMIT 1",
+      [gid],
+    );
+
+    if (!round || !round.winner_game_team) {
+      return res.json({ hasRound: false });
+    }
+
+    // voter must be checked-in and in winning game_team
+    const gp = await q1(
+      "SELECT * FROM game_players WHERE game_id=? AND player_id=?",
+      [gid, player.id],
+    );
+
+    const canVote =
+      !!gp &&
+      gp.attendance === "checked_in" &&
+      gp.game_team === round.winner_game_team;
+
+    // candidates: all players from winning team in that round
+    const candidates = await q(
+      `SELECT rp.player_id, p.nickname, 
+         COALESCE(v.votes,0) AS mvp_votes
+       FROM round_players rp
+       JOIN players p ON rp.player_id = p.id
+       LEFT JOIN (
+         SELECT target_player_id, COUNT(*) AS votes 
+         FROM round_mvp_votes 
+         WHERE round_id=? 
+         GROUP BY target_player_id
+       ) v ON v.target_player_id = rp.player_id
+       WHERE rp.round_id=? AND rp.game_team=?
+       ORDER BY mvp_votes DESC, p.nickname`,
+      [round.id, round.id, round.winner_game_team],
+    );
+
+    // my vote (if any)
+    const myVote = await q1(
+      "SELECT target_player_id FROM round_mvp_votes WHERE round_id=? AND voter_player_id=? LIMIT 1",
+      [round.id, player.id],
+    );
+
+    res.json({
+      hasRound: true,
+      round_id: round.id,
+      round_number: round.round_number,
+      winner_team: round.winner_game_team,
+      canVote,
+      myVoteTargetId: myVote?.target_player_id || null,
+      candidates,
+    });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// POST /api/games/:id/mvp-vote — cast / change MVP vote for latest finished round
+router.post("/:id/mvp-vote", async (req, res) => {
+  try {
+    const gid = parseInt(req.params.id);
+    const { round_id, target_player_id } = req.body;
+    const tgId = req.tgUser.id;
+
+    if (!round_id || !target_player_id) {
+      return res.status(400).json({ error: "round_id and target_player_id required" });
+    }
+
+    const player = await q1(
+      "SELECT id FROM players WHERE telegram_id = ?",
+      [tgId],
+    );
+    if (!player) return res.status(400).json({ error: "Not registered" });
+
+    const game = await q1("SELECT * FROM games WHERE id = ?", [gid]);
+    if (!game) return res.status(404).json({ error: "Game not found" });
+
+    const round = await q1(
+      "SELECT * FROM rounds WHERE id=? AND game_id=? AND status='finished'",
+      [round_id, gid],
+    );
+    if (!round || !round.winner_game_team) {
+      return res.status(400).json({ error: "Round not eligible for MVP voting" });
+    }
+
+    // voter must be checked-in and winner team
+    const voterGp = await q1(
+      "SELECT * FROM game_players WHERE game_id=? AND player_id=?",
+      [gid, player.id],
+    );
+    if (
+      !voterGp ||
+      voterGp.attendance !== "checked_in" ||
+      voterGp.game_team !== round.winner_game_team
+    ) {
+      return res.status(403).json({ error: "Only winners can vote" });
+    }
+
+    // target must be from same round & winning team
+    const targetRp = await q1(
+      "SELECT * FROM round_players WHERE round_id=? AND player_id=? AND game_team=?",
+      [round_id, target_player_id, round.winner_game_team],
+    );
+    if (!targetRp) {
+      return res.status(400).json({ error: "Invalid MVP target" });
+    }
+
+    const existing = await q1(
+      "SELECT id FROM round_mvp_votes WHERE round_id=? AND voter_player_id=?",
+      [round_id, player.id],
+    );
+
+    if (existing) {
+      await ins(
+        "UPDATE round_mvp_votes SET target_player_id=?, updated_at=NOW() WHERE id=?",
+        [target_player_id, existing.id],
+      );
+    } else {
+      await ins(
+        "INSERT INTO round_mvp_votes (round_id,game_id,voter_player_id,target_player_id,created_at) VALUES (?,?,?,?,NOW())",
+        [round_id, gid, player.id, target_player_id],
+      );
+    }
+
+    log.info("MVP vote", {
+      gid,
+      round_id,
+      voter: player.id,
+      target: target_player_id,
+    });
+
+    res.json({ success: true });
   } catch (e) {
     res.status(500).json({ error: e.message });
   }

@@ -22,13 +22,13 @@ router.get("/profile", async (req, res) => {
 
     const badges = await q(
       "SELECT badge_name FROM player_badges WHERE player_id = ?",
-      [player.id]
+      [player.id],
     );
 
     // Always use badge definitions from constants (not DB emoji)
     const BADGES = require("../../constants/badges");
-    const badgesWithColor = badges.map(b => {
-      const def = BADGES.find(bd => bd.name === b.badge_name);
+    const badgesWithColor = badges.map((b) => {
+      const def = BADGES.find((bd) => bd.name === b.badge_name);
       return {
         badge_name: b.badge_name,
         badge_icon: def?.icon || "Award",
@@ -40,7 +40,17 @@ router.get("/profile", async (req, res) => {
       `SELECT g.id, g.date, g.time, g.game_mode, g.status, gp.result, gp.kills_total, gp.deaths_total
        FROM game_players gp JOIN games g ON gp.game_id = g.id
        WHERE gp.player_id = ? ORDER BY g.created_at DESC LIMIT 10`,
-      [player.id]
+      [player.id],
+    );
+
+    // Friends list (accepted)
+    const friends = await q(
+      `SELECT p.id, p.nickname, p.rating
+       FROM friends f
+       JOIN players p ON p.id = f.friend_id
+       WHERE f.player_id = ? AND f.status = 'accepted'
+       ORDER BY p.nickname`,
+      [player.id],
     );
 
     const config = require("../../config");
@@ -67,6 +77,7 @@ router.get("/profile", async (req, res) => {
         created_at: player.created_at,
       },
       badges: badgesWithColor,
+      friends,
       recentGames,
     });
   } catch (e) {
@@ -122,9 +133,157 @@ router.get("/search-players", async (req, res) => {
 
     const players = await q(
       "SELECT id, nickname, rating, team_id FROM players WHERE nickname LIKE ? LIMIT 10",
-      [`%${query}%`]
+      [`%${query}%`],
     );
     res.json(players);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// ============================================
+// FRIENDS
+// ============================================
+
+// POST /api/friends/request — send friend request by nickname
+router.post("/friends/request", async (req, res) => {
+  try {
+    const tgId = req.tgUser.id;
+    const { nickname } = req.body;
+
+    if (!nickname || !nickname.trim()) {
+      return res.status(400).json({ error: "Nickname required" });
+    }
+
+    const me = await q1(
+      "SELECT id FROM players WHERE telegram_id = ?",
+      [tgId],
+    );
+    if (!me) return res.status(400).json({ error: "Not registered" });
+
+    const target = await q1(
+      "SELECT id FROM players WHERE nickname = ?",
+      [nickname.trim()],
+    );
+    if (!target) return res.status(404).json({ error: "Player not found" });
+    if (target.id === me.id) {
+      return res.status(400).json({ error: "Cannot add yourself" });
+    }
+
+    const existing = await q1(
+      "SELECT id, status FROM friends WHERE player_id=? AND friend_id=?",
+      [me.id, target.id],
+    );
+    if (existing?.status === "accepted") {
+      return res.status(400).json({ error: "Already friends" });
+    }
+
+    if (existing?.status === "pending") {
+      return res.status(400).json({ error: "Request already sent" });
+    }
+
+    await ins(
+      "INSERT INTO friends (player_id,friend_id,status,created_at) VALUES (?,?, 'pending', NOW())",
+      [me.id, target.id],
+    );
+
+    res.json({ success: true });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// POST /api/friends/:id/respond — accept/reject friend request
+router.post("/friends/:id/respond", async (req, res) => {
+  try {
+    const tgId = req.tgUser.id;
+    const reqId = parseInt(req.params.id);
+    const { action } = req.body; // 'accept' | 'reject'
+
+    if (!["accept", "reject"].includes(action)) {
+      return res.status(400).json({ error: "Invalid action" });
+    }
+
+    const me = await q1(
+      "SELECT id FROM players WHERE telegram_id = ?",
+      [tgId],
+    );
+    if (!me) return res.status(400).json({ error: "Not registered" });
+
+    const fr = await q1(
+      "SELECT * FROM friends WHERE id=? AND friend_id=? AND status='pending'",
+      [reqId, me.id],
+    );
+    if (!fr) {
+      return res.status(404).json({ error: "Request not found" });
+    }
+
+    if (action === "reject") {
+      await ins(
+        "UPDATE friends SET status='rejected', responded_at=NOW() WHERE id=?",
+        [reqId],
+      );
+      return res.json({ success: true });
+    }
+
+    // accept: mark existing as accepted and create reverse row
+    await ins(
+      "UPDATE friends SET status='accepted', responded_at=NOW() WHERE id=?",
+      [reqId],
+    );
+
+    const reverse = await q1(
+      "SELECT id FROM friends WHERE player_id=? AND friend_id=?",
+      [me.id, fr.player_id],
+    );
+    if (!reverse) {
+      await ins(
+        "INSERT INTO friends (player_id,friend_id,status,created_at,responded_at) VALUES (?,?, 'accepted', NOW(), NOW())",
+        [me.id, fr.player_id],
+      );
+    } else {
+      await ins(
+        "UPDATE friends SET status='accepted', responded_at=NOW() WHERE id=?",
+        [reverse.id],
+      );
+    }
+
+    res.json({ success: true });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// GET /api/friends — list friends and incoming requests
+router.get("/friends", async (req, res) => {
+  try {
+    const tgId = req.tgUser.id;
+
+    const me = await q1(
+      "SELECT id FROM players WHERE telegram_id = ?",
+      [tgId],
+    );
+    if (!me) return res.json({ friends: [], incoming: [] });
+
+    const friends = await q(
+      `SELECT p.id, p.nickname, p.rating
+       FROM friends f
+       JOIN players p ON p.id = f.friend_id
+       WHERE f.player_id = ? AND f.status = 'accepted'
+       ORDER BY p.nickname`,
+      [me.id],
+    );
+
+    const incoming = await q(
+      `SELECT f.id, p.nickname, p.rating
+       FROM friends f
+       JOIN players p ON p.id = f.player_id
+       WHERE f.friend_id = ? AND f.status = 'pending'
+       ORDER BY f.created_at DESC`,
+      [me.id],
+    );
+
+    res.json({ friends, incoming });
   } catch (e) {
     res.status(500).json({ error: e.message });
   }

@@ -33,6 +33,14 @@ export const registerPlayer = (nickname, team_id) =>
   api("/register", { method: "POST", body: { nickname, team_id } });
 export const getTeamsList = () => api("/teams/list");
 export const searchPlayers = (query) => api(`/search-players?q=${encodeURIComponent(query)}`);
+export const getFriends = () => api("/friends");
+export const sendFriendRequest = (nickname) =>
+  api("/friends/request", { method: "POST", body: { nickname } });
+export const respondFriendRequest = (requestId, action) =>
+  api(`/friends/${requestId}/respond`, {
+    method: "POST",
+    body: { action },
+  });
 
 // ---- Teams ----
 export const getGames = (status) =>
@@ -47,6 +55,12 @@ export const checkinGame = (id) =>
 export const reportDead = (id) =>
   api(`/games/${id}/imdead`, { method: "POST" });
 export const getRoundStatus = (id) => api(`/games/${id}/round`);
+export const getMvpState = (id) => api(`/games/${id}/mvp-state`);
+export const voteMvp = (id, roundId, targetPlayerId) =>
+  api(`/games/${id}/mvp-vote`, {
+    method: "POST",
+    body: { round_id: roundId, target_player_id: targetPlayerId },
+  });
 
 // ---- Leaderboard ----
 export const getLeaderboard = () => api("/leaderboard");
@@ -91,4 +105,14 @@ export const adminReviewCheckin = (gameId, playerId, action) =>
   api(`/admin/games/${gameId}/checkin-review`, {
     method: "POST",
     body: { player_id: playerId, action },
+  });
+export const adminKickFromGame = (gameId, playerId) =>
+  api(`/admin/games/${gameId}/kick-player`, {
+    method: "POST",
+    body: { player_id: playerId },
+  });
+export const adminMoveGameTeam = (gameId, playerId, targetTeam) =>
+  api(`/admin/games/${gameId}/move-player`, {
+    method: "POST",
+    body: { player_id: playerId, target_team: targetTeam },
   });
