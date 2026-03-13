@@ -1,8 +1,16 @@
 import React, { useState, useEffect, useCallback } from "react";
 import {
-  getAllTeams, getTeamDetail, applyToTeam, cancelApplication,
-  resolveApplication, inviteToTeam, getMyInvites, respondToInvite, leaveTeam,
+  getAllTeams,
+  getTeamDetail,
+  applyToTeam,
+  cancelApplication,
+  resolveApplication,
+  inviteToTeam,
+  getMyInvites,
+  respondToInvite,
+  leaveTeam,
   createTeam,
+  kickFromTeam,
 } from "../api";
 import { useTelegram } from "../hooks/useTelegram";
 import PlayerSearch from "../components/PlayerSearch";
@@ -228,7 +236,7 @@ export default function Teams({ onReloadProfile }) {
                 </div>
                 <div className="text-right">
                   <div className="font-black text-emerald-400">{t.rating}</div>
-                  <div className="text-[10px] text-gray-600">pts</div>
+                  <div className="text-[10px] text-gray-600">очок</div>
                 </div>
               </div>
             </button>
@@ -315,7 +323,7 @@ function TeamDetail({ teamId, onBack, onReloadProfile }) {
               <span>👥</span><span className="font-bold">{members.length}</span><span className="text-gray-400 text-sm">гравців</span>
             </div>
             <div className="flex items-center gap-1.5">
-              <span>⭐</span><span className="font-bold text-emerald-400">{team.rating}</span><span className="text-gray-400 text-sm">pts</span>
+              <span>⭐</span><span className="font-bold text-emerald-400">{team.rating}</span><span className="text-gray-400 text-sm">очок</span>
             </div>
           </div>
         </div>
@@ -502,19 +510,45 @@ function TeamDetail({ teamId, onBack, onReloadProfile }) {
         ) : (
           <div className="space-y-1">
             {members.map((m) => (
-              <div key={m.id} className="flex items-center justify-between py-2.5 px-2 rounded-xl hover:bg-slate-700/20 transition-colors">
+              <div
+                key={m.id}
+                className="flex items-center justify-between py-2.5 px-2 rounded-xl hover:bg-slate-700/20 transition-colors"
+              >
                 <div className="flex items-center gap-3">
                   <div className="w-8 h-8 rounded-lg bg-slate-700/60 flex items-center justify-center text-sm">
                     {team.captain_id === m.id ? "👑" : "🪖"}
                   </div>
                   <div>
                     <span className="text-sm font-medium">{m.nickname}</span>
-                    {team.captain_id === m.id && <span className="text-[10px] text-amber-400 ml-1.5">Captain</span>}
+                    {team.captain_id === m.id && (
+                      <span className="text-[10px] text-amber-400 ml-1.5">
+                        Captain
+                      </span>
+                    )}
                   </div>
                 </div>
-                <div className="text-right">
-                  <div className="text-sm font-bold text-emerald-400">{m.rating}</div>
-                  <div className="text-[10px] text-gray-600">{m.wins}W / {m.games_played}G</div>
+                <div className="flex items-center gap-2">
+                  <div className="text-right">
+                    <div className="text-sm font-bold text-emerald-400">
+                      {m.rating}
+                    </div>
+                    <div className="text-[10px] text-gray-600">
+                      {m.wins} перемог / {m.games_played} ігор
+                    </div>
+                  </div>
+                  {isCaptain && m.id !== team.captain_id && (
+                    <button
+                      onClick={() =>
+                        doAction(
+                          () => kickFromTeam(teamId, m.id),
+                          "Гравця вигнано з команди",
+                        )
+                      }
+                      className="ml-1 px-3 py-1.5 rounded-lg bg-red-800/60 text-[11px] font-semibold text-red-200 active:scale-95"
+                    >
+                      Вигнати
+                    </button>
+                  )}
                 </div>
               </div>
             ))}

@@ -18,6 +18,7 @@ const TABS = [
 
 export default function App() {
   const { user, haptic } = useTelegram();
+
   const [tab, setTab] = useState("profile");
   const [prevTab, setPrevTab] = useState(null);
   const [profile, setProfile] = useState(null);
@@ -25,7 +26,35 @@ export default function App() {
   const [selectedGameId, setSelectedGameId] = useState(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [slideDir, setSlideDir] = useState("right");
+
   const contentRef = useRef(null);
+
+  // -------------------------------
+  // TELEGRAM DEEP LINK
+  // -------------------------------
+
+  useEffect(() => {
+    function getStartParam() {
+      const tg = window.Telegram?.WebApp;
+  
+      if (tg?.initDataUnsafe?.start_param) {
+        return tg.initDataUnsafe.start_param;
+      }
+  
+      const params = new URLSearchParams(window.location.search);
+      return params.get("startapp");
+    }
+  
+    const startParam = getStartParam();
+  
+    if (startParam && startParam.startsWith("game_")) {
+      const gid = parseInt(startParam.replace("game_", ""));
+      if (!isNaN(gid)) {
+        setSelectedGameId(gid);
+        setTab("game_detail");
+      }
+    }
+  }, []);
 
   useEffect(() => {
     loadProfile();
@@ -48,10 +77,12 @@ export default function App() {
 
   function switchTab(id) {
     if (id === tab) return;
+
     haptic("impact");
 
     const currentIdx = visibleTabs.findIndex((t) => t.id === tab);
     const nextIdx = visibleTabs.findIndex((t) => t.id === id);
+
     setSlideDir(nextIdx > currentIdx ? "right" : "left");
 
     setPrevTab(tab);
@@ -67,14 +98,19 @@ export default function App() {
 
   function openGame(id) {
     haptic("impact");
+
     setSelectedGameId(id);
     setSlideDir("right");
     setPrevTab(tab);
     setTab("game_detail");
+
     setTimeout(() => setPrevTab(null), 300);
   }
 
-  // ---- Loading screen ----
+  // -------------------------------
+  // LOADING SCREEN
+  // -------------------------------
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-screen bg-slate-900">
@@ -85,9 +121,11 @@ export default function App() {
             </div>
             <div className="absolute -inset-2 rounded-[26px] border-2 border-emerald-500/20 animate-ping-slow" />
           </div>
+
           <h2 className="text-lg font-bold bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent mb-2">
             Airsoft Club
           </h2>
+
           <div className="flex items-center justify-center gap-1.5">
             <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-dot1" />
             <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-dot2" />
@@ -98,11 +136,14 @@ export default function App() {
         <style>{`
           @keyframes bounce-slow { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
           .animate-bounce-slow { animation: bounce-slow 2s ease-in-out infinite; }
+
           @keyframes ping-slow { 0% { transform: scale(1); opacity: 0.3; } 100% { transform: scale(1.3); opacity: 0; } }
           .animate-ping-slow { animation: ping-slow 2s ease-out infinite; }
+
           @keyframes dot1 { 0%,100% { opacity: 0.3; } 33% { opacity: 1; } }
           @keyframes dot2 { 0%,100% { opacity: 0.3; } 50% { opacity: 1; } }
           @keyframes dot3 { 0%,100% { opacity: 0.3; } 66% { opacity: 1; } }
+
           .animate-dot1 { animation: dot1 1.2s ease infinite; }
           .animate-dot2 { animation: dot2 1.2s ease infinite; }
           .animate-dot3 { animation: dot3 1.2s ease infinite; }
@@ -111,12 +152,14 @@ export default function App() {
     );
   }
 
+  // -------------------------------
+  // APP
+  // -------------------------------
+
   return (
     <div className="min-h-screen bg-slate-900 text-white flex flex-col">
-      {/* ---- Status bar spacer (for Telegram safe area) ---- */}
       <div className="h-[env(safe-area-inset-top,0px)]" />
 
-      {/* ---- Scrollable content ---- */}
       <main
         ref={contentRef}
         className="flex-1 overflow-y-auto overflow-x-hidden pb-24"
@@ -134,10 +177,15 @@ export default function App() {
           {tab === "profile" && (
             <Profile profile={profile} onReload={loadProfile} />
           )}
-          {tab === "games" && <Games onOpenGame={openGame} />}
+
+          {tab === "games" && (
+            <Games onOpenGame={openGame} />
+          )}
+
           {tab === "game_detail" && (
             <GameDetail
               gameId={selectedGameId}
+              isAdmin={isAdmin}
               onBack={() => {
                 setSlideDir("left");
                 setPrevTab(tab);
@@ -145,38 +193,44 @@ export default function App() {
                 setSelectedGameId(null);
                 setTimeout(() => setPrevTab(null), 300);
               }}
-              isAdmin={isAdmin}
             />
           )}
-          {tab === "teams" && <Teams onReloadProfile={loadProfile} />}
-          {tab === "leaderboard" && <Leaderboard />}
-          {tab === "admin" && <Admin />}
+
+          {tab === "teams" && (
+            <Teams onReloadProfile={loadProfile} />
+          )}
+
+          {tab === "leaderboard" && (
+            <Leaderboard />
+          )}
+
+          {tab === "admin" && (
+            <Admin />
+          )}
         </div>
       </main>
 
-      {/* ---- Bottom Navigation ---- */}
+      {/* NAVIGATION */}
       <nav className="fixed bottom-0 left-0 right-0 z-50">
-        {/* Gradient fade above nav */}
         <div className="h-6 bg-gradient-to-t from-slate-900 to-transparent pointer-events-none" />
 
-        <div className="bg-slate-900/95 backdrop-blur-xl border-t border-slate-700/50 px-2 pb-[env(safe-area-inset-bottom,8px)]">
+        <div className="bg-slate-900/95 backdrop-blur-xl border-t border-slate-700/50 px-2 pb-4">
           <div className="flex items-stretch">
             {visibleTabs.map((t) => {
               const isActive = tab === t.id;
+
               return (
                 <button
                   key={t.id}
                   onClick={() => switchTab(t.id)}
                   className="flex-1 relative flex flex-col items-center pt-2 pb-1.5 transition-all duration-200 active:scale-90"
                 >
-                  {/* Active indicator line */}
                   <div
                     className={`absolute top-0 left-1/2 -translate-x-1/2 h-[3px] rounded-full transition-all duration-300 ${
-                      isActive ? "w-6 bg-emerald-400" : "w-0 bg-transparent"
+                      isActive ? "w-6 bg-emerald-400" : "w-0"
                     }`}
                   />
 
-                  {/* Icon container */}
                   <div
                     className={`relative w-10 h-8 flex items-center justify-center rounded-xl transition-all duration-200 ${
                       isActive ? "bg-emerald-500/15 scale-110" : ""
@@ -184,24 +238,20 @@ export default function App() {
                   >
                     <span
                       className={`text-xl transition-all duration-200 ${
-                        isActive ? "scale-110" : "scale-100 grayscale opacity-60"
+                        isActive ? "scale-110" : "grayscale opacity-60"
                       }`}
                     >
                       {isActive ? t.activeIcon : t.icon}
                     </span>
 
-                    {/* Glow effect */}
                     {isActive && (
                       <div className="absolute inset-0 rounded-xl bg-emerald-400/10 blur-md" />
                     )}
                   </div>
 
-                  {/* Label */}
                   <span
-                    className={`text-[10px] font-semibold mt-0.5 transition-all duration-200 ${
-                      isActive
-                        ? "text-emerald-400"
-                        : "text-gray-500"
+                    className={`text-[10px] font-semibold mt-0.5 ${
+                      isActive ? "text-emerald-400" : "text-gray-500"
                     }`}
                   >
                     {t.label}
@@ -213,24 +263,23 @@ export default function App() {
         </div>
       </nav>
 
-      {/* ---- Global animations ---- */}
       <style>{`
         @keyframes slideInRight {
           from { opacity: 0; transform: translateX(30px); }
           to { opacity: 1; transform: translateX(0); }
         }
+
         @keyframes slideInLeft {
           from { opacity: 0; transform: translateX(-30px); }
           to { opacity: 1; transform: translateX(0); }
         }
+
         .animate-slide-in-right { animation: slideInRight 0.3s ease-out; }
         .animate-slide-in-left { animation: slideInLeft 0.3s ease-out; }
 
-        /* Hide scrollbar but keep scrolling */
         main::-webkit-scrollbar { display: none; }
         main { -ms-overflow-style: none; scrollbar-width: none; }
 
-        /* Smooth touch scrolling */
         * { -webkit-tap-highlight-color: transparent; }
       `}</style>
     </div>

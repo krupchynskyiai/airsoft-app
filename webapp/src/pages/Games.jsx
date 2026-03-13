@@ -129,12 +129,19 @@ export default function Games({ onOpenGame }) {
 
                 {/* Bottom stats */}
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-4">
                     <div className="flex items-center gap-1.5 text-sm text-gray-400">
                       <span className="text-base">👥</span>
                       <span className="font-semibold text-gray-300">{g.player_count}</span>
                       <span className="text-gray-500">гравців</span>
                     </div>
+                    {typeof g.payment === "number" && (
+                      <div className="flex items-center gap-1.5 text-sm text-gray-400">
+                        <span className="text-base">🪙</span>
+                        <span className="font-semibold text-gray-300">{g.payment}</span>
+                        <span className="text-gray-500">грн</span>
+                      </div>
+                    )}
                   </div>
                   {g.current_round > 0 && (
                     <div className="flex items-center gap-1.5 text-sm text-gray-400">

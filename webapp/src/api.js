@@ -40,6 +40,8 @@ export const getGames = (status) =>
 export const getGameDetail = (id) => api(`/games/${id}`);
 export const joinGame = (id) =>
   api(`/games/${id}/join`, { method: "POST" });
+export const cancelJoinGame = (id) =>
+  api(`/games/${id}/cancel`, { method: "POST" });
 export const checkinGame = (id) =>
   api(`/games/${id}/checkin`, { method: "POST" });
 export const reportDead = (id) =>
@@ -69,6 +71,8 @@ export const respondToInvite = (inviteId, action) =>
   api(`/teams/invites/${inviteId}/respond`, { method: "POST", body: { action } });
 export const leaveTeam = () =>
   api("/teams/leave", { method: "POST" });
+export const kickFromTeam = (teamId, playerId) =>
+  api(`/teams/${teamId}/kick`, { method: "POST", body: { player_id: playerId } });
 
 // ---- Admin ----
 export const adminCreateGame = (data) =>

@@ -1,7 +1,14 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import {
-  getGameDetail, joinGame, checkinGame, reportDead,
-  getRoundStatus, adminKillPlayer, adminEndRound, adminSetGameStatus,
+  getGameDetail,
+  joinGame,
+  cancelJoinGame,
+  checkinGame,
+  reportDead,
+  getRoundStatus,
+  adminKillPlayer,
+  adminEndRound,
+  adminSetGameStatus,
 } from "../api";
 import { useTelegram } from "../hooks/useTelegram";
 
@@ -145,7 +152,10 @@ export default function GameDetail({ gameId, onBack, isAdmin }) {
           <div className="space-y-1.5 text-[15px]">
             <p>📅 {g.date} {g.time && <span className="text-gray-400">о {g.time}</span>}</p>
             <p className="text-gray-300">📍 {g.location}</p>
-            <p className="text-gray-400">🎯 {MODE[g.game_mode]}</p>
+            <p className="text-gray-300">🎯 {MODE[g.game_mode]}</p>
+            {typeof g.payment === "number" && (
+              <p className="text-gray-400">🪙 Вартість участі: <span className="font-semibold text-gray-300">{g.payment} грн</span></p>
+            )}
           </div>
 
           {/* Round counter + timer */}
@@ -196,6 +206,15 @@ export default function GameDetail({ gameId, onBack, isAdmin }) {
         <div className="space-y-2 mb-5">
           {!myRegistration && (
             <ActionButton onClick={() => doAction(() => joinGame(gameId))} loading={actionLoading} icon="📝" label="Записатись на гру" className="bg-gradient-to-r from-emerald-600 to-teal-600" />
+          )}
+          {myRegistration && (g.status === "upcoming" || g.status === "checkin") && (
+            <ActionButton
+              onClick={() => doAction(() => cancelJoinGame(gameId), "Запис скасовано")}
+              loading={actionLoading}
+              icon="❌"
+              label="Скасувати запис"
+              className="bg-gradient-to-r from-slate-700 to-red-700"
+            />
           )}
           {myRegistration?.attendance === "registered" && g.status === "checkin" && (
             <ActionButton onClick={() => doAction(() => checkinGame(gameId))} loading={actionLoading} icon="📍" label="Check-in — я на місці" className="bg-gradient-to-r from-amber-600 to-orange-600" />

@@ -1,6 +1,8 @@
 const { Router } = require("express");
 const { q, q1, ins } = require("../../database/helpers");
 const log = require("../../utils/logger");
+const config = require("../../config");
+const bot = require("../bot");
 
 const router = Router();
 
@@ -142,12 +144,69 @@ router.post("/:id/apply", async (req, res) => {
     );
     if (existing) return res.status(400).json({ error: "Application already pending" });
 
-    await ins(
+    const appRes = await ins(
       "INSERT INTO team_applications (team_id, player_id, status, message) VALUES (?, ?, 'pending', ?)",
       [tid, player.id, message || null]
     );
 
     log.info("Team application", { teamId: tid, playerId: player.id });
+
+    // Notify team captain in Telegram
+    try {
+      const team = await q1(
+        `SELECT t.name, t.captain_id, p.telegram_id AS captain_telegram_id
+         FROM teams t
+         LEFT JOIN players p ON t.captain_id = p.id
+         WHERE t.id = ?`,
+        [tid],
+      );
+
+      if (team?.captain_id && team.captain_telegram_id) {
+        const applicant = await q1(
+          "SELECT nickname, rating FROM players WHERE id = ?",
+          [player.id],
+        );
+
+        const deepLink = config.BOT_USERNAME
+          ? `https://t.me/${config.BOT_USERNAME}?startapp=team_${tid}`
+          : undefined;
+
+        const msg = `📝 <b>Нова заявка в команду</b>
+
+🏠 Команда: <b>${team.name}</b>
+🪖 Гравець: <b>${applicant?.nickname || "Гравець"}</b>
+⭐ Рейтинг: <b>${applicant?.rating ?? "—"}</b>`;
+
+        const inline_keyboard = [
+          [
+            {
+              text: "✅ Прийняти",
+              callback_data: `team_app:${tid}:${appRes.insertId}:accept`,
+            },
+            {
+              text: "❌ Скасувати",
+              callback_data: `team_app:${tid}:${appRes.insertId}:reject`,
+            },
+          ],
+        ];
+
+        if (deepLink) {
+          inline_keyboard.push([
+            {
+              text: "📋 Відкрити команду",
+              url: deepLink,
+            },
+          ]);
+        }
+
+        await bot.api.sendMessage(team.captain_telegram_id, msg, {
+          parse_mode: "HTML",
+          reply_markup: { inline_keyboard },
+        });
+      }
+    } catch (e) {
+      log.error("Team application notify error", { e: e.message });
+    }
     res.json({ success: true });
   } catch (e) {
     res.status(500).json({ error: e.message });
@@ -327,6 +386,56 @@ router.post("/leave", async (req, res) => {
 
     await ins("UPDATE players SET team_id = NULL WHERE id = ?", [player.id]);
     log.info("Player left team", { playerId: player.id, teamId: player.team_id });
+    res.json({ success: true });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// POST /api/teams/:id/kick — captain kicks a member
+router.post("/:id/kick", async (req, res) => {
+  try {
+    const tid = parseInt(req.params.id);
+    const { player_id } = req.body;
+    const tgId = req.tgUser.id;
+
+    if (!player_id) {
+      return res.status(400).json({ error: "player_id required" });
+    }
+
+    const captain = await q1(
+      "SELECT id FROM players WHERE telegram_id = ?",
+      [tgId],
+    );
+    const team = await q1(
+      "SELECT captain_id FROM teams WHERE id = ?",
+      [tid],
+    );
+
+    if (!captain || !team || team.captain_id !== captain.id) {
+      return res.status(403).json({ error: "Only captain can kick members" });
+    }
+
+    if (Number(player_id) === captain.id) {
+      return res.status(400).json({ error: "Captain cannot kick themselves" });
+    }
+
+    const member = await q1(
+      "SELECT id, team_id FROM players WHERE id = ?",
+      [player_id],
+    );
+    if (!member || member.team_id !== tid) {
+      return res.status(400).json({ error: "Player is not in this team" });
+    }
+
+    await ins("UPDATE players SET team_id = NULL WHERE id = ?", [member.id]);
+
+    log.info("Player kicked from team", {
+      teamId: tid,
+      playerId: member.id,
+      by: captain.id,
+    });
+
     res.json({ success: true });
   } catch (e) {
     res.status(500).json({ error: e.message });

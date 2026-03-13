@@ -63,6 +63,45 @@ export default function Profile({ profile, onReload }) {
   }
 
   const p = profile.player;
+  const { haptic } = useTelegram();
+  const [badgeCelebration, setBadgeCelebration] = useState(null);
+
+  useEffect(() => {
+    if (!p?.id || !Array.isArray(profile.badges) || profile.badges.length === 0) {
+      return;
+    }
+
+    try {
+      const storageKey = `seen_badges_${p.id}`;
+      const raw = window.localStorage.getItem(storageKey);
+      const seen = raw ? JSON.parse(raw) : [];
+
+      const allNames = profile.badges.map((b) => b.badge_name);
+      const newNames = allNames.filter((name) => !seen.includes(name));
+
+      if (newNames.length > 0) {
+        const firstNew = newNames[0];
+        const badge = profile.badges.find((b) => b.badge_name === firstNew);
+
+        haptic("success");
+        setBadgeCelebration({
+          name: badge?.badge_name || firstNew,
+          color: badge?.badge_color || "#fbbf24",
+        });
+
+        const updated = Array.from(new Set([...seen, ...newNames]));
+        window.localStorage.setItem(storageKey, JSON.stringify(updated));
+      }
+    } catch {
+      // ignore storage errors
+    }
+  }, [p?.id, profile.badges, haptic]);
+
+  useEffect(() => {
+    if (!badgeCelebration) return;
+    const t = setTimeout(() => setBadgeCelebration(null), 4500);
+    return () => clearTimeout(t);
+  }, [badgeCelebration]);
   const winRate = p.games_played > 0 ? Math.round((p.wins / p.games_played) * 100) : 0;
   const survivalRate = p.games_played > 0
     ? Math.round(((p.games_played * 3 - p.total_deaths) / (p.games_played * 3)) * 100)
@@ -70,6 +109,77 @@ export default function Profile({ profile, onReload }) {
 
   return (
     <div className="relative min-h-screen pb-8">
+      {/* ---- Badge celebration popup ---- */}
+      {badgeCelebration && (
+        <div className="fixed inset-0 z-40 flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+
+          {/* Confetti */}
+          <div className="absolute inset-0 pointer-events-none overflow-hidden">
+            {[...Array(30)].map((_, i) => {
+              const fromLeft = i % 2 === 0;
+              const delay = (i % 10) * 0.15;
+              const top = 5 + (i * 7) % 90;
+              const size = 6 + (i % 4) * 2;
+              return (
+                <span
+                  key={i}
+                  className="absolute rounded-full opacity-90"
+                  style={{
+                    width: `${size}px`,
+                    height: `${size * 0.4}px`,
+                    background:
+                      i % 3 === 0
+                        ? "#22c55e"
+                        : i % 3 === 1
+                          ? "#06b6d4"
+                          : "#eab308",
+                    top: `${top}%`,
+                    left: fromLeft ? "-5%" : "105%",
+                    animation: `${fromLeft ? "confettiLeft" : "confettiRight"} 1.6s ease-out ${delay}s forwards`,
+                  }}
+                />
+              );
+            })}
+            <style>{`
+              @keyframes confettiLeft {
+                0% { transform: translateX(0) rotate(0deg); opacity: 1; }
+                100% { transform: translateX(140vw) rotate(420deg); opacity: 0; }
+              }
+              @keyframes confettiRight {
+                0% { transform: translateX(0) rotate(0deg); opacity: 1; }
+                100% { transform: translateX(-140vw) rotate(-420deg); opacity: 0; }
+              }
+            `}</style>
+          </div>
+
+          <div className="relative z-50 w-[84%] max-w-sm px-5 py-6 rounded-3xl bg-slate-900/95 border border-emerald-400/40 shadow-2xl shadow-emerald-900/60 text-center">
+            <div className="mb-2 text-4xl">🎉</div>
+            <h3 className="text-sm font-bold text-emerald-300 uppercase tracking-[0.2em] mb-2">
+              Новий бейдж
+            </h3>
+            <div
+              className="inline-flex items-center justify-center px-4 py-2 rounded-2xl mb-3"
+              style={{
+                background: `linear-gradient(135deg, ${badgeCelebration.color}33, ${badgeCelebration.color}11)`,
+                border: `1px solid ${badgeCelebration.color}66`,
+              }}
+            >
+              <span className="text-base mr-2">🏅</span>
+              <span className="text-sm font-semibold">{badgeCelebration.name}</span>
+            </div>
+            <p className="text-xs text-gray-400 mb-4">
+              Продовжуй у тому ж дусі, щоб відкрити ще більше нагород.
+            </p>
+            <button
+              onClick={() => setBadgeCelebration(null)}
+              className="px-5 py-2 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-500 text-xs font-bold tracking-wide text-black shadow-lg shadow-emerald-900/40 active:scale-95 transition-transform"
+            >
+              Круто!
+            </button>
+          </div>
+        </div>
+      )}
       {/* ---- Hero card with avatar ---- */}
       <div className="relative mb-6 rounded-3xl overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-emerald-600 via-teal-600 to-cyan-700" />
@@ -88,7 +198,7 @@ export default function Profile({ profile, onReload }) {
             </div>
             <div className="flex-1 min-w-0">
               <h1 className="text-[22px] font-extrabold tracking-tight truncate">{p.nickname}</h1>
-              <p className="text-emerald-100/80 text-sm">#{String(p.id).padStart(3, "0")} • {p.team || "Solo Player"}</p>
+              <p className="text-emerald-100/80 text-sm">#{String(p.id).padStart(3, "0")} • {p.team || "Соло Гравець"}</p>
             </div>
           </div>
 
@@ -101,9 +211,9 @@ export default function Profile({ profile, onReload }) {
               </div>
             </div>
             <div>
-              <div className="text-xs text-emerald-100/60 uppercase tracking-wider font-semibold">Rating Points</div>
+              <div className="text-xs text-emerald-100/60 uppercase tracking-wider font-semibold">Рейтинг</div>
               <div className="text-[13px] text-emerald-100/80">
-                Next: {1000 - (p.rating % 1000)} to Level {Math.floor(p.rating / 100) + 2}
+                Далі: {1000 - (p.rating % 1000)} до рівня {Math.floor(p.rating / 100) + 2}
               </div>
             </div>
           </div>
@@ -112,9 +222,9 @@ export default function Profile({ profile, onReload }) {
 
       {/* ---- Quick stats row ---- */}
       <div className="grid grid-cols-4 gap-2 mb-5">
-        <QuickStat value={p.games_played} label="Games" />
-        <QuickStat value={p.wins} label="Wins" accent />
-        <QuickStat value={`${winRate}%`} label="Win Rate" />
+        <QuickStat value={p.games_played} label="Ігор" />
+        <QuickStat value={p.wins} label="Перемог" accent />
+        <QuickStat value={`${winRate}%`} label="Перемог" />
         <QuickStat value={p.mvp_count} label="MVP" accent />
       </div>
 
@@ -122,18 +232,18 @@ export default function Profile({ profile, onReload }) {
       <div className="bg-slate-800/80 backdrop-blur-sm rounded-2xl p-4 mb-4 border border-slate-700/50">
         <div className="flex items-center gap-2 mb-4">
           <span className="text-base">⚔️</span>
-          <h3 className="text-sm font-bold text-gray-300 uppercase tracking-wider">Combat Stats</h3>
+          <h3 className="text-sm font-bold text-gray-300 uppercase tracking-wider">Статистика боїв</h3>
         </div>
 
         <div className="grid grid-cols-2 gap-3 mb-4">
-          <CombatStat icon="💀" value={p.total_deaths} label="Deaths" color="text-red-400" />
-          <CombatStat icon="🛡" value={`${survivalRate}%`} label="Survival" color="text-emerald-400" />
+          <CombatStat icon="💀" value={p.total_deaths} label="Смертей" color="text-red-400" />
+          <CombatStat icon="🛡" value={`${survivalRate}%`} label="Виживань" color="text-emerald-400" />
         </div>
 
         {/* Survival Rate bar */}
         <div className="mt-1 mb-1">
           <div className="flex justify-between text-[10px] text-gray-500 mb-1.5">
-            <span className="font-semibold">Survival Rate</span>
+            <span className="font-semibold">Виживання, %</span>
             <span className={`font-bold ${
               survivalRate >= 70 ? "text-emerald-400" : survivalRate >= 40 ? "text-amber-400" : "text-red-400"
             }`}>{survivalRate}%</span>
@@ -159,7 +269,7 @@ export default function Profile({ profile, onReload }) {
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               <span className="text-base">🎖</span>
-              <h3 className="text-sm font-bold text-gray-300 uppercase tracking-wider">Badges</h3>
+              <h3 className="text-sm font-bold text-gray-300 uppercase tracking-wider">Нагороди</h3>
             </div>
             <span className="text-xs text-gray-500 bg-slate-700 px-2 py-0.5 rounded-full">
               {profile.badges.length}
@@ -199,9 +309,9 @@ export default function Profile({ profile, onReload }) {
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               <span className="text-base">🎮</span>
-              <h3 className="text-sm font-bold text-gray-300 uppercase tracking-wider">Match History</h3>
+              <h3 className="text-sm font-bold text-gray-300 uppercase tracking-wider">Історія ігор</h3>
             </div>
-            <span className="text-xs text-gray-500">{profile.recentGames.length} games</span>
+            <span className="text-xs text-gray-500">{profile.recentGames.length} ігор</span>
           </div>
 
           <div className="space-y-2">
@@ -224,7 +334,7 @@ export default function Profile({ profile, onReload }) {
 
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
-                      <span className="text-sm font-semibold">Game #{g.id}</span>
+                      <span className="text-sm font-semibold">Гра #{g.id}</span>
                       <span className="text-[10px] text-gray-500 bg-slate-700 px-1.5 py-0.5 rounded">
                         {g.game_mode === "team_vs_team" ? "TvT" : g.game_mode === "random_teams" ? "Random" : "FFA"}
                       </span>
@@ -234,7 +344,7 @@ export default function Profile({ profile, onReload }) {
 
                   <div className="text-right">
                     <span className={isWin ? "text-emerald-400 font-bold text-sm" : "text-red-400 font-bold text-sm"}>
-                      {isWin ? "WIN" : "LOSS"}
+                      {isWin ? "ПЕРЕМОГА" : "ПОРАЗКА"}
                     </span>
                   </div>
                 </div>
@@ -385,7 +495,7 @@ function RegisterForm({ onDone }) {
       <div className="text-center mb-8">
         <div className="text-4xl mb-3">🏠</div>
         <h2 className="text-2xl font-black mb-1">Обери команду</h2>
-        <p className="text-gray-400 text-sm">Або грай як Solo Player</p>
+        <p className="text-gray-400 text-sm">Або грай як Соло Гравець</p>
       </div>
 
       <div className="space-y-2 mb-6 flex-1">
@@ -403,7 +513,7 @@ function RegisterForm({ onDone }) {
             🐺
           </div>
           <div className="text-left flex-1">
-            <div className="font-bold">Solo Player</div>
+            <div className="font-bold">Соло Гравець</div>
             <div className="text-xs text-gray-500">Без команди</div>
           </div>
           {teamId === null && <div className="text-emerald-400 text-lg">✓</div>}

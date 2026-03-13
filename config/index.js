@@ -4,7 +4,9 @@ module.exports = {
   BOT_TOKEN: process.env.BOT_TOKEN,
   ADMINS: (process.env.ADMIN_IDS || "").split(",").map(Number),
   CHANNEL_ID: process.env.CHANNEL_ID,
+  BOT_USERNAME: process.env.BOT_USERNAME || "banana_airsoft_app_bot",
   LOG_LEVEL: process.env.LOG_LEVEL || "info",
+  WEBAPP_URL: process.env.WEBAPP_URL,
   DB: {
     host: process.env.DB_HOST || "localhost",
     port: parseInt(process.env.DB_PORT || "3306"),
