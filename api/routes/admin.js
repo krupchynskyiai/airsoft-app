@@ -125,7 +125,7 @@ router.post("/games/:id/status", async (req, res) => {
     // Start game
     if (status === "active") {
       await ins(
-        "UPDATE game_players SET attendance='no_show' WHERE game_id=? AND attendance='registered'",
+        "UPDATE game_players SET attendance='no_show' WHERE game_id=? AND attendance IN ('registered','checkin_pending')",
         [gid],
       );
 
@@ -381,6 +381,49 @@ router.post("/games/:id/kill", async (req, res) => {
     );
 
     log.info("API kill", { gid, killed: player_id });
+    res.json({ success: true });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// POST /api/admin/games/:id/checkin-review
+router.post("/games/:id/checkin-review", async (req, res) => {
+  try {
+    const gid = parseInt(req.params.id);
+    const { player_id, action } = req.body; // 'confirm' | 'reject'
+
+    if (!player_id || !["confirm", "reject"].includes(action)) {
+      return res.status(400).json({ error: "Invalid parameters" });
+    }
+
+    const reg = await q1(
+      "SELECT attendance FROM game_players WHERE game_id=? AND player_id=?",
+      [gid, player_id],
+    );
+    if (!reg) {
+      return res.status(404).json({ error: "Player not registered for game" });
+    }
+
+    if (reg.attendance !== "checkin_pending") {
+      return res
+        .status(400)
+        .json({ error: "Check-in not in pending state" });
+    }
+
+    if (action === "confirm") {
+      await ins(
+        "UPDATE game_players SET attendance='checked_in', checkin_time=COALESCE(checkin_time, NOW()) WHERE game_id=? AND player_id=?",
+        [gid, player_id],
+      );
+    } else {
+      await ins(
+        "UPDATE game_players SET attendance='registered', checkin_time=NULL WHERE game_id=? AND player_id=?",
+        [gid, player_id],
+      );
+    }
+
+    log.info("Admin checkin review", { gid, player_id, action });
     res.json({ success: true });
   } catch (e) {
     res.status(500).json({ error: e.message });

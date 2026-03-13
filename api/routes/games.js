@@ -197,11 +197,11 @@ router.post("/:id/checkin", async (req, res) => {
     if (!player) return res.status(400).json({ error: "Not registered" });
 
     await ins(
-      "UPDATE game_players SET attendance='checked_in', checkin_time=NOW() WHERE game_id=? AND player_id=?",
+      "UPDATE game_players SET attendance='checkin_pending', checkin_time=NOW() WHERE game_id=? AND player_id=?",
       [gid, player.id],
     );
 
-    log.info("API checkin", { gid, nickname: player.nickname });
+    log.info("API checkin pending", { gid, nickname: player.nickname });
     res.json({ success: true });
   } catch (e) {
     res.status(500).json({ error: e.message });

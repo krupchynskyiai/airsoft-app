@@ -87,3 +87,8 @@ export const adminCreateTeam = (name) =>
   api("/admin/teams", { method: "POST", body: { name } });
 export const adminAddPoints = (nickname, amount) =>
   api("/admin/points", { method: "POST", body: { nickname, amount } });
+export const adminReviewCheckin = (gameId, playerId, action) =>
+  api(`/admin/games/${gameId}/checkin-review`, {
+    method: "POST",
+    body: { player_id: playerId, action },
+  });

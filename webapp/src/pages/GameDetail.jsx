@@ -9,6 +9,7 @@ import {
   adminKillPlayer,
   adminEndRound,
   adminSetGameStatus,
+  adminReviewCheckin,
 } from "../api";
 import { useTelegram } from "../hooks/useTelegram";
 
@@ -190,10 +191,22 @@ export default function GameDetail({ gameId, onBack, isAdmin }) {
               </div>
             )}
             {myRegistration && (
-              <div className="flex items-center gap-1.5 bg-emerald-500/15 px-2.5 py-1 rounded-full">
-                <div className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                <span className="text-[11px] font-bold text-emerald-400">
-                  {myRegistration.attendance === "checked_in" ? "Checked in" : "Записаний"}
+              <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-emerald-500/30 bg-emerald-500/10">
+                <div
+                  className={`w-1.5 h-1.5 rounded-full ${
+                    myRegistration.attendance === "checked_in"
+                      ? "bg-emerald-400"
+                      : myRegistration.attendance === "checkin_pending"
+                      ? "bg-amber-400"
+                      : "bg-slate-500"
+                  }`}
+                />
+                <span className="text-[11px] font-bold text-emerald-100">
+                  {myRegistration.attendance === "checked_in"
+                    ? "Check-in підтверджено"
+                    : myRegistration.attendance === "checkin_pending"
+                    ? "Очікує підтвердження"
+                    : "Записаний"}
                 </span>
               </div>
             )}
@@ -216,7 +229,8 @@ export default function GameDetail({ gameId, onBack, isAdmin }) {
               className="bg-gradient-to-r from-slate-700 to-red-700"
             />
           )}
-          {myRegistration?.attendance === "registered" && g.status === "checkin" && (
+          {myRegistration?.attendance === "registered" &&
+            g.status === "checkin" && (
             <ActionButton onClick={() => doAction(() => checkinGame(gameId))} loading={actionLoading} icon="📍" label="Check-in — я на місці" className="bg-gradient-to-r from-amber-600 to-orange-600" />
           )}
           {g.status === "active" && hasActiveRound && myRegistration?.attendance === "checked_in" && (
@@ -227,22 +241,126 @@ export default function GameDetail({ gameId, onBack, isAdmin }) {
 
       {/* ---- Admin panel ---- */}
       {isAdmin && g.status !== "finished" && g.status !== "cancelled" && (
-        <div className="bg-orange-950/20 border border-orange-800/30 rounded-2xl p-4 mb-5">
-          <div className="flex items-center gap-2 mb-3">
+        <div className="bg-orange-950/20 border border-orange-800/30 rounded-2xl p-4 mb-5 space-y-3">
+          <div className="flex items-center gap-2 mb-1.5">
             <span className="text-base">⚙️</span>
-            <h3 className="text-sm font-bold text-orange-400 uppercase tracking-wider">Адмін</h3>
+            <h3 className="text-sm font-bold text-orange-400 uppercase tracking-wider">
+              Адмін
+            </h3>
           </div>
           <div className="flex flex-wrap gap-2">
             {g.status === "upcoming" && (
-              <SmallButton onClick={() => doAction(() => adminSetGameStatus(gameId, "checkin"))} icon="📍" label="Відкрити Check-in" color="amber" />
+              <SmallButton
+                onClick={() =>
+                  doAction(() => adminSetGameStatus(gameId, "checkin"))
+                }
+                icon="📍"
+                label="Відкрити Check-in"
+                color="amber"
+              />
             )}
             {g.status === "checkin" && (
-              <SmallButton onClick={() => doAction(() => adminSetGameStatus(gameId, "active"))} icon="▶️" label="Почати гру" color="red" />
+              <SmallButton
+                onClick={() =>
+                  doAction(() => adminSetGameStatus(gameId, "active"))
+                }
+                icon="▶️"
+                label="Почати гру"
+                color="red"
+              />
             )}
             {g.status === "active" && (
-              <SmallButton onClick={() => doAction(() => adminSetGameStatus(gameId, "finished"), "🏁 Гру завершено!")} icon="🏁" label="Завершити гру" color="red" />
+              <SmallButton
+                onClick={() =>
+                  doAction(
+                    () => adminSetGameStatus(gameId, "finished"),
+                    "🏁 Гру завершено!",
+                  )
+                }
+                icon="🏁"
+                label="Завершити гру"
+                color="red"
+              />
+            )}
+            {/* Cancel game in any non-final state */}
+            {g.status !== "finished" && g.status !== "cancelled" && (
+              <SmallButton
+                onClick={() =>
+                  doAction(
+                    () => adminSetGameStatus(gameId, "cancelled"),
+                    "❌ Гру скасовано",
+                  )
+                }
+                icon="❌"
+                label="Скасувати гру"
+                color="emerald"
+              />
             )}
           </div>
+
+          {/* Pending check-ins list */}
+          {g.status === "checkin" &&
+            players.some((p) => p.attendance === "checkin_pending") && (
+              <div className="mt-3 bg-slate-900/40 border border-amber-700/40 rounded-2xl p-3">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-sm">📍</span>
+                  <p className="text-xs font-semibold text-amber-300 uppercase tracking-wider">
+                    Check-in очікують підтвердження
+                  </p>
+                </div>
+                <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
+                  {players
+                    .filter((p) => p.attendance === "checkin_pending")
+                    .map((p) => (
+                      <div
+                        key={p.player_id}
+                        className="flex items-center justify-between py-1.5 px-2 rounded-xl bg-slate-800/70"
+                      >
+                        <div className="flex items-center gap-2">
+                          <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+                          <span className="text-xs font-medium">
+                            {p.nickname}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <button
+                            onClick={() =>
+                              doAction(
+                                () =>
+                                  adminReviewCheckin(
+                                    gameId,
+                                    p.player_id,
+                                    "confirm",
+                                  ),
+                                "Check-in підтверджено",
+                              )
+                            }
+                            className="px-2 py-1 rounded-lg bg-emerald-600/70 text-[10px] font-bold text-white active:scale-95"
+                          >
+                            ✅ Так
+                          </button>
+                          <button
+                            onClick={() =>
+                              doAction(
+                                () =>
+                                  adminReviewCheckin(
+                                    gameId,
+                                    p.player_id,
+                                    "reject",
+                                  ),
+                                "Check-in скасовано",
+                              )
+                            }
+                            className="px-2 py-1 rounded-lg bg-red-700/70 text-[10px] font-bold text-white active:scale-95"
+                          >
+                            ✕ Ні
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                </div>
+              </div>
+            )}
         </div>
       )}
 
@@ -375,9 +493,17 @@ export default function GameDetail({ gameId, onBack, isAdmin }) {
           {players.map((p) => (
             <div key={p.player_id} className="flex items-center justify-between py-2.5 px-2 rounded-xl hover:bg-slate-700/20 transition-colors">
               <div className="flex items-center gap-3">
-                <div className={`w-2.5 h-2.5 rounded-full ${
-                  p.attendance === "checked_in" ? "bg-emerald-400" : p.attendance === "no_show" ? "bg-red-400" : "bg-gray-600"
-                }`} />
+                <div
+                  className={`w-2.5 h-2.5 rounded-full ${
+                    p.attendance === "checked_in"
+                      ? "bg-emerald-400"
+                      : p.attendance === "checkin_pending"
+                      ? "bg-amber-400"
+                      : p.attendance === "no_show"
+                      ? "bg-red-400"
+                      : "bg-gray-600"
+                  }`}
+                />
                 <div>
                   <span className="text-sm font-medium">{p.nickname}</span>
                   {p.game_team && (
