@@ -17,6 +17,7 @@ router.post("/games", async (req, res) => {
       game_mode,
       max_players,
       payment,
+      duration,
       checkin_lat,
       checkin_lng,
     } = req.body;
@@ -24,7 +25,7 @@ router.post("/games", async (req, res) => {
     const season = await q1("SELECT id FROM seasons WHERE is_active=1 LIMIT 1");
 
     const r = await ins(
-      "INSERT INTO games (date,time,location,game_mode,max_players,payment,total_rounds,status,season_id,checkin_lat,checkin_lng) VALUES (?,?,?,?,?,?,0,'upcoming',?,?,?)",
+      "INSERT INTO games (date,time,location,game_mode,max_players,payment,duration,total_rounds,status,season_id,checkin_lat,checkin_lng) VALUES (?,?,?,?,?,?,?,0,'upcoming',?,?,?)",
       [
         date,
         time,
@@ -32,6 +33,7 @@ router.post("/games", async (req, res) => {
         game_mode || "team_vs_team",
         max_players || null,
         payment || 0,
+        duration || null,
         season?.id || null,
         checkin_lat || null,
         checkin_lng || null,
@@ -57,14 +59,15 @@ router.post("/games", async (req, res) => {
 
         const msg = `🔫 <b>Нова гра!</b>
   
-  📅 Дата: ${date}
-  ⏰ Час: ${time || "—"}
-  📍 Локація: ${location}
+📅 Дата: ${date}
+⏰ Час: ${time || "—"}
+📍 Локація: ${location}
+⏱ Тривалість: <b>${duration || "—"}</b>
   
-  👥 Місць: ${max_players || "∞"}
-  🪙 Вартість участі: <b>${payment || 0} грн</b>
+👥 Місць: ${max_players || "∞"}
+🪙 Вартість участі: <b>${payment || 0} грн</b>
   
-  🎮 Режим: ${modeLabel}`;
+🎮 Режим: ${modeLabel}`;
 
         await bot.api.sendMessage(config.CHANNEL_ID, msg, {
           parse_mode: "HTML",
@@ -227,6 +230,7 @@ router.post("/games/:id/status", async (req, res) => {
         const info = `📅 Дата: ${g.date}
 ⏰ Час: ${g.time || "—"}
 📍 Локація: ${g.location}
+⏱ Тривалість: <b>${g.duration || "—"}</b>
 🪙 Вартість участі: <b>${g.payment || 0} грн</b>`;
 
         const msg = `${labels[status] || "ℹ️ Статус гри змінено"}
@@ -304,6 +308,7 @@ router.post("/games/:id/start-round", async (req, res) => {
         const info = `📅 Дата: ${game.date}
 ⏰ Час: ${game.time || "—"}
 📍 Локація: ${game.location}
+⏱ Тривалість: <b>${game.duration || "—"}</b>
 🪙 Вартість участі: <b>${game.payment || 0} грн</b>`;
 
         await bot.api.sendMessage(
@@ -374,6 +379,7 @@ router.post("/games/:id/end-round", async (req, res) => {
         const info = `📅 Дата: ${game.date}
 ⏰ Час: ${game.time || "—"}
 📍 Локація: ${game.location}
+⏱ Тривалість: <b>${game.duration || "—"}</b>
 🪙 Вартість участі: <b>${game.payment || 0} грн</b>`;
 
         await bot.api.sendMessage(
@@ -549,7 +555,68 @@ router.post("/games/:id/kick-player", async (req, res) => {
 
     await ins("DELETE FROM game_players WHERE id=?", [registration.id]);
 
-    const newCount = beforeCnt.c - 1;
+    let newCount = beforeCnt.c - 1;
+
+    // Try to promote first player from waitlist
+    const waitCandidate = await q1(
+      `SELECT w.player_id, p.team_id, p.telegram_id, p.nickname
+       FROM game_waitlist w
+       JOIN players p ON p.id = w.player_id
+       LEFT JOIN player_blacklist b ON b.player_id = w.player_id AND b.active=1
+       WHERE w.game_id=? AND b.player_id IS NULL
+       ORDER BY w.created_at ASC
+       LIMIT 1`,
+      [gid],
+    );
+
+    if (waitCandidate) {
+      await ins(
+        "INSERT INTO game_players (game_id, player_id, team_id) VALUES (?,?,?)",
+        [gid, waitCandidate.player_id, waitCandidate.team_id],
+      );
+      await ins(
+        "DELETE FROM game_waitlist WHERE game_id=? AND player_id=?",
+        [gid, waitCandidate.player_id],
+      );
+      newCount += 1;
+
+      // Notify player that they were moved from waitlist into the game
+      try {
+        if (waitCandidate.telegram_id) {
+          const deepLink = config.BOT_USERNAME
+            ? `https://t.me/${config.BOT_USERNAME}?startapp=game_${gid}`
+            : undefined;
+
+          const info = `📅 Дата: ${game.date}
+⏰ Час: ${game.time || "—"}
+📍 Локація: ${game.location}
+⏱ Тривалість: ${game.duration || "—"}
+🪙 Вартість участі: <b>${game.payment || 0} грн</b>`;
+
+          await bot.api.sendMessage(
+            waitCandidate.telegram_id,
+            `✅ <b>Ти потрапив у гру з листа очікування</b>
+
+🎮 Гра #${gid}
+
+${info}`,
+            {
+              parse_mode: "HTML",
+              reply_markup: deepLink
+                ? {
+                    inline_keyboard: [
+                      [{ text: "📋 Відкрити гру", url: deepLink }],
+                    ],
+                  }
+                : undefined,
+            },
+          );
+        }
+      } catch (e) {
+        log.error("Admin waitlist promote notify error", { e: e.message });
+      }
+    }
+
     const remaining =
       game.max_players != null ? game.max_players - newCount : null;
 
@@ -689,6 +756,67 @@ router.post("/points", async (req, res) => {
     const nr = Math.max(0, p.rating + amount);
     await ins("UPDATE players SET rating=? WHERE id=?", [nr, p.id]);
     res.json({ success: true, newRating: nr });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// ------------------------------
+// BLACKLIST MANAGEMENT
+// ------------------------------
+
+// POST /api/admin/blacklist/add
+router.post("/blacklist/add", async (req, res) => {
+  try {
+    const { player_id, reason } = req.body;
+
+    if (!player_id) {
+      return res.status(400).json({ error: "player_id required" });
+    }
+
+    const p = await q1("SELECT id FROM players WHERE id=?", [player_id]);
+    if (!p) return res.status(404).json({ error: "Player not found" });
+
+    const existing = await q1(
+      "SELECT id FROM player_blacklist WHERE player_id=?",
+      [player_id],
+    );
+
+    if (existing) {
+      await ins(
+        "UPDATE player_blacklist SET active=1, reason=?, updated_at=NOW() WHERE id=?",
+        [reason || null, existing.id],
+      );
+    } else {
+      await ins(
+        "INSERT INTO player_blacklist (player_id, reason, active, created_at) VALUES (?,?,1,NOW())",
+        [player_id, reason || null],
+      );
+    }
+
+    log.info("Blacklist add", { player_id, reason });
+    res.json({ success: true });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// POST /api/admin/blacklist/remove
+router.post("/blacklist/remove", async (req, res) => {
+  try {
+    const { player_id } = req.body;
+
+    if (!player_id) {
+      return res.status(400).json({ error: "player_id required" });
+    }
+
+    await ins(
+      "UPDATE player_blacklist SET active=0, updated_at=NOW() WHERE player_id=?",
+      [player_id],
+    );
+
+    log.info("Blacklist remove", { player_id });
+    res.json({ success: true });
   } catch (e) {
     res.status(500).json({ error: e.message });
   }

@@ -1,5 +1,11 @@
 import React, { useState } from "react";
-import { adminCreateGame, adminCreateTeam, adminAddPoints } from "../api";
+import {
+  adminCreateGame,
+  adminCreateTeam,
+  adminAddPoints,
+  adminAddToBlacklist,
+  adminRemoveFromBlacklist,
+} from "../api";
 import { useTelegram } from "../hooks/useTelegram";
 import PlayerSearch from "../components/PlayerSearch";
 
@@ -23,6 +29,14 @@ export default function Admin() {
       desc: "Додати або зняти рейтинг гравцю",
       color: "from-amber-600/20 to-orange-700/10",
       border: "border-amber-700/30",
+    },
+    {
+      id: "blacklist",
+      icon: "⛔",
+      label: "Blacklist",
+      desc: "Проблемні гравці, яким заборонено грати",
+      color: "from-red-600/20 to-rose-700/10",
+      border: "border-red-700/40",
     },
   ];
 
@@ -112,6 +126,9 @@ export default function Admin() {
           {section === "points" && (
             <PointsForm onDone={() => setSection(null)} />
           )}
+          {section === "blacklist" && (
+            <BlacklistForm onDone={() => setSection(null)} />
+          )}
         </div>
       )}
     </div>
@@ -124,6 +141,7 @@ function CreateGameForm({ onDone }) {
     date: "",
     time: "",
     location: "",
+    duration: "",
     game_mode: "team_vs_team",
     max_players: 18,
     payment: 600,
@@ -212,6 +230,13 @@ function CreateGameForm({ onDone }) {
             placeholder="Airsoft Field"
           />
           <FormInput
+            icon="⏱"
+            label="Тривалість гри"
+            value={form.duration}
+            onChange={(v) => set("duration", v)}
+            placeholder="Наприклад: 4 години або 10:00–14:00"
+          />
+          <FormInput
             icon="👥"
             label="Максимальна кількість гравців"
             value={form.max_players}
@@ -290,7 +315,8 @@ function CreateGameForm({ onDone }) {
               <p>📍 {form.location}</p>
               <p>🎯 {modes.find((m) => m.id === form.game_mode)?.label}</p>
               <p>👥 До {form.max_players} гравців</p>
-              <p>👥 Вартість участі {form.payment} грн</p>
+              <p>🪙 Вартість участі {form.payment} грн</p>
+              <p>⏱ Тривалість: {form.duration || "не вказано"}</p>
               <p>🔄 Раунди — по ходу гри</p>
             </div>
           </div>
@@ -440,6 +466,149 @@ function PointsForm({ onDone }) {
             ) : (
               <>
                 <span>⬇️</span> Зняти
+              </>
+            )}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ---- Blacklist Form ----
+function BlacklistForm({ onDone }) {
+  const [nick, setNick] = useState("");
+  const [selectedPlayer, setSelectedPlayer] = useState(null);
+  const [reason, setReason] = useState("");
+  const [loading, setLoading] = useState(false);
+  const { haptic, showAlert } = useTelegram();
+
+  async function add() {
+    if (!selectedPlayer?.id) {
+      return showAlert("Вибери гравця");
+    }
+    setLoading(true);
+    try {
+      await adminAddToBlacklist(selectedPlayer.id, reason || null);
+      haptic("success");
+      showAlert("⛔ Гравця додано в blacklist");
+      onDone();
+    } catch (e) {
+      showAlert(e.message);
+      haptic("error");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function remove() {
+    if (!selectedPlayer?.id) {
+      return showAlert("Вибери гравця");
+    }
+    setLoading(true);
+    try {
+      await adminRemoveFromBlacklist(selectedPlayer.id);
+      haptic("success");
+      showAlert("✅ Гравця прибрано з blacklist");
+      onDone();
+    } catch (e) {
+      showAlert(e.message);
+      haptic("error");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <div>
+      <div className="flex items-center gap-3 mb-6">
+        <div className="w-12 h-12 rounded-2xl bg-red-600/20 flex items-center justify-center text-2xl">
+          ⛔
+        </div>
+        <div>
+          <h3 className="text-lg font-black">Blacklist</h3>
+          <p className="text-xs text-gray-500">
+            Заборона участі у всіх іграх
+          </p>
+        </div>
+      </div>
+
+      <div className="space-y-4">
+        <PlayerSearch
+          value={nick}
+          onChange={(v) => {
+            setNick(v);
+            setSelectedPlayer(null);
+          }}
+          onSelect={(p) => {
+            setNick(p.nickname);
+            setSelectedPlayer(p);
+          }}
+          placeholder="Нікнейм гравця"
+          icon="👤"
+        />
+
+        {selectedPlayer && (
+          <div className="flex items-center gap-3 bg-slate-900/60 border border-red-700/40 rounded-xl px-4 py-2.5">
+            <div className="w-8 h-8 rounded-lg bg-red-600/30 flex items-center justify-center text-sm">
+              🪖
+            </div>
+            <div className="flex-1">
+              <span className="text-sm font-bold">
+                {selectedPlayer.nickname}
+              </span>
+              <span className="text-xs text-gray-500 ml-2">
+                Rating: {selectedPlayer.rating}
+              </span>
+            </div>
+            <button
+              onClick={() => {
+                setSelectedPlayer(null);
+                setNick("");
+              }}
+              className="text-gray-500 text-xs"
+            >
+              ✕
+            </button>
+          </div>
+        )}
+
+        <div>
+          <label className="text-xs text-gray-400 font-semibold uppercase tracking-wider mb-1.5 block">
+            Причина (необов'язково)
+          </label>
+          <textarea
+            value={reason}
+            onChange={(e) => setReason(e.target.value)}
+            placeholder="Наприклад: постійні no-show, порушення правил безпеки..."
+            className="w-full bg-slate-800/60 border-2 border-slate-700/40 rounded-2xl px-3 py-2 text-sm focus:border-red-500/60 focus:outline-none focus:ring-2 focus:ring-red-500/10 transition-all placeholder:text-gray-600 resize-none h-20"
+          />
+        </div>
+
+        <div className="grid grid-cols-2 gap-3 mt-2">
+          <button
+            onClick={add}
+            disabled={loading || !selectedPlayer}
+            className="bg-gradient-to-r from-red-700 to-red-800 disabled:from-slate-700 disabled:to-slate-700 disabled:text-gray-500 py-4 rounded-2xl font-bold transition-all active:scale-[0.98] flex items-center justify-center gap-2"
+          >
+            {loading ? (
+              <Spinner />
+            ) : (
+              <>
+                <span>⛔</span> Додати
+              </>
+            )}
+          </button>
+          <button
+            onClick={remove}
+            disabled={loading || !selectedPlayer}
+            className="bg-slate-700 disabled:bg-slate-800 disabled:text-gray-500 py-4 rounded-2xl font-bold transition-all active:scale-[0.98] flex items-center justify-center gap-2"
+          >
+            {loading ? (
+              <Spinner />
+            ) : (
+              <>
+                <span>✅</span> Прибрати
               </>
             )}
           </button>

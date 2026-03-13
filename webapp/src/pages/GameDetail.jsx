@@ -149,7 +149,7 @@ export default function GameDetail({ gameId, onBack, isAdmin }) {
     );
   }
 
-  const { game: g, players, rounds, myRegistration } = data;
+  const { game: g, players, rounds, myRegistration, myWaitlist } = data;
 
   return (
     <div className="pb-6">
@@ -187,6 +187,11 @@ export default function GameDetail({ gameId, onBack, isAdmin }) {
             <p>📅 {g.date} {g.time && <span className="text-gray-400">о {g.time}</span>}</p>
             <p className="text-gray-300">📍 {g.location}</p>
             <p className="text-gray-300">🎯 {MODE[g.game_mode]}</p>
+            {g.duration && (
+              <p className="text-gray-300">
+                ⏱ Тривалість: <span className="font-semibold">{g.duration}</span>
+              </p>
+            )}
             {typeof g.payment === "number" && (
               <p className="text-gray-400">🪙 Вартість участі: <span className="font-semibold text-gray-300">{g.payment} грн</span></p>
             )}
@@ -250,8 +255,32 @@ export default function GameDetail({ gameId, onBack, isAdmin }) {
       {/* ---- Player actions ---- */}
       {g.status !== "finished" && g.status !== "cancelled" && (
         <div className="space-y-2 mb-5">
-          {!myRegistration && (
-            <ActionButton onClick={() => doAction(() => joinGame(gameId))} loading={actionLoading} icon="📝" label="Записатись на гру" className="bg-gradient-to-r from-emerald-600 to-teal-600" />
+          {!myRegistration && !myWaitlist && (
+            <ActionButton
+              onClick={() =>
+                doAction(async () => {
+                  const res = await joinGame(gameId);
+                  if (res.waitlisted) {
+                    showAlert("🕒 Гра заповнена. Тебе додано до листа очікування.");
+                  } else {
+                    showAlert("✅ Ти записався на гру");
+                  }
+                })
+              }
+              loading={actionLoading}
+              icon="📝"
+              label="Записатись на гру"
+              className="bg-gradient-to-r from-emerald-600 to-teal-600"
+            />
+          )}
+          {!myRegistration && myWaitlist && (
+            <ActionButton
+              onClick={() => {}}
+              loading={false}
+              icon="🕒"
+              label="Ти у листі очікування"
+              className="bg-slate-700/70"
+            />
           )}
           {myRegistration && (g.status === "upcoming" || g.status === "checkin") && (
             <ActionButton

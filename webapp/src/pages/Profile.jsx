@@ -6,6 +6,7 @@ import {
   sendFriendRequest,
   respondFriendRequest,
 } from "../api";
+import PlayerSearch from "../components/PlayerSearch";
 import { useTelegram } from "../hooks/useTelegram";
 import {
   Crosshair, Medal, Trophy, Crown, Flame, Star, Gem, Shield, Skull, Award
@@ -68,7 +69,6 @@ export default function Profile({ profile, onReload }) {
   const [badgeCelebration, setBadgeCelebration] = useState(null);
   const [friendsInfo, setFriendsInfo] = useState({ friends: [], incoming: [] });
   const [friendsLoading, setFriendsLoading] = useState(false);
-  const [friendNick, setFriendNick] = useState("");
   const [friendsError, setFriendsError] = useState("");
 
   if (!profile?.registered) {
@@ -99,12 +99,12 @@ export default function Profile({ profile, onReload }) {
   }, []);
 
   async function handleSendFriend() {
-    const nick = friendNick.trim();
-    if (!nick) return;
+    // friend nickname is passed directly from PlayerSearch onSelect
+    // so this function is only a fallback now
+    if (!pendingFriendNickname) return;
     try {
       setFriendsError("");
-      await sendFriendRequest(nick);
-      setFriendNick("");
+      await sendFriendRequest(pendingFriendNickname);
       haptic("success");
       const data = await getFriends();
       setFriendsInfo({
@@ -394,26 +394,28 @@ export default function Profile({ profile, onReload }) {
           </span>
         </div>
 
-        {/* Add friend form */}
+        {/* Add friend using PlayerSearch */}
         <div className="mb-3">
-          <label className="block text-[11px] text-gray-500 mb-1">
-            Додати друга по нікнейму
-          </label>
-          <div className="flex items-center gap-2">
-            <input
-              value={friendNick}
-              onChange={(e) => setFriendNick(e.target.value)}
-              placeholder="Нікнейм друга"
-              className="flex-1 bg-slate-900/70 border border-slate-700 rounded-xl px-3 py-2 text-xs focus:outline-none focus:ring-1 focus:ring-emerald-500/60"
-            />
-            <button
-              onClick={handleSendFriend}
-              disabled={!friendNick.trim() || friendsLoading}
-              className="px-3 py-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 text-[11px] font-bold text-black disabled:opacity-50 active:scale-95 transition-transform"
-            >
-              Запросити
-            </button>
-          </div>
+          <PlayerSearch
+            placeholder="Запросити друга"
+            icon="🤝"
+            onSelect={async (player) => {
+              try {
+                setFriendsError("");
+                await sendFriendRequest(player.nickname);
+                haptic("success");
+                const data = await getFriends();
+                setFriendsInfo({
+                  friends: data.friends || [],
+                  incoming: data.incoming || [],
+                });
+              } catch (e) {
+                console.error(e);
+                setFriendsError(e.message || "Помилка запиту в друзі");
+                haptic("error");
+              }
+            }}
+          />
         </div>
 
         {friendsError && (

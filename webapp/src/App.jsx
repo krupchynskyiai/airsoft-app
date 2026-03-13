@@ -7,11 +7,13 @@ import GameDetail from "./pages/GameDetail";
 import Leaderboard from "./pages/Leaderboard";
 import Teams from "./pages/Teams";
 import Admin from "./pages/Admin";
+import Contacts from "./pages/Contacts";
 
 const TABS = [
   { id: "profile", icon: "👤", activeIcon: "👤", label: "Профіль" },
   { id: "games", icon: "🎮", activeIcon: "🎮", label: "Ігри" },
   { id: "teams", icon: "🏠", activeIcon: "🏠", label: "Команди" },
+  { id: "contacts", icon: "📣", activeIcon: "📣", label: "Контакти" },
   { id: "leaderboard", icon: "🏆", activeIcon: "🏆", label: "Рейтинг" },
   { id: "admin", icon: "⚙️", activeIcon: "⚙️", label: "Адмін" },
 ];
@@ -202,6 +204,10 @@ export default function App() {
 
           {tab === "leaderboard" && (
             <Leaderboard />
+          )}
+
+          {tab === "contacts" && (
+            <Contacts />
           )}
 
           {tab === "admin" && (

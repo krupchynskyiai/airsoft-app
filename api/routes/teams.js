@@ -251,7 +251,10 @@ router.post("/:id/resolve", async (req, res) => {
 
     if (action === "accept") {
       // Check player is not already in a team
-      const player = await q1("SELECT team_id FROM players WHERE id = ?", [app.player_id]);
+      const player = await q1(
+        "SELECT id, team_id, telegram_id, nickname FROM players WHERE id = ?",
+        [app.player_id],
+      );
       if (player.team_id) {
         await ins("UPDATE team_applications SET status = 'rejected', resolved_at = NOW() WHERE id = ?", [application_id]);
         return res.status(400).json({ error: "Player already joined another team" });
@@ -268,9 +271,54 @@ router.post("/:id/resolve", async (req, res) => {
       );
 
       log.info("Application accepted", { teamId: tid, playerId: app.player_id });
+
+      // Notify player in Telegram about acceptance
+      try {
+        if (player.telegram_id) {
+          const teamInfo = await q1("SELECT name FROM teams WHERE id = ?", [tid]);
+          const deepLink = config.BOT_USERNAME
+            ? `https://t.me/${config.BOT_USERNAME}?startapp=team_${tid}`
+            : undefined;
+
+          const msg = `✅ <b>Твою заявку прийнято!</b>
+
+🏠 Команда: <b>${teamInfo?.name || "Команда"}</b>`;
+
+          await bot.api.sendMessage(player.telegram_id, msg, {
+            parse_mode: "HTML",
+            reply_markup: deepLink
+              ? {
+                  inline_keyboard: [[{ text: "📋 Відкрити команду", url: deepLink }]],
+                }
+              : undefined,
+          });
+        }
+      } catch (e) {
+        log.error("Team application accepted notify error", { e: e.message });
+      }
     } else {
       await ins("UPDATE team_applications SET status = 'rejected', resolved_at = NOW() WHERE id = ?", [application_id]);
       log.info("Application rejected", { teamId: tid, playerId: app.player_id });
+
+      // Notify player in Telegram about rejection
+      try {
+        const player = await q1(
+          "SELECT telegram_id FROM players WHERE id = ?",
+          [app.player_id],
+        );
+        if (player?.telegram_id) {
+          const teamInfo = await q1("SELECT name FROM teams WHERE id = ?", [tid]);
+          const msg = `❌ <b>Заявку в команду відхилено</b>
+
+🏠 Команда: <b>${teamInfo?.name || "Команда"}</b>`;
+
+          await bot.api.sendMessage(player.telegram_id, msg, {
+            parse_mode: "HTML",
+          });
+        }
+      } catch (e) {
+        log.error("Team application rejected notify error", { e: e.message });
+      }
     }
 
     res.json({ success: true });
@@ -286,13 +334,21 @@ router.post("/:id/invite", async (req, res) => {
     const { player_nickname } = req.body;
     const tgId = req.tgUser.id;
 
-    const captain = await q1("SELECT id FROM players WHERE telegram_id = ?", [tgId]);
-    const team = await q1("SELECT captain_id FROM teams WHERE id = ?", [tid]);
+    const captain = await q1(
+      "SELECT id, nickname FROM players WHERE telegram_id = ?",
+      [tgId],
+    );
+    const team = await q1("SELECT captain_id, name FROM teams WHERE id = ?", [
+      tid,
+    ]);
     if (!captain || team.captain_id !== captain.id) {
       return res.status(403).json({ error: "Only captain can invite" });
     }
 
-    const player = await q1("SELECT id, team_id FROM players WHERE nickname = ?", [player_nickname]);
+    const player = await q1(
+      "SELECT id, team_id, telegram_id, nickname FROM players WHERE nickname = ?",
+      [player_nickname],
+    );
     if (!player) return res.status(404).json({ error: "Player not found" });
     if (player.team_id) return res.status(400).json({ error: "Player already in a team" });
 
@@ -308,6 +364,31 @@ router.post("/:id/invite", async (req, res) => {
     );
 
     log.info("Team invite sent", { teamId: tid, playerId: player.id });
+
+    // Notify player in Telegram about invite
+    try {
+      if (player.telegram_id) {
+        const deepLink = config.BOT_USERNAME
+          ? `https://t.me/${config.BOT_USERNAME}?startapp=team_${tid}`
+          : undefined;
+
+        const msg = `📩 <b>Тебе запрошують в команду</b>
+
+🏠 Команда: <b>${team?.name || "Команда"}</b>
+🪖 Капітан: <b>${captain.nickname}</b>`;
+
+        await bot.api.sendMessage(player.telegram_id, msg, {
+          parse_mode: "HTML",
+          reply_markup: deepLink
+            ? {
+                inline_keyboard: [[{ text: "📋 Відкрити команду", url: deepLink }]],
+              }
+            : undefined,
+        });
+      }
+    } catch (e) {
+      log.error("Team invite notify error", { e: e.message });
+    }
     res.json({ success: true });
   } catch (e) {
     res.status(500).json({ error: e.message });
@@ -347,7 +428,10 @@ router.post("/invites/:id/respond", async (req, res) => {
     const player = await q1("SELECT id, team_id FROM players WHERE telegram_id = ?", [tgId]);
     if (!player) return res.status(400).json({ error: "Not registered" });
 
-    const invite = await q1("SELECT * FROM team_invites WHERE id = ? AND player_id = ? AND status = 'pending'", [inviteId, player.id]);
+    const invite = await q1(
+      "SELECT * FROM team_invites WHERE id = ? AND player_id = ? AND status = 'pending'",
+      [inviteId, player.id],
+    );
     if (!invite) return res.status(404).json({ error: "Invite not found" });
 
     if (action === "accept") {
@@ -358,11 +442,81 @@ router.post("/invites/:id/respond", async (req, res) => {
 
       // Reject other invites and applications
       await ins("UPDATE team_invites SET status = 'rejected', resolved_at = NOW() WHERE player_id = ? AND status = 'pending' AND id != ?", [player.id, inviteId]);
-      await ins("UPDATE team_applications SET status = 'rejected', resolved_at = NOW() WHERE player_id = ? AND status = 'pending'", [player.id]);
+      await ins(
+        "UPDATE team_applications SET status = 'rejected', resolved_at = NOW() WHERE player_id = ? AND status = 'pending'",
+        [player.id],
+      );
 
-      log.info("Invite accepted", { teamId: invite.team_id, playerId: player.id });
+      log.info("Invite accepted", {
+        teamId: invite.team_id,
+        playerId: player.id,
+      });
+
+      // Notify captain that player accepted invite
+      try {
+        const meta = await q1(
+          `SELECT t.name as team_name, p.telegram_id as captain_telegram_id
+           FROM teams t
+           JOIN players p ON t.captain_id = p.id
+           WHERE t.id = ?`,
+          [invite.team_id],
+        );
+        if (meta?.captain_telegram_id) {
+          const playerInfo = await q1(
+            "SELECT nickname FROM players WHERE id = ?",
+            [player.id],
+          );
+          const deepLink = config.BOT_USERNAME
+            ? `https://t.me/${config.BOT_USERNAME}?startapp=team_${invite.team_id}`
+            : undefined;
+
+          const msg = `✅ <b>Запрошення прийнято</b>
+
+🏠 Команда: <b>${meta.team_name}</b>
+🪖 Гравець: <b>${playerInfo?.nickname || "Гравець"}</b>`;
+
+          await bot.api.sendMessage(meta.captain_telegram_id, msg, {
+            parse_mode: "HTML",
+            reply_markup: deepLink
+              ? {
+                  inline_keyboard: [[{ text: "📋 Відкрити команду", url: deepLink }]],
+                }
+              : undefined,
+          });
+        }
+      } catch (e) {
+        log.error("Team invite accepted notify error", { e: e.message });
+      }
     } else {
       await ins("UPDATE team_invites SET status = 'rejected', resolved_at = NOW() WHERE id = ?", [inviteId]);
+
+      // Notify captain about rejection (optional but useful)
+      try {
+        const meta = await q1(
+          `SELECT t.name as team_name, p.telegram_id as captain_telegram_id
+           FROM teams t
+           JOIN players p ON t.captain_id = p.id
+           WHERE t.id = ?`,
+          [invite.team_id],
+        );
+        if (meta?.captain_telegram_id) {
+          const playerInfo = await q1(
+            "SELECT nickname FROM players WHERE id = ?",
+            [player.id],
+          );
+
+          const msg = `❌ <b>Запрошення відхилено</b>
+
+🏠 Команда: <b>${meta.team_name}</b>
+🪖 Гравець: <b>${playerInfo?.nickname || "Гравець"}</b>`;
+
+          await bot.api.sendMessage(meta.captain_telegram_id, msg, {
+            parse_mode: "HTML",
+          });
+        }
+      } catch (e) {
+        log.error("Team invite rejected notify error", { e: e.message });
+      }
     }
 
     res.json({ success: true });
@@ -375,17 +529,143 @@ router.post("/invites/:id/respond", async (req, res) => {
 router.post("/leave", async (req, res) => {
   try {
     const tgId = req.tgUser.id;
-    const player = await q1("SELECT id, team_id FROM players WHERE telegram_id = ?", [tgId]);
+    const player = await q1(
+      "SELECT id, team_id FROM players WHERE telegram_id = ?",
+      [tgId],
+    );
     if (!player || !player.team_id) return res.status(400).json({ error: "Not in a team" });
-
-    // If captain, remove captain status
-    const team = await q1("SELECT captain_id FROM teams WHERE id = ?", [player.team_id]);
-    if (team && team.captain_id === player.id) {
-      await ins("UPDATE teams SET captain_id = NULL WHERE id = ?", [player.team_id]);
-    }
 
     await ins("UPDATE players SET team_id = NULL WHERE id = ?", [player.id]);
     log.info("Player left team", { playerId: player.id, teamId: player.team_id });
+    res.json({ success: true });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// POST /api/teams/:id/transfer-captain — captain hands over captaincy to another member
+router.post("/:id/transfer-captain", async (req, res) => {
+  try {
+    const tid = parseInt(req.params.id);
+    const { new_captain_id } = req.body;
+    const tgId = req.tgUser.id;
+
+    if (!new_captain_id) {
+      return res.status(400).json({ error: "new_captain_id required" });
+    }
+
+    const captain = await q1(
+      "SELECT id FROM players WHERE telegram_id = ?",
+      [tgId],
+    );
+    const team = await q1(
+      "SELECT captain_id FROM teams WHERE id = ?",
+      [tid],
+    );
+    if (!captain || !team || team.captain_id !== captain.id) {
+      return res.status(403).json({ error: "Only captain can transfer captaincy" });
+    }
+
+    const candidate = await q1(
+      "SELECT id FROM players WHERE id = ? AND team_id = ?",
+      [new_captain_id, tid],
+    );
+    if (!candidate) {
+      return res.status(400).json({ error: "New captain must be a member of the team" });
+    }
+
+    await ins("UPDATE teams SET captain_id = ? WHERE id = ?", [
+      new_captain_id,
+      tid,
+    ]);
+
+    log.info("Captaincy transferred", {
+      teamId: tid,
+      from: captain.id,
+      to: new_captain_id,
+    });
+
+    // Notify new captain in Telegram
+    try {
+      const newCaptain = await q1(
+        "SELECT telegram_id, nickname FROM players WHERE id = ?",
+        [new_captain_id],
+      );
+      const teamInfo = await q1(
+        "SELECT name FROM teams WHERE id = ?",
+        [tid],
+      );
+
+      if (newCaptain?.telegram_id) {
+        const msg = `👑 <b>Ти став капітаном команди</b>
+
+🏠 Команда: <b>${teamInfo?.name || "Команда"}</b>`;
+
+        await bot.api.sendMessage(newCaptain.telegram_id, msg, {
+          parse_mode: "HTML",
+        });
+      }
+    } catch (e) {
+      log.error("Transfer captain notify error", { e: e.message });
+    }
+
+    res.json({ success: true });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// POST /api/teams/:id/disband — captain disbands team, all members leave
+router.post("/:id/disband", async (req, res) => {
+  try {
+    const tid = parseInt(req.params.id);
+    const tgId = req.tgUser.id;
+
+    const captain = await q1(
+      "SELECT id FROM players WHERE telegram_id = ?",
+      [tgId],
+    );
+    const team = await q1(
+      "SELECT id, name, captain_id FROM teams WHERE id = ?",
+      [tid],
+    );
+    if (!captain || !team || team.captain_id !== captain.id) {
+      return res.status(403).json({ error: "Only captain can disband team" });
+    }
+
+    const members = await q(
+      "SELECT id, telegram_id, nickname FROM players WHERE team_id = ?",
+      [tid],
+    );
+
+    // Clear team_id for all members
+    await ins("UPDATE players SET team_id = NULL WHERE team_id = ?", [tid]);
+
+    // Clean up applications and invites
+    await ins("UPDATE team_applications SET status='cancelled', resolved_at=NOW() WHERE team_id = ? AND status = 'pending'", [tid]);
+    await ins("UPDATE team_invites SET status='cancelled', resolved_at=NOW() WHERE team_id = ? AND status = 'pending'", [tid]);
+
+    // Optionally delete team
+    await ins("DELETE FROM teams WHERE id = ?", [tid]);
+
+    log.info("Team disbanded", { teamId: tid, by: captain.id });
+
+    // Notify all members (including captain) in Telegram
+    try {
+      for (const m of members) {
+        if (!m.telegram_id) continue;
+        const msg = `🏚 <b>Команду розформовано</b>
+
+🏠 Команда: <b>${team.name}</b>`;
+
+        await bot.api.sendMessage(m.telegram_id, msg, {
+          parse_mode: "HTML",
+        });
+      }
+    } catch (e) {
+      log.error("Team disband notify error", { e: e.message });
+    }
+
     res.json({ success: true });
   } catch (e) {
     res.status(500).json({ error: e.message });
@@ -421,7 +701,7 @@ router.post("/:id/kick", async (req, res) => {
     }
 
     const member = await q1(
-      "SELECT id, team_id FROM players WHERE id = ?",
+      "SELECT id, team_id, telegram_id, nickname FROM players WHERE id = ?",
       [player_id],
     );
     if (!member || member.team_id !== tid) {
@@ -435,6 +715,25 @@ router.post("/:id/kick", async (req, res) => {
       playerId: member.id,
       by: captain.id,
     });
+
+    // Notify kicked player in Telegram
+    try {
+      if (member.telegram_id) {
+        const teamInfo = await q1(
+          "SELECT name FROM teams WHERE id = ?",
+          [tid],
+        );
+        const msg = `🚪 <b>Тебе вигнали з команди</b>
+
+🏠 Команда: <b>${teamInfo?.name || "Команда"}</b>`;
+
+        await bot.api.sendMessage(member.telegram_id, msg, {
+          parse_mode: "HTML",
+        });
+      }
+    } catch (e) {
+      log.error("Team kick notify error", { e: e.message });
+    }
 
     res.json({ success: true });
   } catch (e) {

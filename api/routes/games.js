@@ -89,14 +89,23 @@ router.get("/:id", async (req, res) => {
       [gid],
     );
 
-    // Check if current user is registered
+    // Check if current user is registered / in waitlist
     const tgId = req.tgUser.id;
     const me = await q1("SELECT id FROM players WHERE telegram_id = ?", [tgId]);
     const myRegistration = me
       ? players.find((p) => p.player_id === me.id)
       : null;
 
-    res.json({ game, players, rounds, myRegistration });
+    let myWaitlist = false;
+    if (me && !myRegistration) {
+      const w = await q1(
+        "SELECT id FROM game_waitlist WHERE game_id=? AND player_id=?",
+        [gid, me.id],
+      );
+      myWaitlist = !!w;
+    }
+
+    res.json({ game, players, rounds, myRegistration, myWaitlist });
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
@@ -114,6 +123,15 @@ router.post("/:id/join", async (req, res) => {
     );
     if (!player) return res.status(400).json({ error: "Not registered" });
 
+    // Blacklist check
+    const bl = await q1(
+      "SELECT id FROM player_blacklist WHERE player_id=? AND active=1",
+      [player.id],
+    );
+    if (bl) {
+      return res.status(403).json({ error: "Ти у чорному списку і не можеш записатися на гру" });
+    }
+
     // already joined?
     const ex = await q1(
       "SELECT id FROM game_players WHERE game_id = ? AND player_id = ?",
@@ -123,7 +141,7 @@ router.post("/:id/join", async (req, res) => {
 
     // get game info
     const game = await q1(
-      "SELECT id, date, time, location, max_players, payment FROM games WHERE id = ?",
+      "SELECT id, date, time, location, max_players, payment, duration FROM games WHERE id = ?",
       [gid],
     );
     if (!game) return res.status(404).json({ error: "Game not found" });
@@ -136,8 +154,43 @@ router.post("/:id/join", async (req, res) => {
 
     // check limit
     if (game.max_players && cnt.c >= game.max_players) {
-      return res.status(400).json({
-        error: "Game is full",
+      // Add to waitlist instead of error
+      const alreadyWaiting = await q1(
+        "SELECT id FROM game_waitlist WHERE game_id=? AND player_id=?",
+        [gid, player.id],
+      );
+      if (!alreadyWaiting) {
+        await ins(
+          "INSERT INTO game_waitlist (game_id, player_id, created_at) VALUES (?,?,NOW())",
+          [gid, player.id],
+        );
+      }
+
+      // Notify player in Telegram about waitlist
+      try {
+        const info = `📅 Дата: ${game.date}
+⏰ Час: ${game.time || "—"}
+📍 Локація: ${game.location}
+⏱ Тривалість: ${game.duration || "—"}`;
+
+        await bot.api.sendMessage(
+          tgId,
+          `🕒 <b>Лист очікування</b>
+
+🎮 Гра #${gid}
+
+Ти доданий до листа очікування. Коли звільниться місце, тебе автоматично запишемо в гру.
+
+${info}`,
+          { parse_mode: "HTML" },
+        );
+      } catch (e) {
+        log.error("Waitlist notify error", { e: e.message });
+      }
+
+      return res.json({
+        success: true,
+        waitlisted: true,
       });
     }
 
@@ -169,6 +222,7 @@ router.post("/:id/join", async (req, res) => {
         const info = `📅 Дата: ${game.date}
 ⏰ Час: ${game.time || "—"}
 📍 Локація: ${game.location}
+⏱ Тривалість: <b>${game.duration || "—"}</b>
 🪙 Вартість участі: <b>${payment} грн</b>`;
 
         if (remaining > 0) {
@@ -260,7 +314,7 @@ router.post("/:id/cancel", async (req, res) => {
     if (!player) return res.status(400).json({ error: "Not registered" });
 
     const game = await q1(
-      "SELECT id, date, time, location, status, max_players, payment FROM games WHERE id = ?",
+      "SELECT id, date, time, location, status, max_players, payment, duration FROM games WHERE id = ?",
       [gid],
     );
     if (!game) return res.status(404).json({ error: "Game not found" });
@@ -293,7 +347,67 @@ router.post("/:id/cancel", async (req, res) => {
 
     await ins("DELETE FROM game_players WHERE id = ?", [registration.id]);
 
-    const newCount = beforeCnt.c - 1;
+    let newCount = beforeCnt.c - 1;
+
+    // If there is a waitlist, auto-add first waiting player
+    const waitCandidate = await q1(
+      `SELECT w.player_id, p.team_id, p.telegram_id, p.nickname
+       FROM game_waitlist w
+       JOIN players p ON p.id = w.player_id
+       LEFT JOIN player_blacklist b ON b.player_id = w.player_id AND b.active=1
+       WHERE w.game_id=? AND b.player_id IS NULL
+       ORDER BY w.created_at ASC
+       LIMIT 1`,
+      [gid],
+    );
+
+    if (waitCandidate) {
+      await ins(
+        "INSERT INTO game_players (game_id, player_id, team_id) VALUES (?,?,?)",
+        [gid, waitCandidate.player_id, waitCandidate.team_id],
+      );
+      await ins(
+        "DELETE FROM game_waitlist WHERE game_id=? AND player_id=?",
+        [gid, waitCandidate.player_id],
+      );
+      newCount += 1;
+
+      // Notify player that they were moved from waitlist into the game
+      try {
+        if (waitCandidate.telegram_id) {
+          const deepLink = config.BOT_USERNAME
+            ? `https://t.me/${config.BOT_USERNAME}?startapp=game_${gid}`
+            : undefined;
+
+          const info = `📅 Дата: ${game.date}
+⏰ Час: ${game.time || "—"}
+📍 Локація: ${game.location}
+⏱ Тривалість: ${game.duration || "—"}`;
+
+          await bot.api.sendMessage(
+            waitCandidate.telegram_id,
+            `✅ <b>Ти потрапив у гру з листа очікування</b>
+
+🎮 Гра #${gid}
+
+${info}`,
+            {
+              parse_mode: "HTML",
+              reply_markup: deepLink
+                ? {
+                    inline_keyboard: [
+                      [{ text: "📋 Відкрити гру", url: deepLink }],
+                    ],
+                  }
+                : undefined,
+            },
+          );
+        }
+      } catch (e) {
+        log.error("Waitlist promote notify error", { e: e.message });
+      }
+    }
+
     const remaining =
       game.max_players != null ? game.max_players - newCount : null;
 
@@ -318,6 +432,7 @@ router.post("/:id/cancel", async (req, res) => {
         const info = `📅 Дата: ${game.date}
 ⏰ Час: ${game.time || "—"}
 📍 Локація: ${game.location}
+⏱ Тривалість: <b>${game.duration || "—"}</b>
 🪙 Вартість участі: <b>${game.payment} грн</b>`;
 
         if (remainingBefore === 0 && remainingAfter > 0) {

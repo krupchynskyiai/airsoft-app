@@ -11,6 +11,8 @@ import {
   leaveTeam,
   createTeam,
   kickFromTeam,
+  transferCaptain,
+  disbandTeam,
 } from "../api";
 import { useTelegram } from "../hooks/useTelegram";
 import PlayerSearch from "../components/PlayerSearch";
@@ -257,6 +259,8 @@ function TeamDetail({ teamId, onBack, onReloadProfile }) {
   const [showApplyForm, setShowApplyForm] = useState(false);
   const [showInviteForm, setShowInviteForm] = useState(false);
   const [showLeaveWarning, setShowLeaveWarning] = useState(false);
+  const [showCaptainLeaveOptions, setShowCaptainLeaveOptions] = useState(false);
+  const [newCaptainId, setNewCaptainId] = useState(null);
   const { haptic, showAlert } = useTelegram();
 
   const load = useCallback(async () => {
@@ -412,8 +416,8 @@ function TeamDetail({ teamId, onBack, onReloadProfile }) {
           </div>
         )}
 
-        {/* Leave team */}
-        {isMyTeam && (
+        {/* Leave team (non-captain) */}
+        {isMyTeam && !isCaptain && (
           <button
             onClick={() => doAction(() => leaveTeam(), "Ти покинув команду")}
             disabled={actionLoading}
@@ -421,6 +425,98 @@ function TeamDetail({ teamId, onBack, onReloadProfile }) {
           >
             🚪 Покинути команду
           </button>
+        )}
+
+        {/* Captain: leave/disband options */}
+        {isMyTeam && isCaptain && (
+          showCaptainLeaveOptions ? (
+            <div className="bg-red-950/25 border border-red-800/40 rounded-2xl p-4 space-y-3">
+              <p className="text-sm font-semibold text-red-300">
+                Ти капітан. Щоб вийти, обери:
+              </p>
+              {members.filter((m) => m.id !== myPlayerId).length > 0 && (
+                <div className="space-y-2">
+                  <p className="text-xs text-gray-400">
+                    1) Передати капітанство іншому гравцю і вийти з команди.
+                  </p>
+                  <div className="bg-slate-900/60 rounded-xl p-2 max-h-32 overflow-y-auto">
+                    {members
+                      .filter((m) => m.id !== myPlayerId)
+                      .map((m) => (
+                        <button
+                          key={m.id}
+                          onClick={() => setNewCaptainId(m.id)}
+                          className={`w-full flex items-center justify-between px-2 py-1.5 rounded-lg text-xs mb-1 last:mb-0 ${
+                            newCaptainId === m.id
+                              ? "bg-emerald-700/60 text-emerald-100"
+                              : "bg-slate-800/60 text-gray-200"
+                          }`}
+                        >
+                          <span>{m.nickname}</span>
+                          <span className="text-[10px] text-gray-400">
+                            ⭐{m.rating}
+                          </span>
+                        </button>
+                      ))}
+                  </div>
+                  <button
+                    onClick={async () => {
+                      if (!newCaptainId) return;
+                      await doAction(
+                        async () => {
+                          await transferCaptain(teamId, newCaptainId);
+                          await leaveTeam();
+                        },
+                        "Капітанство передано, ти покинув команду",
+                      );
+                      onBack();
+                    }}
+                    disabled={actionLoading || !newCaptainId}
+                    className="w-full bg-emerald-600/80 py-2.5 rounded-xl text-xs font-bold active:scale-95 disabled:opacity-50"
+                  >
+                    👑 Передати капітанство і вийти
+                  </button>
+                </div>
+              )}
+              <div className="space-y-2">
+                <p className="text-xs text-gray-400">
+                  2) Розформувати команду. Всі гравці вийдуть з команди.
+                </p>
+                <button
+                  onClick={async () => {
+                    await doAction(
+                      () => disbandTeam(teamId),
+                      "Команду розформовано",
+                    );
+                    onBack();
+                  }}
+                  disabled={actionLoading}
+                  className="w-full bg-red-800/80 py-2.5 rounded-xl text-xs font-bold text-red-100 active:scale-95"
+                >
+                  🏚 Розформувати команду
+                </button>
+              </div>
+              <button
+                onClick={() => {
+                  setShowCaptainLeaveOptions(false);
+                  setNewCaptainId(null);
+                }}
+                className="w-full bg-slate-800/80 py-2 rounded-xl text-xs font-medium text-gray-400 active:scale-95"
+              >
+                Скасувати
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={() => {
+                haptic("impact");
+                setShowCaptainLeaveOptions(true);
+              }}
+              className="w-full bg-red-900/30 border border-red-800/30 py-3 rounded-2xl font-bold text-sm text-red-300 active:scale-[0.98]"
+            >
+              🚪 Покинути / розформувати команду
+            </button>
+          )
         )}
       </div>
 

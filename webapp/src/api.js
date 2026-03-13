@@ -87,6 +87,13 @@ export const leaveTeam = () =>
   api("/teams/leave", { method: "POST" });
 export const kickFromTeam = (teamId, playerId) =>
   api(`/teams/${teamId}/kick`, { method: "POST", body: { player_id: playerId } });
+export const transferCaptain = (teamId, newCaptainId) =>
+  api(`/teams/${teamId}/transfer-captain`, {
+    method: "POST",
+    body: { new_captain_id: newCaptainId },
+  });
+export const disbandTeam = (teamId) =>
+  api(`/teams/${teamId}/disband`, { method: "POST" });
 
 // ---- Admin ----
 export const adminCreateGame = (data) =>
@@ -115,4 +122,14 @@ export const adminMoveGameTeam = (gameId, playerId, targetTeam) =>
   api(`/admin/games/${gameId}/move-player`, {
     method: "POST",
     body: { player_id: playerId, target_team: targetTeam },
+  });
+export const adminAddToBlacklist = (playerId, reason) =>
+  api("/admin/blacklist/add", {
+    method: "POST",
+    body: { player_id: playerId, reason },
+  });
+export const adminRemoveFromBlacklist = (playerId) =>
+  api("/admin/blacklist/remove", {
+    method: "POST",
+    body: { player_id: playerId },
   });

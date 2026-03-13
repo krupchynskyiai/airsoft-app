@@ -125,6 +125,11 @@ export default function Games({ onOpenGame }) {
                   <div className="text-sm text-gray-400 flex items-center gap-1">
                     📍 {g.location}
                   </div>
+                  {g.duration && (
+                    <div className="text-xs text-gray-500 flex items-center gap-1 mt-0.5">
+                      ⏱ Тривалість: <span className="font-medium text-gray-300">{g.duration}</span>
+                    </div>
+                  )}
                 </div>
 
                 {/* Bottom stats */}
