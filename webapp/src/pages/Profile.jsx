@@ -316,35 +316,63 @@ export default function Profile({ profile, onReload }) {
 
           <div className="space-y-2">
             {profile.recentGames.map((g) => {
-              const isWin = g.result === "win";
+              const isFinished = g.status === "finished";
+              const isWin = isFinished && g.result === "win";
+              const isLoss = isFinished && g.result === "loss";
+
+              const badgeBg = isFinished
+                ? isWin
+                  ? "bg-emerald-600/20 text-emerald-400"
+                  : isLoss
+                  ? "bg-red-600/20 text-red-400"
+                  : "bg-slate-600/40 text-gray-300"
+                : "bg-slate-600/40 text-gray-300";
+
+              const cardBg = isFinished
+                ? isWin
+                  ? "bg-emerald-950/30 border-emerald-800/30"
+                  : isLoss
+                  ? "bg-red-950/20 border-red-900/20"
+                  : "bg-slate-900/40 border-slate-800/40"
+                : "bg-slate-900/40 border-slate-800/40";
+
+              let labelText = "В ПРОЦЕСІ";
+              if (isFinished) {
+                labelText = isWin ? "ПЕРЕМОГА" : isLoss ? "ПОРАЗКА" : "ЗАВЕРШЕНО";
+              } else if (g.status === "checkin") {
+                labelText = "CHECK-IN";
+              } else if (g.status === "upcoming") {
+                labelText = "ЗАПЛАНОВАНА";
+              }
+
               return (
                 <div
                   key={g.id}
-                  className={`flex items-center gap-3 p-3 rounded-xl border transition-all ${
-                    isWin
-                      ? "bg-emerald-950/30 border-emerald-800/30"
-                      : "bg-red-950/20 border-red-900/20"
-                  }`}
+                  className={`flex items-center gap-3 p-3 rounded-xl border transition-all ${cardBg}`}
                 >
-                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-sm font-black ${
-                    isWin ? "bg-emerald-600/20 text-emerald-400" : "bg-red-600/20 text-red-400"
-                  }`}>
-                    {isWin ? "W" : "L"}
+                  <div
+                    className={`w-10 h-10 rounded-xl flex items-center justify-center text-sm font-black ${badgeBg}`}
+                  >
+                    {isFinished ? (isWin ? "W" : isLoss ? "L" : "—") : "•"}
                   </div>
 
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
                       <span className="text-sm font-semibold">Гра #{g.id}</span>
                       <span className="text-[10px] text-gray-500 bg-slate-700 px-1.5 py-0.5 rounded">
-                        {g.game_mode === "team_vs_team" ? "TvT" : g.game_mode === "random_teams" ? "Random" : "FFA"}
+                        {g.game_mode === "team_vs_team"
+                          ? "TvT"
+                          : g.game_mode === "random_teams"
+                          ? "Random"
+                          : "FFA"}
                       </span>
                     </div>
                     <span className="text-xs text-gray-500">{g.date}</span>
                   </div>
 
                   <div className="text-right">
-                    <span className={isWin ? "text-emerald-400 font-bold text-sm" : "text-red-400 font-bold text-sm"}>
-                      {isWin ? "ПЕРЕМОГА" : "ПОРАЗКА"}
+                    <span className="text-xs font-bold text-gray-300">
+                      {labelText}
                     </span>
                   </div>
                 </div>
