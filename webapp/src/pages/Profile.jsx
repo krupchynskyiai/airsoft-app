@@ -65,7 +65,7 @@ function ProgressRing({ value, max, size = 72, stroke = 5, color = "#10b981" }) 
 
 // ---- Main Profile Component ----
 export default function Profile({ profile, onReload }) {
-  const { haptic } = useTelegram();
+  const { haptic, showAlert } = useTelegram();
   const [badgeCelebration, setBadgeCelebration] = useState(null);
   const [friendsInfo, setFriendsInfo] = useState({ friends: [], incoming: [] });
   const [friendsLoading, setFriendsLoading] = useState(false);
@@ -97,26 +97,6 @@ export default function Profile({ profile, onReload }) {
 
     loadFriends();
   }, []);
-
-  async function handleSendFriend() {
-    // friend nickname is passed directly from PlayerSearch onSelect
-    // so this function is only a fallback now
-    if (!pendingFriendNickname) return;
-    try {
-      setFriendsError("");
-      await sendFriendRequest(pendingFriendNickname);
-      haptic("success");
-      const data = await getFriends();
-      setFriendsInfo({
-        friends: data.friends || [],
-        incoming: data.incoming || [],
-      });
-    } catch (e) {
-      console.error(e);
-      setFriendsError(e.message || "Помилка запиту в друзі");
-      haptic("error");
-    }
-  }
 
   async function handleRespondFriend(requestId, action) {
     try {
@@ -404,6 +384,7 @@ export default function Profile({ profile, onReload }) {
                 setFriendsError("");
                 await sendFriendRequest(player.nickname);
                 haptic("success");
+                showAlert(`✅ Запит у друзі надіслано для ${player.nickname}`);
                 const data = await getFriends();
                 setFriendsInfo({
                   friends: data.friends || [],
@@ -413,6 +394,7 @@ export default function Profile({ profile, onReload }) {
                 console.error(e);
                 setFriendsError(e.message || "Помилка запиту в друзі");
                 haptic("error");
+                showAlert(e.message || "Помилка запиту в друзі");
               }
             }}
           />
