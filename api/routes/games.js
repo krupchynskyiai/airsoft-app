@@ -92,7 +92,7 @@ router.post("/:id/join", async (req, res) => {
 
     // get game info
     const game = await q1(
-      "SELECT id, max_players, payment FROM games WHERE id = ?",
+      "SELECT id, date, time, location, max_players, payment FROM games WHERE id = ?",
       [gid],
     );
     if (!game) return res.status(404).json({ error: "Game not found" });
@@ -135,12 +135,18 @@ router.post("/:id/join", async (req, res) => {
       try {
         const deepLink = `https://t.me/${config.BOT_USERNAME}?startapp=game_${gid}`;
 
+        const info = `📅 Дата: ${game.date}
+⏰ Час: ${game.time || "—"}
+📍 Локація: ${game.location}
+🪙 Вартість участі: <b>${payment} грн</b>`;
+
         if (remaining > 0) {
           const msg = `⚠️ <b>Залишилось мало місць!</b>
 
 🎮 Гра #${gid}
 👥 Залишилось місць: <b>${remaining}</b>
-🪙 Вартість участі: <b>${payment} грн</b>`;
+
+${info}`;
 
           await bot.api.sendMessage(config.CHANNEL_ID, msg, {
             parse_mode: "HTML",
@@ -159,14 +165,16 @@ router.post("/:id/join", async (req, res) => {
 
         // GAME FULL
         if (remaining === 0) {
-          await bot.api.sendMessage(
-            config.CHANNEL_ID,
-            `🚫 <b>Гра заповнена!</b>
+          const msg = `🚫 <b>Гра заповнена!</b>
 
 🎮 Гра #${gid}
-👥 Усі місця зайняті`,
-            { parse_mode: "HTML" },
-          );
+👥 Усі місця зайняті
+
+${info}`;
+
+          await bot.api.sendMessage(config.CHANNEL_ID, msg, {
+            parse_mode: "HTML",
+          });
         }
       } catch (e) {
         log.error("Channel notify error", { e: e.message });
@@ -221,7 +229,7 @@ router.post("/:id/cancel", async (req, res) => {
     if (!player) return res.status(400).json({ error: "Not registered" });
 
     const game = await q1(
-      "SELECT id, status, max_players, payment FROM games WHERE id = ?",
+      "SELECT id, date, time, location, status, max_players, payment FROM games WHERE id = ?",
       [gid],
     );
     if (!game) return res.status(404).json({ error: "Game not found" });
@@ -276,20 +284,27 @@ router.post("/:id/cancel", async (req, res) => {
 
         let msg;
 
+        const info = `📅 Дата: ${game.date}
+⏰ Час: ${game.time || "—"}
+📍 Локація: ${game.location}
+🪙 Вартість участі: <b>${game.payment} грн</b>`;
+
         if (remainingBefore === 0 && remainingAfter > 0) {
           // was full, now at least 1 free slot
           msg = `✅ <b>З'явилося вільне місце!</b>
 
 🎮 Гра #${gid}
 👥 Вільних місць: <b>${remainingAfter}</b>
-🪙 Вартість участі: <b>${game.payment} грн</b>`;
+
+${info}`;
         } else if (remainingAfter > 0) {
           // just update current free slots
           msg = `ℹ️ <b>Оновлена кількість місць</b>
 
 🎮 Гра #${gid}
 👥 Вільних місць: <b>${remainingAfter}</b>
-🪙 Вартість участі: <b>${game.payment} грн</b>`;
+
+${info}`;
         }
 
         if (msg) {

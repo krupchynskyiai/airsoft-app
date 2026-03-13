@@ -193,9 +193,16 @@ router.post("/games/:id/status", async (req, res) => {
           cancelled: "❌ <b>Гру скасовано</b>",
         };
 
+        const info = `📅 Дата: ${g.date}
+⏰ Час: ${g.time || "—"}
+📍 Локація: ${g.location}
+🪙 Вартість участі: <b>${g.payment || 0} грн</b>`;
+
         const msg = `${labels[status] || "ℹ️ Статус гри змінено"}
 
-🎮 Гра #${gid}`;
+🎮 Гра #${gid}
+
+${info}`;
 
         await bot.api.sendMessage(config.CHANNEL_ID, msg, {
           parse_mode: "HTML",
@@ -263,12 +270,19 @@ router.post("/games/:id/start-round", async (req, res) => {
       try {
         const deepLink = `https://t.me/${config.BOT_USERNAME}?startapp=game_${gid}`;
 
+        const info = `📅 Дата: ${game.date}
+⏰ Час: ${game.time || "—"}
+📍 Локація: ${game.location}
+🪙 Вартість участі: <b>${game.payment || 0} грн</b>`;
+
         await bot.api.sendMessage(
           config.CHANNEL_ID,
           `🔥 <b>Почався раунд!</b>
 
 🎮 Гра #${gid}
-🔄 Раунд: <b>${nextR}</b>`,
+🔄 Раунд: <b>${nextR}</b>
+
+${info}`,
           {
             parse_mode: "HTML",
             reply_markup: {
@@ -326,6 +340,11 @@ router.post("/games/:id/end-round", async (req, res) => {
               ? "🔴 Команда B"
               : "⚪ Без переможця";
 
+        const info = `📅 Дата: ${game.date}
+⏰ Час: ${game.time || "—"}
+📍 Локація: ${game.location}
+🪙 Вартість участі: <b>${game.payment || 0} грн</b>`;
+
         await bot.api.sendMessage(
           config.CHANNEL_ID,
           `🏁 <b>Раунд завершено</b>
@@ -333,7 +352,9 @@ router.post("/games/:id/end-round", async (req, res) => {
 🎮 Гра #${gid}
 🔄 Раунд: ${game.current_round}
 
-🏆 Переможець: <b>${winner}</b>`,
+🏆 Переможець: <b>${winner}</b>
+
+${info}`,
           {
             parse_mode: "HTML",
             reply_markup: {
