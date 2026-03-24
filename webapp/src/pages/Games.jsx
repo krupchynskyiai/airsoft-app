@@ -126,7 +126,7 @@ export default function Games({ onOpenGame }) {
                   <div className="font-bold text-[15px] mb-0.5">
                     📅 {g.date} {g.time && <span className="text-gray-400 font-normal">о {g.time}</span>}
                   </div>
-                  <div className="text-sm text-gray-400 flex items-center gap-1">
+                  <div className="text-sm text-gray-400 flex items-center gap-1 min-w-0">
                     📍 {g.location}
                   </div>
                   {g.duration && (
@@ -137,9 +137,9 @@ export default function Games({ onOpenGame }) {
                 </div>
 
                 {/* Bottom stats */}
-                <div className="flex items-center justify-between">
-                  <div className="flex flex-col gap-1">
-                    <div className="flex items-center gap-4">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex flex-col gap-1 min-w-0">
+                    <div className="flex items-center gap-3 flex-wrap">
                       <div className="flex items-center gap-1.5 text-sm text-gray-400">
                         <span className="text-base">👥</span>
                         <span className="font-semibold text-gray-300">{g.player_count}</span>
@@ -165,7 +165,7 @@ export default function Games({ onOpenGame }) {
                     {Array.isArray(g.friends_in_game) && g.friends_in_game.length > 0 && (
                       <div className="flex items-center gap-1.5 text-[11px] text-emerald-300">
                         <span>🤝</span>
-                        <span className="truncate">
+                        <span className="truncate max-w-[210px]">
                           Друзі: {g.friends_in_game.join(", ")}
                         </span>
                       </div>

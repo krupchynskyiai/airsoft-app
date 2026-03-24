@@ -20,20 +20,26 @@ router.get("/", async (req, res) => {
 
     sql += " ORDER BY created_at DESC LIMIT 50";
     const games = await q(sql, params);
+    const gameIds = games.map((g) => g.id);
 
-    // Attach player counts
-
-    for (const g of games) {
-      const cnt = await q1(
-        "SELECT COUNT(*) as c FROM game_players WHERE game_id = ?",
-        [g.id],
+    // Attach player counts in one query
+    if (gameIds.length > 0) {
+      const counts = await q(
+        `SELECT game_id, COUNT(*) as c
+         FROM game_players
+         WHERE game_id IN (${gameIds.map(() => "?").join(",")})
+         GROUP BY game_id`,
+        gameIds,
       );
-      g.player_count = cnt.c;
+      const countMap = new Map(counts.map((r) => [r.game_id, r.c]));
+      for (const g of games) {
+        g.player_count = countMap.get(g.id) || 0;
+      }
     }
 
-    // Attach friends in game (if user is registered and has friends)
+    // Attach friends in game (if user is registered and has friends) in one query
     const tgId = req.tgUser?.id;
-    if (tgId) {
+    if (tgId && gameIds.length > 0) {
       const me = await q1(
         "SELECT id FROM players WHERE telegram_id = ?",
         [tgId],
@@ -45,17 +51,21 @@ router.get("/", async (req, res) => {
         );
         const friendIds = friendRows.map((r) => r.friend_id);
         if (friendIds.length > 0) {
+          const rows = await q(
+            `SELECT gp.game_id, p.nickname
+             FROM game_players gp
+             JOIN players p ON p.id = gp.player_id
+             WHERE gp.game_id IN (${gameIds.map(() => "?").join(",")})
+               AND gp.player_id IN (${friendIds.map(() => "?").join(",")})`,
+            [...gameIds, ...friendIds],
+          );
+          const friendsByGame = new Map();
+          for (const row of rows) {
+            if (!friendsByGame.has(row.game_id)) friendsByGame.set(row.game_id, []);
+            friendsByGame.get(row.game_id).push(row.nickname);
+          }
           for (const g of games) {
-            const inGame = await q(
-              `SELECT p.nickname 
-               FROM game_players gp 
-               JOIN players p ON p.id = gp.player_id 
-               WHERE gp.game_id=? AND gp.player_id IN (${friendIds
-                 .map(() => "?")
-                 .join(",")})`,
-              [g.id, ...friendIds],
-            );
-            g.friends_in_game = inGame.map((r) => r.nickname);
+            g.friends_in_game = friendsByGame.get(g.id) || [];
           }
         }
       }
@@ -98,11 +108,15 @@ router.get("/:id", async (req, res) => {
 
     let myWaitlist = false;
     if (me && !myRegistration) {
-      const w = await q1(
-        "SELECT id FROM game_waitlist WHERE game_id=? AND player_id=?",
-        [gid, me.id],
-      );
-      myWaitlist = !!w;
+      try {
+        const w = await q1(
+          "SELECT id FROM game_waitlist WHERE game_id=? AND player_id=?",
+          [gid, me.id],
+        );
+        myWaitlist = !!w;
+      } catch (e) {
+        log.error("Waitlist lookup error (ignored)", { e: e.message });
+      }
     }
 
     res.json({ game, players, rounds, myRegistration, myWaitlist });
@@ -559,7 +573,7 @@ router.get("/:id/round", async (req, res) => {
     if (!game) return res.status(404).json({ error: "Not found" });
 
     const round = await q1(
-      "SELECT * FROM rounds WHERE game_id=? AND round_number=? AND status='active'",
+      "SELECT *, UNIX_TIMESTAMP(started_at) as started_at_ts FROM rounds WHERE game_id=? AND round_number=? AND status='active'",
       [gid, game.current_round],
     );
 

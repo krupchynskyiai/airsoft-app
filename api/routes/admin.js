@@ -525,14 +525,14 @@ router.post("/games/:id/kick-player", async (req, res) => {
     }
 
     const game = await q1(
-      "SELECT id, date, time, location, status, max_players, payment FROM games WHERE id=?",
+      "SELECT id, date, time, location, status, max_players, payment, duration FROM games WHERE id=?",
       [gid],
     );
     if (!game) {
       return res.status(404).json({ error: "Game not found" });
     }
 
-    if (["active", "finished", "cancelled"].includes(game.status)) {
+    if (["finished", "cancelled"].includes(game.status)) {
       return res
         .status(400)
         .json({ error: "Cannot kick players for this game status" });
@@ -644,6 +644,7 @@ ${info}`,
         const info = `📅 Дата: ${game.date}
 ⏰ Час: ${game.time || "—"}
 📍 Локація: ${game.location}
+⏱ Тривалість: <b>${game.duration || "—"}</b>
 🪙 Вартість участі: <b>${game.payment} грн</b>`;
 
         let msg;

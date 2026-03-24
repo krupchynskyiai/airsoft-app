@@ -30,8 +30,11 @@ function useRoundTimer(startedAt, isActive) {
   useEffect(() => {
     if (!isActive || !startedAt) { setElapsed(0); return; }
 
-    const start = new Date(startedAt).getTime();
-    const tick = () => setElapsed(Math.floor((Date.now() - start) / 1000));
+    const startMs = Number(startedAt) > 0
+      ? Number(startedAt) * 1000
+      : new Date(String(startedAt).replace(" ", "T")).getTime();
+    const tick = () =>
+      setElapsed(Math.max(0, Math.floor((Date.now() - startMs) / 1000)));
     tick();
     const interval = setInterval(tick, 1000);
     return () => clearInterval(interval);
@@ -50,8 +53,11 @@ export default function GameDetail({ gameId, onBack, isAdmin }) {
   const [mvpState, setMvpState] = useState(null);
   const [mvpLoading, setMvpLoading] = useState(false);
   const { haptic, showAlert } = useTelegram();
+  const isLoadingRef = useRef(false);
 
   const load = useCallback(async () => {
+    if (isLoadingRef.current) return;
+    isLoadingRef.current = true;
     try {
       const d = await getGameDetail(gameId);
       setData(d);
@@ -64,25 +70,44 @@ export default function GameDetail({ gameId, onBack, isAdmin }) {
     } catch (e) {
       console.error(e);
     } finally {
+      isLoadingRef.current = false;
       setLoading(false);
     }
   }, [gameId]);
 
+  const refreshRoundOnly = useCallback(async () => {
+    try {
+      if (data?.game?.status !== "active") {
+        setRound(null);
+        return;
+      }
+      const r = await getRoundStatus(gameId);
+      setRound(r);
+    } catch (e) {
+      console.error(e);
+    }
+  }, [gameId, data?.game?.status]);
+
   useEffect(() => { load(); }, [load]);
 
   useEffect(() => {
-    if (data?.game?.status !== "active") return;
-    const interval = setInterval(load, 5000);
+    if (data?.game?.status !== "active" && data?.game?.status !== "checkin")
+      return;
+    const interval = setInterval(load, data?.game?.status === "active" ? 4000 : 3000);
     return () => clearInterval(interval);
   }, [data?.game?.status, load]);
 
-  async function doAction(fn, successMsg) {
+  async function doAction(fn, successMsg, refreshMode = "full") {
     setActionLoading(true);
     try {
       await fn();
       haptic("success");
       if (successMsg) showAlert(successMsg);
-      await load();
+      if (refreshMode === "round") {
+        await refreshRoundOnly();
+      } else if (refreshMode === "full") {
+        await load();
+      }
     } catch (e) {
       showAlert(e.message);
       haptic("error");
@@ -93,7 +118,7 @@ export default function GameDetail({ gameId, onBack, isAdmin }) {
 
   // Round timer
   const timerValue = useRoundTimer(
-    round?.round?.started_at,
+    round?.round?.started_at_ts || round?.round?.started_at,
     round?.active || false
   );
 
@@ -595,7 +620,13 @@ export default function GameDetail({ gameId, onBack, isAdmin }) {
                         </div>
                         {isAdmin && p.is_alive && (
                           <button
-                            onClick={() => doAction(() => adminKillPlayer(gameId, p.player_id))}
+                            onClick={() =>
+                              doAction(
+                                () => adminKillPlayer(gameId, p.player_id),
+                                null,
+                                "round",
+                              )
+                            }
                             className="text-xs bg-red-800/60 hover:bg-red-700/60 px-3 py-1.5 rounded-lg font-semibold active:scale-95 transition-all"
                           >
                             💀 Kill
@@ -616,17 +647,17 @@ export default function GameDetail({ gameId, onBack, isAdmin }) {
                 <>
                   <p className="text-xs text-gray-500 mb-2 font-medium">Завершити раунд — хто виграв?</p>
                   <div className="flex gap-2">
-                    <button onClick={() => doAction(() => adminEndRound(gameId, "A"))} className="flex-1 bg-blue-700/40 border border-blue-600/30 py-2.5 rounded-xl text-sm font-bold text-blue-300 active:scale-95 transition-transform">
+                    <button onClick={() => doAction(() => adminEndRound(gameId, "A"), null, "full")} className="flex-1 bg-blue-700/40 border border-blue-600/30 py-2.5 rounded-xl text-sm font-bold text-blue-300 active:scale-95 transition-transform">
                       🔵 Team A
                     </button>
-                    <button onClick={() => doAction(() => adminEndRound(gameId, "B"))} className="flex-1 bg-red-700/40 border border-red-600/30 py-2.5 rounded-xl text-sm font-bold text-red-300 active:scale-95 transition-transform">
+                    <button onClick={() => doAction(() => adminEndRound(gameId, "B"), null, "full")} className="flex-1 bg-red-700/40 border border-red-600/30 py-2.5 rounded-xl text-sm font-bold text-red-300 active:scale-95 transition-transform">
                       🔴 Team B
                     </button>
                   </div>
                 </>
               ) : (
                 <button
-                  onClick={() => doAction(() => adminEndRound(gameId, null))}
+                  onClick={() => doAction(() => adminEndRound(gameId, null), null, "full")}
                   className="w-full bg-slate-700/60 border border-slate-600/30 py-2.5 rounded-xl text-sm font-bold text-gray-300 active:scale-95 transition-transform"
                 >
                   ⏹ Завершити раунд
@@ -683,7 +714,7 @@ export default function GameDetail({ gameId, onBack, isAdmin }) {
               </div>
               <div className="flex items-center gap-2">
                 {p.team_name && (
-                  <span className="text-[11px] text-gray-500">
+                  <span className="text-[11px] text-gray-500 truncate max-w-[110px]">
                     {p.team_name}
                   </span>
                 )}

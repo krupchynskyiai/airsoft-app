@@ -172,9 +172,10 @@ export default function Profile({ profile, onReload }) {
     return () => clearTimeout(t);
   }, [badgeCelebration]);
   const winRate = p.games_played > 0 ? Math.round((p.wins / p.games_played) * 100) : 0;
-  const survivalRate = p.games_played > 0
+  const rawSurvivalRate = p.games_played > 0
     ? Math.round(((p.games_played * 3 - p.total_deaths) / (p.games_played * 3)) * 100)
     : 100;
+  const survivalRate = Math.max(0, Math.min(100, rawSurvivalRate));
 
   return (
     <div className="relative min-h-screen pb-8">

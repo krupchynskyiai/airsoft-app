@@ -64,7 +64,18 @@ export default function App() {
 
   async function loadProfile() {
     try {
-      const data = await getProfile();
+      let data = null;
+      let lastError = null;
+      for (let i = 0; i < 3; i += 1) {
+        try {
+          data = await getProfile();
+          break;
+        } catch (e) {
+          lastError = e;
+          await new Promise((resolve) => setTimeout(resolve, 400 + i * 300));
+        }
+      }
+      if (!data) throw lastError || new Error("Profile load failed");
       setProfile(data);
       setIsAdmin(data.is_admin === true);
     } catch (e) {
