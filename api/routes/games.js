@@ -257,12 +257,57 @@ ${info}`,
 ⏱ Тривалість: <b>${game.duration || "—"}</b>
 🪙 Вартість участі: <b>${payment} грн</b>`;
 
-        const notifyThresholds = new Set([30, 20, 10, 5, 1]);
-        if (remaining > 0 && notifyThresholds.has(remaining)) {
+        if (remaining === 30 || remaining === 20) {
+          const msg = `ℹ️ <b>Оновлення по місцях</b>
+
+🎮 Гра #${gid}
+👥 Залишилось місць: <b>${remaining}</b>
+
+${info}`;
+
+          await bot.api.sendMessage(config.CHANNEL_ID, msg, {
+            parse_mode: "HTML",
+            reply_markup: {
+              inline_keyboard: [
+                [
+                  {
+                    text: "🔥 Записатися",
+                    url: deepLink,
+                  },
+                ],
+              ],
+            },
+          });
+        }
+
+        if (remaining === 10 || remaining === 5) {
           const msg = `⚠️ <b>Залишилось мало місць!</b>
 
 🎮 Гра #${gid}
 👥 Залишилось місць: <b>${remaining}</b>
+
+${info}`;
+
+          await bot.api.sendMessage(config.CHANNEL_ID, msg, {
+            parse_mode: "HTML",
+            reply_markup: {
+              inline_keyboard: [
+                [
+                  {
+                    text: "🔥 Записатися",
+                    url: deepLink,
+                  },
+                ],
+              ],
+            },
+          });
+        }
+
+        if (remaining === 1) {
+          const msg = `🚨 <b>Залишилось останнє місце!</b>
+
+🎮 Гра #${gid}
+👥 Вільних місць: <b>1</b>
 
 ${info}`;
 
