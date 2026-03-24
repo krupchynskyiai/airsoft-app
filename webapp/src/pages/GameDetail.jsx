@@ -14,6 +14,7 @@ import {
   adminReviewCheckin,
   adminKickFromGame,
    adminMoveGameTeam,
+  adminShuffleGameTeams,
 } from "../api";
 import { useTelegram } from "../hooks/useTelegram";
 
@@ -53,6 +54,21 @@ export default function GameDetail({ gameId, onBack, isAdmin }) {
   const [mvpState, setMvpState] = useState(null);
   const [mvpLoading, setMvpLoading] = useState(false);
   const { haptic, showAlert } = useTelegram();
+  async function confirmShuffleTeams() {
+    const tg = window.Telegram?.WebApp;
+    if (tg?.showConfirm) {
+      return await new Promise((resolve) => {
+        tg.showConfirm(
+          "Перемішати команди випадково перед наступним раундом?",
+          (ok) => resolve(!!ok),
+        );
+      });
+    }
+    return window.confirm(
+      "Перемішати команди випадково перед наступним раундом?",
+    );
+  }
+
   const isLoadingRef = useRef(false);
 
   const load = useCallback(async () => {
@@ -550,6 +566,22 @@ export default function GameDetail({ gameId, onBack, isAdmin }) {
                 Раундів зіграно:{" "}
                 {rounds.filter((r) => r.status === "finished").length}
               </p>
+              {g.game_mode !== "ffa" && (
+                <button
+                  onClick={async () => {
+                    const ok = await confirmShuffleTeams();
+                    if (!ok) return;
+                    doAction(
+                      () => adminShuffleGameTeams(gameId),
+                      "🔀 Команди перемішано випадково",
+                    );
+                  }}
+                  disabled={actionLoading}
+                  className="w-full mb-2 bg-slate-700/70 border border-slate-600/40 py-3 rounded-2xl font-bold text-[14px] transition-all active:scale-[0.98] disabled:opacity-50"
+                >
+                  {actionLoading ? <Spinner /> : "🔀 Випадково перемішати команди"}
+                </button>
+              )}
               <button
                 onClick={() => doAction(() => adminStartRound(gameId))}
                 disabled={actionLoading}

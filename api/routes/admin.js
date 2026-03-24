@@ -514,6 +514,76 @@ router.post("/games/:id/move-player", async (req, res) => {
   }
 });
 
+// POST /api/admin/games/:id/shuffle-teams — random shuffle checked-in players between A/B
+router.post("/games/:id/shuffle-teams", async (req, res) => {
+  try {
+    const gid = parseInt(req.params.id);
+
+    const game = await q1("SELECT id, status, game_mode FROM games WHERE id=?", [gid]);
+    if (!game) {
+      return res.status(404).json({ error: "Game not found" });
+    }
+
+    if (game.game_mode === "ffa") {
+      return res.status(400).json({ error: "Shuffle is not available for FFA mode" });
+    }
+
+    // Allowed only between rounds (active game, no active round)
+    if (game.status !== "active") {
+      return res.status(400).json({ error: "Shuffle is available only during active game" });
+    }
+
+    const activeRound = await q1(
+      "SELECT id FROM rounds WHERE game_id=? AND status='active' ORDER BY round_number DESC LIMIT 1",
+      [gid],
+    );
+    if (activeRound) {
+      return res.status(400).json({ error: "Cannot shuffle teams during active round" });
+    }
+
+    const players = await q(
+      "SELECT id, player_id FROM game_players WHERE game_id=? AND attendance='checked_in'",
+      [gid],
+    );
+    if (players.length < 2) {
+      return res.status(400).json({ error: "Not enough checked-in players to shuffle teams" });
+    }
+
+    // Fisher-Yates
+    const shuffled = [...players];
+    for (let i = shuffled.length - 1; i > 0; i -= 1) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+
+    const split = Math.ceil(shuffled.length / 2);
+    const teamA = shuffled.slice(0, split);
+    const teamB = shuffled.slice(split);
+
+    for (const p of teamA) {
+      await ins("UPDATE game_players SET game_team='A' WHERE id=?", [p.id]);
+    }
+    for (const p of teamB) {
+      await ins("UPDATE game_players SET game_team='B' WHERE id=?", [p.id]);
+    }
+
+    log.info("Admin shuffled teams", {
+      gid,
+      count: shuffled.length,
+      teamA: teamA.length,
+      teamB: teamB.length,
+    });
+
+    res.json({
+      success: true,
+      teamA: teamA.length,
+      teamB: teamB.length,
+    });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 // POST /api/admin/games/:id/kick-player — remove registered player from game
 router.post("/games/:id/kick-player", async (req, res) => {
   try {

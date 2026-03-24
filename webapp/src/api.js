@@ -123,6 +123,10 @@ export const adminMoveGameTeam = (gameId, playerId, targetTeam) =>
     method: "POST",
     body: { player_id: playerId, target_team: targetTeam },
   });
+export const adminShuffleGameTeams = (gameId) =>
+  api(`/admin/games/${gameId}/shuffle-teams`, {
+    method: "POST",
+  });
 export const adminAddToBlacklist = (playerId, reason) =>
   api("/admin/blacklist/add", {
     method: "POST",
