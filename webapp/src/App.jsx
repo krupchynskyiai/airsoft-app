@@ -128,7 +128,7 @@ export default function App() {
     return (
       <div className="flex items-center justify-center h-screen bg-slate-900">
         <div className="text-center">
-          <div className="relative mb-6">
+          <div className="relative mb-6 mx-auto w-fit">
             <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-emerald-500 to-cyan-600 flex items-center justify-center text-4xl shadow-2xl shadow-emerald-900/50 animate-bounce-slow">
               🎯
             </div>
