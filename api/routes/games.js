@@ -257,7 +257,8 @@ ${info}`,
 ⏱ Тривалість: <b>${game.duration || "—"}</b>
 🪙 Вартість участі: <b>${payment} грн</b>`;
 
-        if (remaining > 0) {
+        const notifyThresholds = new Set([30, 20, 10, 5, 1]);
+        if (remaining > 0 && notifyThresholds.has(remaining)) {
           const msg = `⚠️ <b>Залишилось мало місць!</b>
 
 🎮 Гра #${gid}
