@@ -8,12 +8,69 @@ import {
 } from "../api";
 import PlayerSearch from "../components/PlayerSearch";
 import { useTelegram } from "../hooks/useTelegram";
+import { getPlayerLevelState } from "../utils/playerLevel";
 import {
-  Crosshair, Medal, Trophy, Crown, Flame, Star, Gem, Shield, Skull, Award
+  Award,
+  BadgeCheck,
+  ClipboardList,
+  CircleDot,
+  Crosshair,
+  Crown,
+  Flame,
+  Flag,
+  Gauge,
+  Gem,
+  Hash,
+  Heart,
+  Medal,
+  Moon,
+  Mountain,
+  PartyPopper,
+  Rocket,
+  Shield,
+  Skull,
+  Sparkles,
+  Star,
+  Sun,
+  Swords,
+  Target,
+  Trophy,
+  TrendingUp,
+  Users,
+  Zap,
+  Hexagon,
 } from "lucide-react";
 
 const BADGE_ICONS = {
-  Crosshair, Medal, Trophy, Crown, Flame, Star, Gem, Shield, Skull, Award,
+  Award,
+  BadgeCheck,
+  ClipboardList,
+  CircleDot,
+  Crosshair,
+  Crown,
+  Flame,
+  Flag,
+  Gauge,
+  Gem,
+  Hash,
+  Heart,
+  Medal,
+  Moon,
+  Mountain,
+  PartyPopper,
+  Rocket,
+  Shield,
+  Skull,
+  Sparkles,
+  Star,
+  Sun,
+  Swords,
+  Target,
+  Trophy,
+  TrendingUp,
+  Users,
+  Zap,
+  Hexagon,
 };
 
 // ---- Animated background particles (decorative) ----
@@ -96,6 +153,7 @@ export default function Profile({ profile, onReload }) {
   }
 
   const p = profile.player;
+  const levelState = getPlayerLevelState(p.rating);
 
   useEffect(() => {
     async function loadFriends() {
@@ -263,7 +321,7 @@ export default function Profile({ profile, onReload }) {
                 🪖
               </div>
               <div className="absolute -bottom-1 -right-1 bg-amber-500 text-[10px] font-black px-1.5 py-0.5 rounded-md shadow-md">
-                LV{Math.floor(p.rating / 100) + 1}
+                LV{levelState.level}
               </div>
             </div>
             <div className="flex-1 min-w-0">
@@ -275,7 +333,13 @@ export default function Profile({ profile, onReload }) {
           {/* Rating */}
           <div className="flex items-center justify-center gap-3 bg-white/10 backdrop-blur-sm rounded-2xl py-4 px-5 border border-white/10">
             <div className="relative flex items-center justify-center">
-              <ProgressRing value={p.rating % 1000} max={1000} size={64} stroke={4} color="#fbbf24" />
+              <ProgressRing
+                value={levelState.progress}
+                max={levelState.span}
+                size={64}
+                stroke={4}
+                color="#fbbf24"
+              />
               <div className="absolute inset-0 flex items-center justify-center">
                 <span className="text-lg font-black">{p.rating}</span>
               </div>
@@ -283,7 +347,7 @@ export default function Profile({ profile, onReload }) {
             <div>
               <div className="text-xs text-emerald-100/60 uppercase tracking-wider font-semibold">Рейтинг</div>
               <div className="text-[13px] text-emerald-100/80">
-                Далі: {1000 - (p.rating % 1000)} до рівня {Math.floor(p.rating / 100) + 2}
+                Далі: {levelState.pointsToNext} до рівня {levelState.nextLevel}
               </div>
             </div>
           </div>

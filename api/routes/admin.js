@@ -584,6 +584,61 @@ router.post("/games/:id/shuffle-teams", async (req, res) => {
   }
 });
 
+// POST /api/admin/games/:id/mvp-select — admin picks Round MVP (latest finished round or any finished round)
+router.post("/games/:id/mvp-select", async (req, res) => {
+  try {
+    const gid = parseInt(req.params.id);
+    const { round_id, target_player_id } = req.body;
+
+    if (!round_id || !target_player_id) {
+      return res.status(400).json({ error: "round_id and target_player_id required" });
+    }
+
+    const game = await q1("SELECT id, status, game_mode FROM games WHERE id=?", [gid]);
+    if (!game) return res.status(404).json({ error: "Game not found" });
+
+    // MVP selection is only meaningful after a round is finished
+    const round = await q1(
+      "SELECT id, round_number, winner_game_team, status FROM rounds WHERE id=? AND game_id=?",
+      [round_id, gid],
+    );
+    if (!round || round.status !== "finished" || !round.winner_game_team) {
+      return res.status(400).json({ error: "Round not eligible for MVP selection" });
+    }
+
+    // target must be from winning team in that round
+    const targetInRound = await q1(
+      "SELECT id FROM round_players WHERE round_id=? AND player_id=? AND game_team=?",
+      [round_id, target_player_id, round.winner_game_team],
+    );
+    if (!targetInRound) {
+      return res.status(400).json({ error: "Invalid MVP target (must be from winning team)" });
+    }
+
+    // Use admin's player_id as voter_player_id (so mvp-state can find "my vote")
+    const adminPlayer = await q1(
+      "SELECT id FROM players WHERE telegram_id=?",
+      [req.tgUser?.id],
+    );
+    if (!adminPlayer) {
+      return res.status(400).json({ error: "Admin player not found (register first)" });
+    }
+
+    // Make admin selection the single source of truth for the round.
+    await ins("DELETE FROM round_mvp_votes WHERE round_id=?", [round_id]);
+
+    await ins(
+      "INSERT INTO round_mvp_votes (round_id,game_id,voter_player_id,target_player_id,created_at) VALUES (?,?,?,?,NOW())",
+      [round_id, gid, adminPlayer.id, target_player_id],
+    );
+
+    log.info("Admin selected MVP", { gid, round_id, target_player_id });
+    res.json({ success: true });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 // POST /api/admin/games/:id/kick-player — remove registered player from game
 router.post("/games/:id/kick-player", async (req, res) => {
   try {

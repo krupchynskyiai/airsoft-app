@@ -127,6 +127,11 @@ export const adminShuffleGameTeams = (gameId) =>
   api(`/admin/games/${gameId}/shuffle-teams`, {
     method: "POST",
   });
+export const adminSelectMvp = (gameId, roundId, targetPlayerId) =>
+  api(`/admin/games/${gameId}/mvp-select`, {
+    method: "POST",
+    body: { round_id: roundId, target_player_id: targetPlayerId },
+  });
 export const adminAddToBlacklist = (playerId, reason) =>
   api("/admin/blacklist/add", {
     method: "POST",

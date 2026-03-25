@@ -7,7 +7,6 @@ import {
   reportDead,
   getRoundStatus,
   getMvpState,
-  voteMvp,
   adminKillPlayer,
   adminEndRound,
   adminSetGameStatus,
@@ -15,6 +14,7 @@ import {
   adminKickFromGame,
    adminMoveGameTeam,
   adminShuffleGameTeams,
+  adminSelectMvp,
 } from "../api";
 import { useTelegram } from "../hooks/useTelegram";
 
@@ -494,7 +494,7 @@ export default function GameDetail({ gameId, onBack, isAdmin }) {
                       MVP Раунду {mvpState.round_number}
                     </h3>
                     <p className="text-[11px] text-gray-400">
-                      Голосує тільки команда-переможець
+                      {isAdmin ? "Адмін обирає MVP" : "MVP обирає адмін"}
                     </p>
                   </div>
                 </div>
@@ -523,18 +523,18 @@ export default function GameDetail({ gameId, onBack, isAdmin }) {
                               {c.mvp_votes}
                             </span>
                           </span>
-                          {mvpState.canVote && !isMine && (
+                          {isAdmin && (
                             <button
                               onClick={async () => {
                                 try {
                                   haptic("impact");
-                                  await voteMvp(
+                                  await adminSelectMvp(
                                     gameId,
                                     mvpState.round_id,
                                     c.player_id,
                                   );
                                   showAlert(
-                                    `✅ Ти проголосував за ${c.nickname} як MVP`,
+                                    `✅ MVP обрано: ${c.nickname}`,
                                   );
                                   const s = await getMvpState(gameId);
                                   setMvpState(s.hasRound ? s : null);
@@ -543,9 +543,14 @@ export default function GameDetail({ gameId, onBack, isAdmin }) {
                                   haptic("error");
                                 }
                               }}
-                              className="px-2 py-1 rounded-lg bg-emerald-600/70 text-[10px] font-bold text-white active:scale-95"
+                              disabled={actionLoading || isMine}
+                              className={`px-2 py-1 rounded-lg text-[10px] font-bold active:scale-95 ${
+                                isMine
+                                  ? "bg-slate-700/60 text-gray-200 opacity-90"
+                                  : "bg-emerald-600/70 text-white"
+                              }`}
                             >
-                              Голосувати
+                              {isMine ? "Обраний" : "Обрати MVP"}
                             </button>
                           )}
                         </div>
