@@ -55,3 +55,19 @@ export function getPlayerLevelState(rating) {
     span += 15;
   }
 }
+
+export function getAvatarForLevel(level) {
+  const lv = Math.max(1, Math.floor(Number(level) || 1));
+
+  // Tiered avatar system: recognizable by emoji + consistent color theme.
+  // (User cannot edit; derived from level only.)
+  if (lv <= 1) return { emoji: "🪖", ring: "#94a3b8", bg: "from-slate-600/30 to-slate-900/30" };
+  if (lv === 2) return { emoji: "🥾", ring: "#38bdf8", bg: "from-sky-600/30 to-slate-900/30" };
+  if (lv === 3) return { emoji: "🛡️", ring: "#22c55e", bg: "from-emerald-600/30 to-slate-900/30" };
+  if (lv === 4) return { emoji: "⚔️", ring: "#f59e0b", bg: "from-amber-600/30 to-slate-900/30" };
+  if (lv === 5) return { emoji: "🎖️", ring: "#a855f7", bg: "from-violet-600/30 to-slate-900/30" };
+  if (lv <= 7) return { emoji: "🦅", ring: "#06b6d4", bg: "from-cyan-600/30 to-slate-900/30" };
+  if (lv <= 10) return { emoji: "🐺", ring: "#ef4444", bg: "from-rose-600/30 to-slate-900/30" };
+  if (lv <= 15) return { emoji: "👑", ring: "#fbbf24", bg: "from-yellow-500/30 to-slate-900/30" };
+  return { emoji: "💎", ring: "#60a5fa", bg: "from-blue-500/30 to-slate-900/30" };
+}

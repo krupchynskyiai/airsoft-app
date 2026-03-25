@@ -8,7 +8,7 @@ import {
 } from "../api";
 import PlayerSearch from "../components/PlayerSearch";
 import { useTelegram } from "../hooks/useTelegram";
-import { getPlayerLevelState } from "../utils/playerLevel";
+import { getAvatarForLevel, getPlayerLevelState } from "../utils/playerLevel";
 import {
   Award,
   BadgeCheck,
@@ -154,6 +154,7 @@ export default function Profile({ profile, onReload }) {
 
   const p = profile.player;
   const levelState = getPlayerLevelState(p.rating);
+  const avatar = getAvatarForLevel(levelState.level);
 
   useEffect(() => {
     async function loadFriends() {
@@ -317,8 +318,11 @@ export default function Profile({ profile, onReload }) {
           {/* Avatar + name */}
           <div className="flex items-center gap-4 mb-5">
             <div className="relative">
-              <div className="w-[72px] h-[72px] rounded-2xl bg-white/15 backdrop-blur-sm flex items-center justify-center text-3xl shadow-lg border border-white/20">
-                🪖
+              <div
+                className={`w-[72px] h-[72px] rounded-2xl backdrop-blur-sm flex items-center justify-center text-3xl shadow-lg border border-white/20 bg-gradient-to-br ${avatar.bg}`}
+                style={{ boxShadow: `0 20px 60px ${avatar.ring}22` }}
+              >
+                {avatar.emoji}
               </div>
               <div className="absolute -bottom-1 -right-1 bg-amber-500 text-[10px] font-black px-1.5 py-0.5 rounded-md shadow-md">
                 LV{levelState.level}
@@ -338,7 +342,7 @@ export default function Profile({ profile, onReload }) {
                 max={levelState.span}
                 size={64}
                 stroke={4}
-                color="#fbbf24"
+                color={avatar.ring}
               />
               <div className="absolute inset-0 flex items-center justify-center">
                 <span className="text-lg font-black">{p.rating}</span>
