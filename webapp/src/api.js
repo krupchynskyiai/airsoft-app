@@ -132,6 +132,11 @@ export const adminSelectMvp = (gameId, roundId, targetPlayerId) =>
     method: "POST",
     body: { round_id: roundId, target_player_id: targetPlayerId },
   });
+export const adminAddPlayersByUsername = (gameId, usernames) =>
+  api(`/admin/games/${gameId}/add-by-username`, {
+    method: "POST",
+    body: { usernames },
+  });
 export const adminAddToBlacklist = (playerId, reason) =>
   api("/admin/blacklist/add", {
     method: "POST",

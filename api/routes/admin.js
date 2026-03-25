@@ -639,6 +639,102 @@ router.post("/games/:id/mvp-select", async (req, res) => {
   }
 });
 
+// POST /api/admin/games/:id/add-by-username — add players by Telegram @username (even if never opened app)
+router.post("/games/:id/add-by-username", async (req, res) => {
+  try {
+    const gid = parseInt(req.params.id);
+    const { usernames } = req.body; // array of strings
+
+    if (!Array.isArray(usernames) || usernames.length === 0) {
+      return res.status(400).json({ error: "usernames[] required" });
+    }
+
+    const game = await q1("SELECT id, status FROM games WHERE id=?", [gid]);
+    if (!game) return res.status(404).json({ error: "Game not found" });
+    if (["finished", "cancelled"].includes(game.status)) {
+      return res.status(400).json({ error: "Cannot add players for this game status" });
+    }
+
+    const normalized = Array.from(
+      new Set(
+        usernames
+          .map((u) => String(u || "").trim())
+          .filter(Boolean)
+          .map((u) => u.replace(/^https?:\/\/t\.me\//i, ""))
+          .map((u) => u.replace(/^t\.me\//i, ""))
+          .map((u) => u.replace(/^@/, ""))
+          .map((u) => u.split("?")[0])
+          .map((u) => u.split("/")[0])
+          .map((u) => u.trim()),
+      ),
+    ).filter((u) => u.length >= 3);
+
+    const added = [];
+    const skipped = [];
+
+    for (const uname of normalized) {
+      let player = null;
+
+      // Prefer telegram_username lookup (requires schema support)
+      try {
+        player = await q1(
+          "SELECT id, telegram_id FROM players WHERE telegram_username=? LIMIT 1",
+          [uname],
+        );
+      } catch (e) {
+        return res.status(400).json({
+          error:
+            "DB schema missing telegram_username/nullable telegram_id. Run the SQL migration from the instructions.",
+        });
+      }
+
+      if (!player) {
+        // Prevent conflicts: don't create placeholder if nickname is already taken by someone else
+        const nick = `@${uname}`;
+        const nickTaken = await q1(
+          "SELECT id, telegram_id, telegram_username FROM players WHERE nickname IN (?,?) LIMIT 1",
+          [uname, nick],
+        );
+        if (nickTaken) {
+          skipped.push({
+            username: uname,
+            reason: "nickname_conflict",
+            conflict_player_id: nickTaken.id,
+          });
+          continue;
+        }
+
+        // create placeholder (telegram_id NULL)
+        const r = await ins(
+          "INSERT INTO players (telegram_id,telegram_username,nickname,rating,games_played,wins,mvp_count,total_kills,total_deaths) VALUES (NULL,?,?,0,0,0,0,0,0)",
+          [uname, nick],
+        );
+        player = { id: r.insertId, telegram_id: null };
+      }
+
+      const existsInGame = await q1(
+        "SELECT id FROM game_players WHERE game_id=? AND player_id=?",
+        [gid, player.id],
+      );
+      if (existsInGame) {
+        skipped.push({ username: uname, reason: "already_in_game" });
+        continue;
+      }
+
+      await ins(
+        "INSERT INTO game_players (game_id, player_id, team_id) VALUES (?,?,NULL)",
+        [gid, player.id],
+      );
+      added.push({ username: uname, player_id: player.id });
+    }
+
+    log.info("Admin add-by-username", { gid, added: added.length, skipped: skipped.length });
+    res.json({ success: true, added, skipped });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 // POST /api/admin/games/:id/kick-player — remove registered player from game
 router.post("/games/:id/kick-player", async (req, res) => {
   try {

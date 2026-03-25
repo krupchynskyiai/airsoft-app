@@ -47,6 +47,51 @@ async function loadPlayerByTelegram(tgUser) {
     [tgUser.id]
   );
 
+  // If not found, try to attach an existing placeholder row by telegram username
+  if (!player && tgUser.username) {
+    const uname = String(tgUser.username).replace(/^@/, "").trim();
+    if (uname) {
+      try {
+        player = await q1(
+          "SELECT * FROM players WHERE telegram_username=? LIMIT 1",
+          [uname],
+        );
+      } catch (e) {
+        // ignore if schema doesn't support telegram_username yet
+      }
+
+      // Backward compatible: some pre-registered rows may have nickname as @username
+      if (!player) {
+        try {
+          player = await q1(
+            "SELECT * FROM players WHERE nickname IN (?,?) AND (telegram_id IS NULL OR telegram_id=0) LIMIT 1",
+            [uname, `@${uname}`],
+          );
+        } catch (e) {
+          // ignore if telegram_id is NOT NULL in schema
+        }
+      }
+
+      if (player) {
+        try {
+          await ins(
+            "UPDATE players SET telegram_id=?, telegram_username=COALESCE(telegram_username, ?) WHERE id=?",
+            [tgUser.id, uname, player.id],
+          );
+          player = await q1("SELECT * FROM players WHERE id=?", [player.id]);
+          log.info("Player attached to placeholder", {
+            telegramId: tgUser.id,
+            username: uname,
+            playerId: player.id,
+          });
+        } catch (e) {
+          // If schema doesn't allow NULL telegram_id / doesn't have telegram_username — just fall back to auto-create
+          player = null;
+        }
+      }
+    }
+  }
+
   // auto-register player if not exists
   if (!player) {
     const nickname =
@@ -54,10 +99,21 @@ async function loadPlayerByTelegram(tgUser) {
       `${tgUser.first_name || ""}${tgUser.last_name || ""}`.trim() ||
       `player_${tgUser.id}`;
 
-    const r = await ins(
-      "INSERT INTO players (telegram_id,nickname,rating,games_played,wins,total_deaths) VALUES (?,?,0,0,0,0)",
-      [tgUser.id, nickname]
-    );
+    const uname = tgUser.username ? String(tgUser.username).replace(/^@/, "").trim() : null;
+
+    // Prefer storing telegram_username if column exists (best-effort)
+    let r;
+    try {
+      r = await ins(
+        "INSERT INTO players (telegram_id,telegram_username,nickname,rating,games_played,wins,total_deaths) VALUES (?,?,?,?,0,0,0)",
+        [tgUser.id, uname, nickname],
+      );
+    } catch (e) {
+      r = await ins(
+        "INSERT INTO players (telegram_id,nickname,rating,games_played,wins,total_deaths) VALUES (?,?,0,0,0,0)",
+        [tgUser.id, nickname],
+      );
+    }
 
     player = await q1("SELECT * FROM players WHERE id=?", [r.insertId]);
 

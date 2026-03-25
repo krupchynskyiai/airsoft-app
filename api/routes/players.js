@@ -91,21 +91,68 @@ router.post("/register", async (req, res) => {
   try {
     const tgId = req.tgUser.id;
     const { nickname, team_id } = req.body;
+    const tgUsername = req.tgUser?.username
+      ? String(req.tgUser.username).replace(/^@/, "").trim()
+      : "";
 
     if (!nickname || nickname.trim().length < 2) {
       return res.status(400).json({ error: "Nickname required (min 2 chars)" });
     }
 
-    const dup = await q1("SELECT id FROM players WHERE nickname = ?", [nickname.trim()]);
-    if (dup) return res.status(400).json({ error: "Nickname taken" });
+    const desiredNick = nickname.trim();
+    const dup = await q1(
+      "SELECT id, telegram_id, telegram_username FROM players WHERE nickname = ? LIMIT 1",
+      [desiredNick],
+    );
 
     const existing = await q1("SELECT id FROM players WHERE telegram_id = ?", [tgId]);
     if (existing) return res.status(400).json({ error: "Already registered" });
 
-    const r = await ins(
-      "INSERT INTO players (telegram_id,nickname,team_id,games_played,wins,mvp_count,total_kills,total_deaths,rating) VALUES (?,?,?,0,0,0,0,0,0)",
-      [tgId, nickname.trim(), team_id || null]
-    );
+    // If there is a pre-created placeholder by telegram username, attach and reuse it.
+    let placeholder = null;
+    if (tgUsername) {
+      try {
+        placeholder = await q1(
+          "SELECT id FROM players WHERE telegram_username=? AND (telegram_id IS NULL OR telegram_id=0) LIMIT 1",
+          [tgUsername],
+        );
+      } catch (e) {
+        // ignore if schema doesn't support telegram_username / nullable telegram_id yet
+      }
+    }
+
+    // If nickname is taken by someone else, block it.
+    // But allow if it's taken by *our own placeholder* (same telegram_username, unattached).
+    if (dup) {
+      const isOwnPlaceholder =
+        !!placeholder && dup.id === placeholder.id;
+      if (!isOwnPlaceholder) {
+        return res.status(400).json({ error: "Nickname taken" });
+      }
+    }
+
+    if (placeholder) {
+      await ins(
+        "UPDATE players SET telegram_id=?, nickname=?, team_id=? WHERE id=?",
+        [tgId, desiredNick, team_id || null, placeholder.id],
+      );
+      log.info("API register attached placeholder", { tgId, nickname, id: placeholder.id });
+      return res.json({ success: true, player_id: placeholder.id });
+    }
+
+    // Otherwise create new row (store telegram_username if available/column exists)
+    let r;
+    try {
+      r = await ins(
+        "INSERT INTO players (telegram_id,telegram_username,nickname,team_id,games_played,wins,mvp_count,total_kills,total_deaths,rating) VALUES (?,?,?,?,0,0,0,0,0,0)",
+        [tgId, tgUsername || null, desiredNick, team_id || null],
+      );
+    } catch (e) {
+      r = await ins(
+        "INSERT INTO players (telegram_id,nickname,team_id,games_played,wins,mvp_count,total_kills,total_deaths,rating) VALUES (?,?,?,0,0,0,0,0,0)",
+        [tgId, desiredNick, team_id || null],
+      );
+    }
 
     log.info("API register", { tgId, nickname, id: r.insertId });
     res.json({ success: true, player_id: r.insertId });

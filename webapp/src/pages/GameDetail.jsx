@@ -15,6 +15,7 @@ import {
    adminMoveGameTeam,
   adminShuffleGameTeams,
   adminSelectMvp,
+  adminAddPlayersByUsername,
 } from "../api";
 import { useTelegram } from "../hooks/useTelegram";
 
@@ -54,6 +55,7 @@ export default function GameDetail({ gameId, onBack, isAdmin }) {
   const [mvpState, setMvpState] = useState(null);
   const [mvpLoading, setMvpLoading] = useState(false);
   const { haptic, showAlert } = useTelegram();
+  const [addUsersText, setAddUsersText] = useState("");
   async function confirmShuffleTeams() {
     const tg = window.Telegram?.WebApp;
     if (tg?.showConfirm) {
@@ -477,6 +479,46 @@ export default function GameDetail({ gameId, onBack, isAdmin }) {
                 </div>
               </div>
             )}
+
+          {/* Add players by Telegram @username (phone/surprise registrations) */}
+          <div className="mt-2 bg-slate-900/40 border border-slate-700/40 rounded-2xl p-3">
+            <div className="flex items-center gap-2 mb-2">
+              <span className="text-sm">➕</span>
+              <p className="text-xs font-semibold text-gray-300 uppercase tracking-wider">
+                Додати по @username (з телефону)
+              </p>
+            </div>
+            <textarea
+              value={addUsersText}
+              onChange={(e) => setAddUsersText(e.target.value)}
+              rows={3}
+              placeholder="@user1\nhttps://t.me/user2\nuser3"
+              className="w-full bg-slate-800/60 border border-slate-700/40 rounded-xl p-2 text-xs text-gray-200 placeholder:text-gray-500 focus:outline-none focus:border-emerald-500/40"
+            />
+            <button
+              onClick={async () => {
+                try {
+                  const usernames = addUsersText
+                    .split(/[\s,]+/g)
+                    .map((s) => s.trim())
+                    .filter(Boolean);
+                  if (usernames.length === 0) return;
+                  await doAction(
+                    () => adminAddPlayersByUsername(gameId, usernames),
+                    "✅ Додано у гру",
+                  );
+                  setAddUsersText("");
+                } catch (e) {
+                  showAlert(e.message);
+                  haptic("error");
+                }
+              }}
+              disabled={actionLoading || addUsersText.trim().length === 0}
+              className="mt-2 w-full bg-emerald-700/40 border border-emerald-600/30 py-2.5 rounded-xl text-sm font-bold text-emerald-200 active:scale-95 transition-transform disabled:opacity-50"
+            >
+              {actionLoading ? <Spinner /> : "➕ Додати в гру"}
+            </button>
+          </div>
         </div>
       )}
 
