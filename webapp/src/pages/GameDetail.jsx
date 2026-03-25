@@ -25,6 +25,12 @@ const TEAM_COLORS = {
   B: { bg: "bg-red-500/15", border: "border-red-500/30", text: "text-red-400", label: "🔴 Team B", dot: "bg-red-400" },
 };
 
+function formatNick(n) {
+  const s = String(n || "").trim();
+  if (!s) return "—";
+  return s.startsWith("@") ? s : `@${s}`;
+}
+
 // ---- Round Timer Hook ----
 function useRoundTimer(startedAt, isActive) {
   const [elapsed, setElapsed] = useState(0);
@@ -555,7 +561,7 @@ export default function GameDetail({ gameId, onBack, isAdmin }) {
                         <div className="flex items-center gap-2">
                           <span className="text-sm">{isMine ? "✅" : "🪖"}</span>
                           <span className="text-xs font-medium">
-                            {c.nickname}
+                            {formatNick(c.nickname)}
                           </span>
                         </div>
                         <div className="flex items-center gap-2">
@@ -576,7 +582,7 @@ export default function GameDetail({ gameId, onBack, isAdmin }) {
                                     c.player_id,
                                   );
                                   showAlert(
-                                    `✅ MVP обрано: ${c.nickname}`,
+                                    `✅ MVP обрано: ${formatNick(c.nickname)}`,
                                   );
                                   const s = await getMvpState(gameId);
                                   setMvpState(s.hasRound ? s : null);
@@ -694,7 +700,7 @@ export default function GameDetail({ gameId, onBack, isAdmin }) {
                         <div className="flex items-center gap-2.5">
                           <span className="text-lg">{p.is_alive ? "💚" : "💀"}</span>
                           <span className={`text-sm font-semibold ${p.is_alive ? "" : "line-through text-gray-500"}`}>
-                            {p.nickname}
+                            {formatNick(p.nickname)}
                           </span>
                         </div>
                         {isAdmin && p.is_alive && (
@@ -775,7 +781,7 @@ export default function GameDetail({ gameId, onBack, isAdmin }) {
                   }`}
                 />
                 <div>
-                  <span className="text-sm font-medium">{p.nickname}</span>
+                  <span className="text-sm font-medium">{formatNick(p.nickname)}</span>
                   {p.game_team && (
                     <span
                       className={`ml-2 text-[10px] font-bold px-1.5 py-0.5 rounded ${
