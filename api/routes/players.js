@@ -43,6 +43,24 @@ router.get("/profile", async (req, res) => {
       [player.id],
     );
 
+    // Survival stats by actual rounds (finished only)
+    const roundsPlayedRow = await q1(
+      `SELECT COUNT(*) AS c
+       FROM round_players rp
+       JOIN rounds r ON r.id = rp.round_id
+       WHERE rp.player_id=? AND r.status='finished'`,
+      [player.id],
+    );
+    const roundsSurvivedRow = await q1(
+      `SELECT COUNT(*) AS c
+       FROM round_players rp
+       JOIN rounds r ON r.id = rp.round_id
+       WHERE rp.player_id=? AND r.status='finished' AND rp.is_alive=1`,
+      [player.id],
+    );
+    const roundsPlayed = roundsPlayedRow?.c || 0;
+    const roundsSurvived = roundsSurvivedRow?.c || 0;
+
     // Friends list (accepted)
     const friends = await q(
       `SELECT p.id, p.nickname, p.rating
@@ -75,6 +93,10 @@ router.get("/profile", async (req, res) => {
           ? (player.total_kills / player.total_deaths).toFixed(2)
           : player.total_kills,
         created_at: player.created_at,
+      },
+      roundStats: {
+        rounds_played: roundsPlayed,
+        rounds_survived: roundsSurvived,
       },
       badges: badgesWithColor,
       friends,
