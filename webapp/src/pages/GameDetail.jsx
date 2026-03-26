@@ -21,6 +21,7 @@ import {
   requestRideSeats,
   respondRideRequest,
   deleteRide,
+  kickRidePassenger,
 } from "../api";
 import { useTelegram } from "../hooks/useTelegram";
 
@@ -34,6 +35,19 @@ function formatNick(n) {
   const s = String(n || "").trim();
   if (!s) return "—";
   return s.startsWith("@") ? s : `@${s}`;
+}
+
+function formatUpdatedAt(v) {
+  if (!v) return null;
+  const d = new Date(String(v).replace(" ", "T"));
+  if (Number.isNaN(d.getTime())) return String(v);
+  return d.toLocaleString("uk-UA", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 }
 
 // ---- Round Timer Hook ----
@@ -155,15 +169,18 @@ export default function GameDetail({ gameId, onBack, isAdmin }) {
   async function doAction(fn, successMsg, refreshMode = "full") {
     setActionLoading(true);
     try {
-      await fn();
+      const result = await fn();
       haptic("success");
-      if (successMsg) showAlert(successMsg);
+      if (successMsg) {
+        showAlert(typeof successMsg === "function" ? successMsg(result) : successMsg);
+      }
       if (refreshMode === "round") {
         await refreshRoundOnly();
       } else if (refreshMode === "full") {
         await load();
       }
       await loadRides();
+      return result;
     } catch (e) {
       showAlert(e.message);
       haptic("error");
@@ -408,6 +425,14 @@ export default function GameDetail({ gameId, onBack, isAdmin }) {
             <button
               onClick={() => {
                 haptic("impact");
+                setRideForm((s) => ({
+                  ...s,
+                  seats_total: 3,
+                  depart_location: "",
+                  depart_time: "",
+                  car_make: "",
+                  car_color: "",
+                }));
                 setShowRideModal(true);
               }}
               className="px-3 py-1.5 rounded-xl bg-emerald-600/20 border border-emerald-500/30 text-[11px] font-bold text-emerald-300 active:scale-95 transition-transform"
@@ -446,17 +471,41 @@ export default function GameDetail({ gameId, onBack, isAdmin }) {
                         <div className="text-xs text-gray-500 mt-1">
                           🚗 {r.car_make}, {r.car_color}
                         </div>
+                        {r.updated_at && (
+                          <div className="text-[10px] text-gray-600 mt-1">
+                            Оновлено: {formatUpdatedAt(r.updated_at)}
+                          </div>
+                        )}
                       </div>
 
                       <div className="flex flex-col gap-1 items-end">
                         {r.isOwner ? (
-                          <button
-                            onClick={() => doAction(() => deleteRide(gameId, r.id), "Поїздку скасовано")}
-                            disabled={actionLoading}
-                            className="px-2.5 py-1 rounded-lg bg-red-700/30 border border-red-600/30 text-[10px] font-bold text-red-200 active:scale-95 disabled:opacity-50"
-                          >
-                            Скасувати
-                          </button>
+                          <>
+                            <button
+                              onClick={() => {
+                                haptic("impact");
+                                setRideForm({
+                                  seats_total: r.seats_total || 1,
+                                  depart_location: r.depart_location || "",
+                                  depart_time: r.depart_time || "",
+                                  car_make: r.car_make || "",
+                                  car_color: r.car_color || "",
+                                });
+                                setShowRideModal(true);
+                              }}
+                              disabled={actionLoading}
+                              className="px-2.5 py-1 rounded-lg bg-slate-700/40 border border-slate-600/40 text-[10px] font-bold text-gray-200 active:scale-95 disabled:opacity-50"
+                            >
+                              Редагувати
+                            </button>
+                            <button
+                              onClick={() => doAction(() => deleteRide(gameId, r.id), "Поїздку скасовано")}
+                              disabled={actionLoading}
+                              className="px-2.5 py-1 rounded-lg bg-red-700/30 border border-red-600/30 text-[10px] font-bold text-red-200 active:scale-95 disabled:opacity-50"
+                            >
+                              Скасувати
+                            </button>
+                          </>
                         ) : mineReq ? (
                           <span className="text-[10px] font-bold text-gray-400">
                             {mineReq === "pending"
@@ -510,6 +559,39 @@ export default function GameDetail({ gameId, onBack, isAdmin }) {
                                   Ні
                                 </button>
                               </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {r.isOwner && Array.isArray(r.acceptedRequests) && r.acceptedRequests.length > 0 && (
+                      <div className="mt-2 border-t border-slate-700/50 pt-2">
+                        <div className="text-[10px] text-emerald-300 font-bold uppercase tracking-wider mb-1.5">
+                          Пасажири ({r.acceptedRequests.length})
+                        </div>
+                        <div className="space-y-1.5">
+                          {r.acceptedRequests.map((ar) => (
+                            <div key={ar.request_id} className="flex items-center justify-between bg-slate-800/40 border border-slate-700/40 rounded-xl px-2 py-1.5">
+                              <div className="text-[11px] text-gray-200">
+                                {formatNick(ar.requester_nickname)} • <span className="text-gray-400">місць:</span>{" "}
+                                <span className="font-semibold">{ar.seats_requested}</span>
+                              </div>
+                              <button
+                                onClick={() =>
+                                  doAction(
+                                    () => kickRidePassenger(gameId, r.id, ar.request_id),
+                                    (resp) =>
+                                      `Пасажира прибрано${
+                                        resp?.passenger_notified ? "\n📣 Сповіщення надіслано" : ""
+                                      }`,
+                                  )
+                                }
+                                disabled={actionLoading}
+                                className="px-2 py-1 rounded-lg bg-red-700/40 border border-red-600/30 text-[10px] font-bold text-red-200 active:scale-95 disabled:opacity-50"
+                              >
+                                Kick
+                              </button>
                             </div>
                           ))}
                         </div>
@@ -588,13 +670,21 @@ export default function GameDetail({ gameId, onBack, isAdmin }) {
               onClick={() =>
                 doAction(
                   () => createGameRide(gameId, rideForm),
-                  "✅ Поїздку опубліковано",
-                ).then(() => setShowRideModal(false))
+                  (r) =>
+                    `✅ Поїздку збережено${
+                      r?.passengers_notified
+                        ? `\n📣 Пасажирам надіслано: ${r.passengers_notified}`
+                        : ""
+                    }`,
+                ).then(async () => {
+                  setShowRideModal(false);
+                  await loadRides();
+                })
               }
               disabled={actionLoading}
               className="mt-3 w-full bg-gradient-to-r from-emerald-600 to-teal-600 py-3 rounded-2xl font-bold text-[14px] active:scale-[0.98] disabled:opacity-50"
             >
-              {actionLoading ? <Spinner /> : "Опублікувати"}
+              {actionLoading ? <Spinner /> : "Зберегти"}
             </button>
           </div>
         </div>

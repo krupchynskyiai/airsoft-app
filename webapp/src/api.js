@@ -78,6 +78,11 @@ export const respondRideRequest = (gameId, rideId, requestId, action) =>
   });
 export const deleteRide = (gameId, rideId) =>
   api(`/games/${gameId}/rides/${rideId}`, { method: "DELETE" });
+export const kickRidePassenger = (gameId, rideId, requestId) =>
+  api(`/games/${gameId}/rides/${rideId}/kick`, {
+    method: "POST",
+    body: { request_id: requestId },
+  });
 
 // ---- Leaderboard ----
 export const getLeaderboard = () => api("/leaderboard");
