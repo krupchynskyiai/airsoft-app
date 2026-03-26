@@ -62,6 +62,23 @@ export const voteMvp = (id, roundId, targetPlayerId) =>
     body: { round_id: roundId, target_player_id: targetPlayerId },
   });
 
+// ---- Rides / Logistics ----
+export const getGameRides = (gameId) => api(`/games/${gameId}/rides`);
+export const createGameRide = (gameId, payload) =>
+  api(`/games/${gameId}/rides`, { method: "POST", body: payload });
+export const requestRideSeats = (gameId, rideId, seatsRequested = 1) =>
+  api(`/games/${gameId}/rides/${rideId}/request`, {
+    method: "POST",
+    body: { seats_requested: seatsRequested },
+  });
+export const respondRideRequest = (gameId, rideId, requestId, action) =>
+  api(`/games/${gameId}/rides/${rideId}/respond`, {
+    method: "POST",
+    body: { request_id: requestId, action },
+  });
+export const deleteRide = (gameId, rideId) =>
+  api(`/games/${gameId}/rides/${rideId}`, { method: "DELETE" });
+
 // ---- Leaderboard ----
 export const getLeaderboard = () => api("/leaderboard");
 export const getTeamsLeaderboard = () => api("/leaderboard/teams");

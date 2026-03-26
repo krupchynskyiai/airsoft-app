@@ -16,6 +16,11 @@ import {
   adminShuffleGameTeams,
   adminSelectMvp,
   adminAddPlayersByUsername,
+  getGameRides,
+  createGameRide,
+  requestRideSeats,
+  respondRideRequest,
+  deleteRide,
 } from "../api";
 import { useTelegram } from "../hooks/useTelegram";
 
@@ -62,6 +67,18 @@ export default function GameDetail({ gameId, onBack, isAdmin }) {
   const [mvpLoading, setMvpLoading] = useState(false);
   const { haptic, showAlert } = useTelegram();
   const [addUsersText, setAddUsersText] = useState("");
+  const [rides, setRides] = useState([]);
+  const [ridesLoading, setRidesLoading] = useState(false);
+  const [showRideModal, setShowRideModal] = useState(false);
+  const [rideForm, setRideForm] = useState({
+    seats_total: 3,
+    depart_location: "",
+    depart_time: "",
+    car_make: "",
+    car_color: "",
+  });
+  const [requestRideModal, setRequestRideModal] = useState(null); // { rideId, ownerNickname }
+  const [requestSeats, setRequestSeats] = useState(1);
   async function confirmShuffleTeams() {
     const tg = window.Telegram?.WebApp;
     if (tg?.showConfirm) {
@@ -99,6 +116,19 @@ export default function GameDetail({ gameId, onBack, isAdmin }) {
     }
   }, [gameId]);
 
+  const loadRides = useCallback(async () => {
+    try {
+      setRidesLoading(true);
+      const r = await getGameRides(gameId);
+      setRides(r.rides || []);
+    } catch (e) {
+      // ignore silently to avoid breaking game page if tables not yet created
+      setRides([]);
+    } finally {
+      setRidesLoading(false);
+    }
+  }, [gameId]);
+
   const refreshRoundOnly = useCallback(async () => {
     try {
       if (data?.game?.status !== "active") {
@@ -113,6 +143,7 @@ export default function GameDetail({ gameId, onBack, isAdmin }) {
   }, [gameId, data?.game?.status]);
 
   useEffect(() => { load(); }, [load]);
+  useEffect(() => { loadRides(); }, [loadRides]);
 
   useEffect(() => {
     if (data?.game?.status !== "active" && data?.game?.status !== "checkin")
@@ -132,6 +163,7 @@ export default function GameDetail({ gameId, onBack, isAdmin }) {
       } else if (refreshMode === "full") {
         await load();
       }
+      await loadRides();
     } catch (e) {
       showAlert(e.message);
       haptic("error");
@@ -360,6 +392,248 @@ export default function GameDetail({ gameId, onBack, isAdmin }) {
           {g.status === "active" && hasActiveRound && myRegistration?.attendance === "checked_in" && (
             <ActionButton onClick={() => doAction(() => reportDead(gameId))} loading={actionLoading} icon="💀" label="Мене вбили" className="bg-gradient-to-r from-red-700 to-red-800" />
           )}
+        </div>
+      )}
+
+      {/* ---- Rides / Logistics ---- */}
+      {myRegistration && g.status !== "finished" && g.status !== "cancelled" && (
+        <div className="bg-slate-800/60 backdrop-blur-sm rounded-2xl p-4 mb-5 border border-slate-700/40">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <span>🚗</span>
+              <h3 className="text-sm font-bold text-gray-300 uppercase tracking-wider">
+                Поїздки
+              </h3>
+            </div>
+            <button
+              onClick={() => {
+                haptic("impact");
+                setShowRideModal(true);
+              }}
+              className="px-3 py-1.5 rounded-xl bg-emerald-600/20 border border-emerald-500/30 text-[11px] font-bold text-emerald-300 active:scale-95 transition-transform"
+            >
+              Запропонувати
+            </button>
+          </div>
+
+          {ridesLoading ? (
+            <div className="text-xs text-gray-500">Завантаження...</div>
+          ) : rides.length === 0 ? (
+            <div className="text-xs text-gray-500">
+              Поки що немає поїздок. Створи свою або підпишись на іншу.
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {rides.map((r) => {
+                const seatsFree = Math.max(0, r.seats_total - r.seats_accepted);
+                const mineReq = r.myRequest?.status;
+                return (
+                  <div key={r.id} className="bg-slate-900/40 border border-slate-700/40 rounded-2xl p-3">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <div className="text-xs text-gray-400">
+                          Водій: <span className="font-semibold text-gray-200">{formatNick(r.owner_nickname)}</span>
+                        </div>
+                        <div className="text-xs text-gray-400 mt-1">
+                          👥 Місць: <span className="font-semibold text-gray-200">{seatsFree}</span> / {r.seats_total}
+                        </div>
+                        <div className="text-xs text-gray-400 mt-1">
+                          📍 {r.depart_location}
+                        </div>
+                        <div className="text-xs text-gray-400 mt-1">
+                          ⏰ {r.depart_time}
+                        </div>
+                        <div className="text-xs text-gray-500 mt-1">
+                          🚗 {r.car_make}, {r.car_color}
+                        </div>
+                      </div>
+
+                      <div className="flex flex-col gap-1 items-end">
+                        {r.isOwner ? (
+                          <button
+                            onClick={() => doAction(() => deleteRide(gameId, r.id), "Поїздку скасовано")}
+                            disabled={actionLoading}
+                            className="px-2.5 py-1 rounded-lg bg-red-700/30 border border-red-600/30 text-[10px] font-bold text-red-200 active:scale-95 disabled:opacity-50"
+                          >
+                            Скасувати
+                          </button>
+                        ) : mineReq ? (
+                          <span className="text-[10px] font-bold text-gray-400">
+                            {mineReq === "pending"
+                              ? "Очікує підтвердження"
+                              : mineReq === "accepted"
+                              ? "Підтверджено"
+                              : mineReq === "rejected"
+                              ? "Відхилено"
+                              : mineReq}
+                          </span>
+                        ) : (
+                          <button
+                            onClick={() => {
+                              setRequestSeats(1);
+                              setRequestRideModal({ rideId: r.id, ownerNickname: r.owner_nickname });
+                            }}
+                            disabled={actionLoading || seatsFree <= 0}
+                            className="px-2.5 py-1 rounded-lg bg-emerald-600/30 border border-emerald-500/30 text-[10px] font-bold text-emerald-200 active:scale-95 disabled:opacity-50"
+                          >
+                            Запит місця
+                          </button>
+                        )}
+                      </div>
+                    </div>
+
+                    {r.isOwner && Array.isArray(r.pendingRequests) && r.pendingRequests.length > 0 && (
+                      <div className="mt-3 border-t border-slate-700/50 pt-2">
+                        <div className="text-[10px] text-amber-300 font-bold uppercase tracking-wider mb-1.5">
+                          Запити ({r.pendingRequests.length})
+                        </div>
+                        <div className="space-y-1.5">
+                          {r.pendingRequests.map((pr) => (
+                            <div key={pr.request_id} className="flex items-center justify-between bg-slate-800/60 border border-slate-700/40 rounded-xl px-2 py-1.5">
+                              <div className="text-[11px] text-gray-200">
+                                {formatNick(pr.requester_nickname)} • <span className="text-gray-400">місць:</span>{" "}
+                                <span className="font-semibold">{pr.seats_requested}</span>
+                              </div>
+                              <div className="flex items-center gap-1.5">
+                                <button
+                                  onClick={() => doAction(() => respondRideRequest(gameId, r.id, pr.request_id, "accept"), "Запит прийнято")}
+                                  disabled={actionLoading}
+                                  className="px-2 py-1 rounded-lg bg-emerald-600/60 text-[10px] font-bold text-white active:scale-95 disabled:opacity-50"
+                                >
+                                  Так
+                                </button>
+                                <button
+                                  onClick={() => doAction(() => respondRideRequest(gameId, r.id, pr.request_id, "reject"), "Запит відхилено")}
+                                  disabled={actionLoading}
+                                  className="px-2 py-1 rounded-lg bg-red-700/60 text-[10px] font-bold text-white active:scale-95 disabled:opacity-50"
+                                >
+                                  Ні
+                                </button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ---- Ride create modal ---- */}
+      {showRideModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowRideModal(false)} />
+          <div className="relative w-full max-w-md bg-slate-900/95 border border-emerald-500/30 rounded-3xl p-4">
+            <div className="flex items-center justify-between mb-3">
+              <div className="text-sm font-black text-emerald-300">Запропонувати поїздку</div>
+              <button onClick={() => setShowRideModal(false)} className="text-gray-400 text-sm px-2 py-1">✕</button>
+            </div>
+
+            <div className="space-y-2">
+              <label className="block text-[11px] text-gray-400">
+                Кількість місць
+                <input
+                  type="number"
+                  min={1}
+                  value={rideForm.seats_total}
+                  onChange={(e) => setRideForm((s) => ({ ...s, seats_total: parseInt(e.target.value || 1) }))}
+                  className="mt-1 w-full bg-slate-800/70 border border-slate-700/50 rounded-xl px-3 py-2 text-sm"
+                />
+              </label>
+              <label className="block text-[11px] text-gray-400">
+                Локація
+                <input
+                  value={rideForm.depart_location}
+                  onChange={(e) => setRideForm((s) => ({ ...s, depart_location: e.target.value }))}
+                  className="mt-1 w-full bg-slate-800/70 border border-slate-700/50 rounded-xl px-3 py-2 text-sm"
+                  placeholder="Напр. метро / парковка / адреса"
+                />
+              </label>
+              <label className="block text-[11px] text-gray-400">
+                Час відправлення
+                <input
+                  value={rideForm.depart_time}
+                  onChange={(e) => setRideForm((s) => ({ ...s, depart_time: e.target.value }))}
+                  className="mt-1 w-full bg-slate-800/70 border border-slate-700/50 rounded-xl px-3 py-2 text-sm"
+                  placeholder="Напр. 08:30"
+                />
+              </label>
+              <div className="grid grid-cols-2 gap-2">
+                <label className="block text-[11px] text-gray-400">
+                  Авто (марка)
+                  <input
+                    value={rideForm.car_make}
+                    onChange={(e) => setRideForm((s) => ({ ...s, car_make: e.target.value }))}
+                    className="mt-1 w-full bg-slate-800/70 border border-slate-700/50 rounded-xl px-3 py-2 text-sm"
+                    placeholder="VW Golf"
+                  />
+                </label>
+                <label className="block text-[11px] text-gray-400">
+                  Колір
+                  <input
+                    value={rideForm.car_color}
+                    onChange={(e) => setRideForm((s) => ({ ...s, car_color: e.target.value }))}
+                    className="mt-1 w-full bg-slate-800/70 border border-slate-700/50 rounded-xl px-3 py-2 text-sm"
+                    placeholder="сірий"
+                  />
+                </label>
+              </div>
+            </div>
+
+            <button
+              onClick={() =>
+                doAction(
+                  () => createGameRide(gameId, rideForm),
+                  "✅ Поїздку опубліковано",
+                ).then(() => setShowRideModal(false))
+              }
+              disabled={actionLoading}
+              className="mt-3 w-full bg-gradient-to-r from-emerald-600 to-teal-600 py-3 rounded-2xl font-bold text-[14px] active:scale-[0.98] disabled:opacity-50"
+            >
+              {actionLoading ? <Spinner /> : "Опублікувати"}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ---- Request seats modal ---- */}
+      {requestRideModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setRequestRideModal(null)} />
+          <div className="relative w-full max-w-md bg-slate-900/95 border border-emerald-500/30 rounded-3xl p-4">
+            <div className="flex items-center justify-between mb-3">
+              <div className="text-sm font-black text-emerald-300">
+                Запит місць у {formatNick(requestRideModal.ownerNickname)}
+              </div>
+              <button onClick={() => setRequestRideModal(null)} className="text-gray-400 text-sm px-2 py-1">✕</button>
+            </div>
+            <label className="block text-[11px] text-gray-400">
+              Скільки місць потрібно?
+              <input
+                type="number"
+                min={1}
+                value={requestSeats}
+                onChange={(e) => setRequestSeats(parseInt(e.target.value || 1))}
+                className="mt-1 w-full bg-slate-800/70 border border-slate-700/50 rounded-xl px-3 py-2 text-sm"
+              />
+            </label>
+            <button
+              onClick={() =>
+                doAction(
+                  () => requestRideSeats(gameId, requestRideModal.rideId, requestSeats),
+                  "✅ Запит відправлено",
+                ).then(() => setRequestRideModal(null))
+              }
+              disabled={actionLoading}
+              className="mt-3 w-full bg-gradient-to-r from-emerald-600 to-teal-600 py-3 rounded-2xl font-bold text-[14px] active:scale-[0.98] disabled:opacity-50"
+            >
+              {actionLoading ? <Spinner /> : "Відправити запит"}
+            </button>
+          </div>
         </div>
       )}
 
@@ -964,5 +1238,126 @@ function SmallButton({ onClick, icon, label, color }) {
     <button onClick={onClick} className={`flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-bold border active:scale-95 transition-transform ${colors[color] || colors.emerald}`}>
       <span>{icon}</span> {label}
     </button>
+  );
+}
+
+function RideModal({ value, onChange, onClose, onSubmit, submitting }) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 p-3">
+      <div className="w-full max-w-lg rounded-2xl bg-slate-900 border border-slate-700/50 overflow-hidden">
+        <div className="p-4 border-b border-slate-700/40 flex items-center justify-between">
+          <div className="font-black">🚗 Запропонувати поїздку</div>
+          <button
+            onClick={onClose}
+            className="px-3 py-1.5 rounded-xl bg-slate-800/70 border border-slate-700/40 text-xs font-bold text-gray-200 active:scale-95"
+          >
+            ✕
+          </button>
+        </div>
+
+        <div className="p-4 space-y-3">
+          <div className="grid grid-cols-2 gap-2">
+            <label className="text-xs text-gray-400">
+              Місць всього
+              <input
+                type="number"
+                min={1}
+                value={value.seats_total}
+                onChange={(e) =>
+                  onChange({
+                    ...value,
+                    seats_total: parseInt(e.target.value || "1", 10),
+                  })
+                }
+                className="mt-1 w-full bg-slate-800/60 border border-slate-700/40 rounded-xl p-2 text-sm text-gray-200 focus:outline-none focus:border-emerald-500/40"
+              />
+            </label>
+            <label className="text-xs text-gray-400">
+              Час виїзду (текстом)
+              <input
+                value={value.depart_time}
+                onChange={(e) =>
+                  onChange({ ...value, depart_time: e.target.value })
+                }
+                placeholder="Напр. 08:30 або після роботи"
+                className="mt-1 w-full bg-slate-800/60 border border-slate-700/40 rounded-xl p-2 text-sm text-gray-200 placeholder:text-gray-500 focus:outline-none focus:border-emerald-500/40"
+              />
+            </label>
+          </div>
+
+          <label className="text-xs text-gray-400">
+            Місце виїзду
+            <input
+              value={value.depart_location}
+              onChange={(e) =>
+                onChange({ ...value, depart_location: e.target.value })
+              }
+              placeholder="Напр. метро, ТЦ, точка збору"
+              className="mt-1 w-full bg-slate-800/60 border border-slate-700/40 rounded-xl p-2 text-sm text-gray-200 placeholder:text-gray-500 focus:outline-none focus:border-emerald-500/40"
+            />
+          </label>
+
+          <div className="grid grid-cols-2 gap-2">
+            <label className="text-xs text-gray-400">
+              Марка авто (опц.)
+              <input
+                value={value.car_make}
+                onChange={(e) => onChange({ ...value, car_make: e.target.value })}
+                placeholder="Toyota"
+                className="mt-1 w-full bg-slate-800/60 border border-slate-700/40 rounded-xl p-2 text-sm text-gray-200 placeholder:text-gray-500 focus:outline-none focus:border-emerald-500/40"
+              />
+            </label>
+            <label className="text-xs text-gray-400">
+              Колір (опц.)
+              <input
+                value={value.car_color}
+                onChange={(e) => onChange({ ...value, car_color: e.target.value })}
+                placeholder="Сірий"
+                className="mt-1 w-full bg-slate-800/60 border border-slate-700/40 rounded-xl p-2 text-sm text-gray-200 placeholder:text-gray-500 focus:outline-none focus:border-emerald-500/40"
+              />
+            </label>
+          </div>
+
+          <button
+            onClick={onSubmit}
+            disabled={submitting}
+            className="w-full bg-gradient-to-r from-emerald-600 to-teal-600 py-3.5 rounded-2xl font-bold text-[15px] shadow-lg transition-all active:scale-[0.98] disabled:opacity-50"
+          >
+            {submitting ? <Spinner /> : "✅ Опублікувати"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function RideRequestButton({ disabled, maxSeats, onRequest }) {
+  const [seats, setSeats] = useState(1);
+
+  useEffect(() => {
+    setSeats((s) => Math.min(Math.max(1, s), Math.max(1, maxSeats || 1)));
+  }, [maxSeats]);
+
+  return (
+    <div className="shrink-0 flex flex-col items-end gap-1">
+      <div className="flex items-center gap-2">
+        <input
+          type="number"
+          min={1}
+          max={Math.max(1, maxSeats || 1)}
+          value={seats}
+          onChange={(e) => setSeats(parseInt(e.target.value || "1", 10))}
+          className="w-16 bg-slate-800/60 border border-slate-700/40 rounded-xl p-2 text-xs text-gray-200 focus:outline-none focus:border-emerald-500/40"
+        />
+        <button
+          onClick={() => onRequest(seats)}
+          disabled={disabled}
+          className="px-3 py-2 rounded-xl bg-emerald-700/40 border border-emerald-600/30 text-xs font-bold text-emerald-200 active:scale-95 disabled:opacity-50"
+        >
+          🙋 Запит
+        </button>
+      </div>
+      <div className="text-[10px] text-gray-500">до {Math.max(1, maxSeats || 1)}</div>
+    </div>
   );
 }

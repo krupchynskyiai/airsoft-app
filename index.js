@@ -12,6 +12,7 @@ const { createPlayer } = require("./services/players");
 const { handleGeoCheckin, handleGameGeo } = require("./handlers/games");
 const { handleTextSteps } = require("./handlers/admin");
 const { createServer } = require("./api/server");
+const { startKeepWarm } = require("./services/keepWarm");
 
 // ---- Create bot ----
 const bot = new Bot(config.BOT_TOKEN);
@@ -181,6 +182,9 @@ async function main() {
     log.info(`Express server on port ${PORT}`);
     log.info(`Mini App URL: http://localhost:${PORT}`);
   });
+
+  // Optional keep-warm (Render free instances)
+  startKeepWarm();
 
   // Start Telegram bot
   bot.start();

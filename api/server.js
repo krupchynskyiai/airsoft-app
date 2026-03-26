@@ -8,6 +8,14 @@ function createServer() {
 
   app.use(express.json());
 
+  // Lightweight health endpoint (no auth)
+  app.get("/api/health", async (req, res) => {
+    res.json({
+      ok: true,
+      ts: new Date().toISOString(),
+    });
+  });
+
   // CORS for dev
   app.use((req, res, next) => {
     res.header("Access-Control-Allow-Origin", "*");

@@ -6,6 +6,19 @@ const bot = require("../bot")
 
 const router = Router();
 
+function gameDeepLink(gid) {
+  if (!config.BOT_USERNAME) return null;
+  return `https://t.me/${config.BOT_USERNAME}?startapp=game_${gid}`;
+}
+
+async function ensureRegisteredForGame(gid, playerId) {
+  const gp = await q1(
+    "SELECT id FROM game_players WHERE game_id=? AND player_id=?",
+    [gid, playerId],
+  );
+  return !!gp;
+}
+
 // GET /api/games — list games
 router.get("/", async (req, res) => {
   try {
@@ -120,6 +133,472 @@ router.get("/:id", async (req, res) => {
     }
 
     res.json({ game, players, rounds, myRegistration, myWaitlist });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// ============================================
+// CARPOOL RIDES
+// ============================================
+
+async function getPlayerIdByTelegramId(tgId) {
+  const me = await q1("SELECT id FROM players WHERE telegram_id=?", [tgId]);
+  return me?.id || null;
+}
+
+async function requireRegisteredForGame(gid, playerId) {
+  const gp = await q1(
+    "SELECT id, attendance FROM game_players WHERE game_id=? AND player_id=?",
+    [gid, playerId],
+  );
+  return gp || null;
+}
+
+async function getAcceptedSeats(rideId) {
+  const row = await q1(
+    "SELECT COALESCE(SUM(seats_requested),0) AS s FROM game_ride_requests WHERE ride_id=? AND status='accepted'",
+    [rideId],
+  );
+  return row?.s || 0;
+}
+
+// GET /api/games/:id/rides — list ride offers + my request status
+router.get("/:id/rides", async (req, res) => {
+  try {
+    const gid = parseInt(req.params.id);
+    const tgId = req.tgUser.id;
+    const meId = await getPlayerIdByTelegramId(tgId);
+
+    const rides = await q(
+      `SELECT r.*,
+              p.nickname AS owner_nickname
+       FROM game_rides r
+       JOIN players p ON p.id = r.owner_player_id
+       WHERE r.game_id=? AND r.status='active'
+       ORDER BY r.created_at DESC`,
+      [gid],
+    );
+
+    // accepted seats per ride
+    const rideIds = rides.map((r) => r.id);
+    const accepted = rideIds.length
+      ? await q(
+          `SELECT ride_id, COALESCE(SUM(seats_requested),0) AS s
+           FROM game_ride_requests
+           WHERE ride_id IN (${rideIds.map(() => "?").join(",")})
+             AND status='accepted'
+           GROUP BY ride_id`,
+          rideIds,
+        )
+      : [];
+    const acceptedMap = new Map(accepted.map((a) => [a.ride_id, a.s]));
+
+    // my request status per ride
+    let myReqMap = new Map();
+    if (meId && rideIds.length) {
+      const myReqs = await q(
+        `SELECT ride_id, status, seats_requested
+         FROM game_ride_requests
+         WHERE requester_player_id=? AND ride_id IN (${rideIds
+           .map(() => "?")
+           .join(",")})`,
+        [meId, ...rideIds],
+      );
+      myReqMap = new Map(myReqs.map((r) => [r.ride_id, r]));
+    }
+
+    let pendingByRide = new Map();
+    if (meId && rideIds.length) {
+      // Owner-only pending requests (so owner can approve in webapp)
+      const pending = await q(
+        `SELECT rr.id AS request_id,
+                rr.ride_id,
+                rr.seats_requested,
+                rr.created_at,
+                p.id AS requester_player_id,
+                p.nickname AS requester_nickname
+         FROM game_ride_requests rr
+         JOIN game_rides r ON r.id = rr.ride_id
+         JOIN players p ON p.id = rr.requester_player_id
+         WHERE rr.ride_id IN (${rideIds.map(() => "?").join(",")})
+           AND rr.status='pending'
+           AND r.owner_player_id=?
+         ORDER BY rr.created_at ASC`,
+        [...rideIds, meId],
+      );
+      pendingByRide = new Map();
+      for (const row of pending) {
+        if (!pendingByRide.has(row.ride_id)) pendingByRide.set(row.ride_id, []);
+        pendingByRide.get(row.ride_id).push({
+          request_id: row.request_id,
+          requester_player_id: row.requester_player_id,
+          requester_nickname: row.requester_nickname,
+          seats_requested: row.seats_requested,
+          created_at: row.created_at,
+        });
+      }
+    }
+
+    const out = rides.map((r) => ({
+      id: r.id,
+      game_id: r.game_id,
+      owner_player_id: r.owner_player_id,
+      owner_nickname: r.owner_nickname,
+      seats_total: r.seats_total,
+      seats_accepted: acceptedMap.get(r.id) || 0,
+      depart_location: r.depart_location,
+      depart_time: r.depart_time,
+      car_make: r.car_make,
+      car_color: r.car_color,
+      created_at: r.created_at,
+      isOwner: !!meId && meId === r.owner_player_id,
+      myRequest: myReqMap.get(r.id) || null,
+      pendingRequests:
+        !!meId && meId === r.owner_player_id
+          ? pendingByRide.get(r.id) || []
+          : [],
+    }));
+
+    res.json({ rides: out });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// POST /api/games/:id/rides — create/update my ride offer (one per game)
+router.post("/:id/rides", async (req, res) => {
+  try {
+    const gid = parseInt(req.params.id);
+    const tgId = req.tgUser.id;
+    const meId = await getPlayerIdByTelegramId(tgId);
+    if (!meId) return res.status(400).json({ error: "Not registered" });
+
+    const gp = await requireRegisteredForGame(gid, meId);
+    if (!gp) return res.status(403).json({ error: "Join the game first" });
+
+    const {
+      seats_total,
+      depart_location,
+      depart_time,
+      car_make,
+      car_color,
+    } = req.body || {};
+
+    const seats = parseInt(seats_total);
+    if (!seats || seats < 1) {
+      return res.status(400).json({ error: "seats_total must be >= 1" });
+    }
+    if (!depart_location || !String(depart_location).trim()) {
+      return res.status(400).json({ error: "depart_location required" });
+    }
+    if (!depart_time || !String(depart_time).trim()) {
+      return res.status(400).json({ error: "depart_time required" });
+    }
+    if (!car_make || !String(car_make).trim()) {
+      return res.status(400).json({ error: "car_make required" });
+    }
+    if (!car_color || !String(car_color).trim()) {
+      return res.status(400).json({ error: "car_color required" });
+    }
+
+    const existing = await q1(
+      "SELECT id FROM game_rides WHERE game_id=? AND owner_player_id=? LIMIT 1",
+      [gid, meId],
+    );
+
+    if (existing) {
+      await ins(
+        `UPDATE game_rides
+         SET seats_total=?, depart_location=?, depart_time=?, car_make=?, car_color=?, status='active', updated_at=NOW()
+         WHERE id=?`,
+        [
+          seats,
+          String(depart_location).trim(),
+          String(depart_time).trim(),
+          String(car_make).trim(),
+          String(car_color).trim(),
+          existing.id,
+        ],
+      );
+      return res.json({ success: true, ride_id: existing.id });
+    }
+
+    const r = await ins(
+      `INSERT INTO game_rides
+       (game_id, owner_player_id, seats_total, depart_location, depart_time, car_make, car_color, status, created_at)
+       VALUES (?,?,?,?,?,?,?,'active',NOW())`,
+      [
+        gid,
+        meId,
+        seats,
+        String(depart_location).trim(),
+        String(depart_time).trim(),
+        String(car_make).trim(),
+        String(car_color).trim(),
+      ],
+    );
+
+    res.json({ success: true, ride_id: r.insertId });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// POST /api/games/:id/rides/:rideId/request — request seats
+router.post("/:id/rides/:rideId/request", async (req, res) => {
+  try {
+    const gid = parseInt(req.params.id);
+    const rideId = parseInt(req.params.rideId);
+    const tgId = req.tgUser.id;
+    const meId = await getPlayerIdByTelegramId(tgId);
+    if (!meId) return res.status(400).json({ error: "Not registered" });
+
+    const gp = await requireRegisteredForGame(gid, meId);
+    if (!gp) return res.status(403).json({ error: "Join the game first" });
+
+    const seatsRequested = parseInt(req.body?.seats_requested || 1);
+    if (!seatsRequested || seatsRequested < 1) {
+      return res.status(400).json({ error: "seats_requested must be >= 1" });
+    }
+
+    const ride = await q1(
+      `SELECT r.*, p.telegram_id AS owner_telegram_id, p.nickname AS owner_nickname
+       FROM game_rides r
+       JOIN players p ON p.id=r.owner_player_id
+       WHERE r.id=? AND r.game_id=? AND r.status='active'`,
+      [rideId, gid],
+    );
+    if (!ride) return res.status(404).json({ error: "Ride not found" });
+    if (ride.owner_player_id === meId) {
+      return res.status(400).json({ error: "Cannot request your own ride" });
+    }
+
+    const existing = await q1(
+      "SELECT id, status FROM game_ride_requests WHERE ride_id=? AND requester_player_id=? LIMIT 1",
+      [rideId, meId],
+    );
+
+    if (existing && existing.status !== "pending") {
+      return res.status(400).json({ error: "Request already processed" });
+    }
+
+    if (existing) {
+      await ins(
+        "UPDATE game_ride_requests SET seats_requested=?, status='pending' WHERE id=?",
+        [seatsRequested, existing.id],
+      );
+    } else {
+      await ins(
+        `INSERT INTO game_ride_requests
+         (ride_id, game_id, requester_player_id, seats_requested, status, created_at)
+         VALUES (?,?,?,?, 'pending', NOW())`,
+        [rideId, gid, meId, seatsRequested],
+      );
+    }
+
+    // Telegram notify owner (best-effort)
+    try {
+      if (ride.owner_telegram_id) {
+        const requester = await q1(
+          "SELECT nickname FROM players WHERE id=?",
+          [meId],
+        );
+        const g = await q1(
+          "SELECT date, time, location FROM games WHERE id=?",
+          [gid],
+        );
+        const deepLink = config.BOT_USERNAME
+          ? `https://t.me/${config.BOT_USERNAME}?startapp=game_${gid}`
+          : undefined;
+
+        const msg = `🚗 <b>Запит на поїздку</b>
+
+🎮 Гра #${gid}
+📅 ${g?.date || "—"} ${g?.time ? `о ${g.time}` : ""}
+📍 ${g?.location || "—"}
+
+👤 Хто: <b>${requester?.nickname || "—"}</b>
+👥 Місць: <b>${seatsRequested}</b>
+
+Відкрий гру, щоб підтвердити або відхилити.`;
+
+        await bot.api.sendMessage(ride.owner_telegram_id, msg, {
+          parse_mode: "HTML",
+          reply_markup: deepLink
+            ? { inline_keyboard: [[{ text: "📋 Відкрити гру", url: deepLink }]] }
+            : undefined,
+        });
+      }
+    } catch (e) {
+      log.error("Ride request notify owner error", { e: e.message });
+    }
+
+    res.json({ success: true });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// POST /api/games/:id/rides/:rideId/respond — owner accepts/rejects request
+router.post("/:id/rides/:rideId/respond", async (req, res) => {
+  try {
+    const gid = parseInt(req.params.id);
+    const rideId = parseInt(req.params.rideId);
+    const tgId = req.tgUser.id;
+    const meId = await getPlayerIdByTelegramId(tgId);
+    if (!meId) return res.status(400).json({ error: "Not registered" });
+
+    const { request_id, action } = req.body || {};
+    if (!request_id || !["accept", "reject"].includes(action)) {
+      return res.status(400).json({ error: "request_id and action accept|reject required" });
+    }
+
+    const ride = await q1(
+      "SELECT * FROM game_rides WHERE id=? AND game_id=? AND status='active'",
+      [rideId, gid],
+    );
+    if (!ride) return res.status(404).json({ error: "Ride not found" });
+    if (ride.owner_player_id !== meId) {
+      return res.status(403).json({ error: "Owner only" });
+    }
+
+    const reqRow = await q1(
+      `SELECT rr.*, p.telegram_id AS requester_telegram_id, p.nickname AS requester_nickname
+       FROM game_ride_requests rr
+       JOIN players p ON p.id = rr.requester_player_id
+       WHERE rr.id=? AND rr.ride_id=? AND rr.status='pending'`,
+      [request_id, rideId],
+    );
+    if (!reqRow) return res.status(404).json({ error: "Request not found" });
+
+    if (action === "accept") {
+      const acceptedSeats = await getAcceptedSeats(rideId);
+      const remaining = ride.seats_total - acceptedSeats;
+      if (reqRow.seats_requested > remaining) {
+        return res.status(400).json({ error: "Not enough free seats" });
+      }
+      await ins(
+        "UPDATE game_ride_requests SET status='accepted', responded_at=NOW() WHERE id=?",
+        [reqRow.id],
+      );
+    } else {
+      await ins(
+        "UPDATE game_ride_requests SET status='rejected', responded_at=NOW() WHERE id=?",
+        [reqRow.id],
+      );
+    }
+
+    // Telegram notify requester (best-effort)
+    try {
+      if (reqRow.requester_telegram_id) {
+        const g = await q1(
+          "SELECT date, time, location FROM games WHERE id=?",
+          [gid],
+        );
+        const deepLink = config.BOT_USERNAME
+          ? `https://t.me/${config.BOT_USERNAME}?startapp=game_${gid}`
+          : undefined;
+
+        const msg = action === "accept"
+          ? `✅ <b>Твій запит на поїздку прийнято</b>
+
+🎮 Гра #${gid}
+📅 ${g?.date || "—"} ${g?.time ? `о ${g.time}` : ""}
+📍 ${g?.location || "—"}
+
+👥 Місць підтверджено: <b>${reqRow.seats_requested}</b>`
+          : `❌ <b>Твій запит на поїздку відхилено</b>
+
+🎮 Гра #${gid}
+📅 ${g?.date || "—"} ${g?.time ? `о ${g.time}` : ""}
+📍 ${g?.location || "—"}`;
+
+        await bot.api.sendMessage(reqRow.requester_telegram_id, msg, {
+          parse_mode: "HTML",
+          reply_markup: deepLink
+            ? { inline_keyboard: [[{ text: "📋 Відкрити гру", url: deepLink }]] }
+            : undefined,
+        });
+      }
+    } catch (e) {
+      log.error("Ride respond notify requester error", { e: e.message });
+    }
+
+    res.json({ success: true });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// DELETE /api/games/:id/rides/:rideId — owner cancels ride and notifies accepted passengers
+router.delete("/:id/rides/:rideId", async (req, res) => {
+  try {
+    const gid = parseInt(req.params.id);
+    const rideId = parseInt(req.params.rideId);
+    const tgId = req.tgUser.id;
+    const meId = await getPlayerIdByTelegramId(tgId);
+    if (!meId) return res.status(400).json({ error: "Not registered" });
+
+    const ride = await q1(
+      "SELECT * FROM game_rides WHERE id=? AND game_id=? AND status='active'",
+      [rideId, gid],
+    );
+    if (!ride) return res.status(404).json({ error: "Ride not found" });
+    if (ride.owner_player_id !== meId) {
+      return res.status(403).json({ error: "Owner only" });
+    }
+
+    await ins(
+      "UPDATE game_rides SET status='cancelled', updated_at=NOW() WHERE id=?",
+      [rideId],
+    );
+    await ins(
+      "UPDATE game_ride_requests SET status='cancelled', responded_at=NOW() WHERE ride_id=? AND status='pending'",
+      [rideId],
+    );
+
+    const accepted = await q(
+      `SELECT rr.requester_player_id, rr.seats_requested, p.telegram_id
+       FROM game_ride_requests rr
+       JOIN players p ON p.id=rr.requester_player_id
+       WHERE rr.ride_id=? AND rr.status='accepted'`,
+      [rideId],
+    );
+
+    // Notify accepted passengers
+    try {
+      const g = await q1(
+        "SELECT date, time, location FROM games WHERE id=?",
+        [gid],
+      );
+      const deepLink = config.BOT_USERNAME
+        ? `https://t.me/${config.BOT_USERNAME}?startapp=game_${gid}`
+        : undefined;
+      for (const a of accepted) {
+        if (!a.telegram_id) continue;
+        await bot.api.sendMessage(
+          a.telegram_id,
+          `🚫 <b>Поїздку скасовано</b>
+
+🎮 Гра #${gid}
+📅 ${g?.date || "—"} ${g?.time ? `о ${g.time}` : ""}
+📍 ${g?.location || "—"}
+
+Водій скасував поїздку. Спробуй знайти іншу в грі.`,
+          {
+            parse_mode: "HTML",
+            reply_markup: deepLink
+              ? { inline_keyboard: [[{ text: "📋 Відкрити гру", url: deepLink }]] }
+              : undefined,
+          },
+        );
+      }
+    } catch (e) {
+      log.error("Ride cancel notify passengers error", { e: e.message });
+    }
+
+    res.json({ success: true });
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
@@ -424,6 +903,65 @@ router.post("/:id/cancel", async (req, res) => {
     );
 
     await ins("DELETE FROM game_players WHERE id = ?", [registration.id]);
+
+    // If cancelling user has an active ride offer for this game — cancel it and notify accepted passengers
+    try {
+      const myRide = await q1(
+        "SELECT id FROM game_rides WHERE game_id=? AND owner_player_id=? AND status='active' LIMIT 1",
+        [gid, player.id],
+      );
+      if (myRide) {
+        const acceptedPassengers = await q(
+          `SELECT p.telegram_id
+           FROM game_ride_requests rr
+           JOIN players p ON p.id = rr.requester_player_id
+           WHERE rr.ride_id=? AND rr.status='accepted'`,
+          [myRide.id],
+        );
+
+        await ins(
+          "UPDATE game_rides SET status='cancelled', updated_at=NOW() WHERE id=?",
+          [myRide.id],
+        );
+        await ins(
+          "UPDATE game_ride_requests SET status='cancelled', responded_at=NOW() WHERE ride_id=? AND status='pending'",
+          [myRide.id],
+        );
+
+        const deepLink = config.BOT_USERNAME
+          ? `https://t.me/${config.BOT_USERNAME}?startapp=game_${gid}`
+          : undefined;
+        for (const p of acceptedPassengers) {
+          if (!p.telegram_id) continue;
+          try {
+            await bot.api.sendMessage(
+              p.telegram_id,
+              `🚫 <b>Поїздку скасовано</b>\n\n🎮 Гра #${gid}\nВласник поїздки скасував пропозицію (ймовірно, скасував запис на гру).`,
+              {
+                parse_mode: "HTML",
+                reply_markup: deepLink
+                  ? { inline_keyboard: [[{ text: "📋 Відкрити гру", url: deepLink }]] }
+                  : undefined,
+              },
+            );
+          } catch (e) {
+            log.error("Ride cancel notify error", { e: e.message });
+          }
+        }
+      }
+    } catch (e) {
+      log.error("Ride cancel-on-registration-cancel error (ignored)", { e: e.message });
+    }
+
+    // If cancelling user has ride seat requests — cancel them (best-effort)
+    try {
+      await ins(
+        "UPDATE game_ride_requests SET status='cancelled', responded_at=NOW() WHERE game_id=? AND requester_player_id=? AND status IN ('pending','accepted')",
+        [gid, player.id],
+      );
+    } catch (e) {
+      log.error("Ride requests cancel-on-registration-cancel error (ignored)", { e: e.message });
+    }
 
     let newCount = beforeCnt.c - 1;
 
@@ -782,6 +1320,362 @@ router.post("/:id/mvp-vote", async (req, res) => {
       voter: player.id,
       target: target_player_id,
     });
+
+    res.json({ success: true });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// ------------------------------------------------------------
+// CARPOOL RIDES
+// ------------------------------------------------------------
+
+// GET /api/games/:id/rides — list rides for a game
+router.get("/:id/rides", async (req, res) => {
+  try {
+    const gid = parseInt(req.params.id, 10);
+    if (!gid) return res.status(400).json({ error: "Invalid game id" });
+
+    const me = req.player;
+    if (!me) return res.status(401).json({ error: "Not registered" });
+
+    const rides = await q(
+      `SELECT
+         r.*,
+         p.nickname AS owner_nickname,
+         COALESCE(SUM(CASE WHEN rr.status='accepted' THEN rr.seats_requested ELSE 0 END), 0) AS accepted_seats
+       FROM game_rides r
+       JOIN players p ON p.id = r.owner_player_id
+       LEFT JOIN game_ride_requests rr ON rr.ride_id = r.id
+       WHERE r.game_id = ? AND r.status = 'active'
+       GROUP BY r.id
+       ORDER BY r.created_at DESC`,
+      [gid],
+    );
+
+    let myReqMap = new Map();
+    const myReqRows = await q(
+      "SELECT ride_id, status, seats_requested FROM game_ride_requests WHERE game_id=? AND requester_player_id=?",
+      [gid, me.id],
+    );
+    myReqMap = new Map(myReqRows.map((r) => [r.ride_id, r]));
+
+    // If I'm an owner of any ride(s) in this game, load pending requests for those rides
+    const myRideIds = rides
+      .filter((r) => r.owner_player_id === me.id)
+      .map((r) => r.id);
+
+    const pendingByRide = new Map();
+    if (myRideIds.length > 0) {
+      const pendings = await q(
+        `SELECT
+           rr.id,
+           rr.ride_id,
+           rr.requester_player_id,
+           rr.seats_requested,
+           rr.status,
+           rr.created_at,
+           p.nickname AS requester_nickname
+         FROM game_ride_requests rr
+         JOIN players p ON p.id = rr.requester_player_id
+         WHERE rr.ride_id IN (${myRideIds.map(() => "?").join(",")})
+           AND rr.status = 'pending'
+         ORDER BY rr.created_at ASC`,
+        myRideIds,
+      );
+      for (const row of pendings) {
+        if (!pendingByRide.has(row.ride_id)) pendingByRide.set(row.ride_id, []);
+        pendingByRide.get(row.ride_id).push(row);
+      }
+    }
+
+    const payload = rides.map((r) => {
+      const myReq = myReqMap.get(r.id) || null;
+      return {
+        ...r,
+        isOwner: r.owner_player_id === me.id,
+        myRequestStatus: myReq ? myReq.status : null,
+        mySeatsRequested: myReq ? myReq.seats_requested : null,
+        pendingRequests:
+          r.owner_player_id === me.id ? pendingByRide.get(r.id) || [] : [],
+      };
+    });
+
+    res.json({ rides: payload });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// POST /api/games/:id/rides — create/update owner's ride (upsert)
+router.post("/:id/rides", async (req, res) => {
+  try {
+    const gid = parseInt(req.params.id, 10);
+    if (!gid) return res.status(400).json({ error: "Invalid game id" });
+
+    const me = req.player;
+    if (!me) return res.status(401).json({ error: "Not registered" });
+
+    const isRegistered = await ensureRegisteredForGame(gid, me.id);
+    if (!isRegistered) {
+      return res.status(403).json({ error: "Only registered players can create rides" });
+    }
+
+    const seats_total = parseInt(req.body?.seats_total, 10);
+    const depart_location = String(req.body?.depart_location || "").trim();
+    const depart_time = String(req.body?.depart_time || "").trim();
+    const car_make = String(req.body?.car_make || "").trim() || null;
+    const car_color = String(req.body?.car_color || "").trim() || null;
+
+    if (!Number.isFinite(seats_total) || seats_total < 1) {
+      return res.status(400).json({ error: "seats_total must be >= 1" });
+    }
+    if (!depart_location) return res.status(400).json({ error: "depart_location required" });
+    if (!depart_time) return res.status(400).json({ error: "depart_time required" });
+
+    await ins(
+      `INSERT INTO game_rides
+        (game_id, owner_player_id, seats_total, depart_location, depart_time, car_make, car_color, status, created_at)
+       VALUES (?,?,?,?,?,?,?,'active',NOW())
+       ON DUPLICATE KEY UPDATE
+         seats_total=VALUES(seats_total),
+         depart_location=VALUES(depart_location),
+         depart_time=VALUES(depart_time),
+         car_make=VALUES(car_make),
+         car_color=VALUES(car_color),
+         status='active'`,
+      [gid, me.id, seats_total, depart_location, depart_time, car_make, car_color],
+    );
+
+    res.json({ success: true });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// POST /api/games/:id/rides/:rideId/request — request seats
+router.post("/:id/rides/:rideId/request", async (req, res) => {
+  try {
+    const gid = parseInt(req.params.id, 10);
+    const rideId = parseInt(req.params.rideId, 10);
+    if (!gid || !rideId) return res.status(400).json({ error: "Invalid id" });
+
+    const me = req.player;
+    if (!me) return res.status(401).json({ error: "Not registered" });
+
+    const isRegistered = await ensureRegisteredForGame(gid, me.id);
+    if (!isRegistered) {
+      return res.status(403).json({ error: "Only registered players can request seats" });
+    }
+
+    const ride = await q1(
+      "SELECT * FROM game_rides WHERE id=? AND game_id=? AND status='active'",
+      [rideId, gid],
+    );
+    if (!ride) return res.status(404).json({ error: "Ride not found" });
+    if (ride.owner_player_id === me.id) {
+      return res.status(400).json({ error: "Owner cannot request own ride" });
+    }
+
+    const seats_requested = parseInt(req.body?.seats_requested ?? 1, 10);
+    if (!Number.isFinite(seats_requested) || seats_requested < 1) {
+      return res.status(400).json({ error: "seats_requested must be >= 1" });
+    }
+
+    const existing = await q1(
+      "SELECT * FROM game_ride_requests WHERE ride_id=? AND requester_player_id=?",
+      [rideId, me.id],
+    );
+
+    if (existing) {
+      if (existing.status !== "pending") {
+        return res.status(400).json({ error: `Request already ${existing.status}` });
+      }
+      await ins(
+        "UPDATE game_ride_requests SET seats_requested=? WHERE id=?",
+        [seats_requested, existing.id],
+      );
+    } else {
+      await ins(
+        "INSERT INTO game_ride_requests (ride_id, game_id, requester_player_id, seats_requested, status, created_at) VALUES (?,?,?,?, 'pending', NOW())",
+        [rideId, gid, me.id, seats_requested],
+      );
+    }
+
+    // Telegram notify owner (best-effort)
+    try {
+      const owner = await q1(
+        "SELECT telegram_id, nickname FROM players WHERE id=?",
+        [ride.owner_player_id],
+      );
+      if (owner?.telegram_id) {
+        const game = await q1(
+          "SELECT id, date, time, location FROM games WHERE id=?",
+          [gid],
+        );
+        const deepLink = gameDeepLink(gid);
+        const info = game
+          ? `📅 Дата: ${game.date}\n⏰ Час: ${game.time || "—"}\n📍 Локація: ${game.location}`
+          : `🎮 Гра #${gid}`;
+
+        await bot.api.sendMessage(
+          owner.telegram_id,
+          `🚗 <b>Новий запит на поїздку</b>\n\n🎮 Гра #${gid}\n\n👤 Запит від: <b>${me.nickname}</b>\n🪑 Місць: <b>${seats_requested}</b>\n\n${info}`,
+          {
+            parse_mode: "HTML",
+            reply_markup: deepLink
+              ? { inline_keyboard: [[{ text: "📋 Відкрити гру", url: deepLink }]] }
+              : undefined,
+          },
+        );
+      }
+    } catch (e) {
+      log.error("Ride request notify error", { e: e.message });
+    }
+
+    res.json({ success: true });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// POST /api/games/:id/rides/:rideId/respond — owner accepts/rejects a request
+router.post("/:id/rides/:rideId/respond", async (req, res) => {
+  try {
+    const gid = parseInt(req.params.id, 10);
+    const rideId = parseInt(req.params.rideId, 10);
+    if (!gid || !rideId) return res.status(400).json({ error: "Invalid id" });
+
+    const me = req.player;
+    if (!me) return res.status(401).json({ error: "Not registered" });
+
+    const ride = await q1(
+      "SELECT * FROM game_rides WHERE id=? AND game_id=? AND status='active'",
+      [rideId, gid],
+    );
+    if (!ride) return res.status(404).json({ error: "Ride not found" });
+    if (ride.owner_player_id !== me.id) {
+      return res.status(403).json({ error: "Only ride owner can respond" });
+    }
+
+    const request_id = parseInt(req.body?.request_id, 10);
+    const action = String(req.body?.action || "").trim(); // accept|reject
+    if (!request_id || !["accept", "reject"].includes(action)) {
+      return res.status(400).json({ error: "request_id and action (accept|reject) required" });
+    }
+
+    const rr = await q1(
+      "SELECT * FROM game_ride_requests WHERE id=? AND ride_id=?",
+      [request_id, rideId],
+    );
+    if (!rr) return res.status(404).json({ error: "Request not found" });
+    if (rr.status !== "pending") {
+      return res.status(400).json({ error: "Request already processed" });
+    }
+
+    if (action === "accept") {
+      const accepted = await q1(
+        "SELECT COALESCE(SUM(seats_requested),0) AS s FROM game_ride_requests WHERE ride_id=? AND status='accepted'",
+        [rideId],
+      );
+      const wouldBe = (accepted?.s || 0) + rr.seats_requested;
+      if (wouldBe > ride.seats_total) {
+        return res.status(400).json({ error: "Not enough free seats" });
+      }
+      await ins(
+        "UPDATE game_ride_requests SET status='accepted', responded_at=NOW() WHERE id=?",
+        [rr.id],
+      );
+    } else {
+      await ins(
+        "UPDATE game_ride_requests SET status='rejected', responded_at=NOW() WHERE id=?",
+        [rr.id],
+      );
+    }
+
+    // Telegram notify requester (best-effort)
+    try {
+      const requester = await q1(
+        "SELECT telegram_id, nickname FROM players WHERE id=?",
+        [rr.requester_player_id],
+      );
+      if (requester?.telegram_id) {
+        const deepLink = gameDeepLink(gid);
+        const statusText = action === "accept" ? "✅ Прийнято" : "❌ Відхилено";
+        await bot.api.sendMessage(
+          requester.telegram_id,
+          `🚗 <b>Статус запиту на поїздку</b>\n\n🎮 Гра #${gid}\n📌 ${statusText}\n🪑 Місць: <b>${rr.seats_requested}</b>`,
+          {
+            parse_mode: "HTML",
+            reply_markup: deepLink
+              ? { inline_keyboard: [[{ text: "📋 Відкрити гру", url: deepLink }]] }
+              : undefined,
+          },
+        );
+      }
+    } catch (e) {
+      log.error("Ride respond notify error", { e: e.message });
+    }
+
+    res.json({ success: true });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// DELETE /api/games/:id/rides/:rideId — owner cancels ride
+router.delete("/:id/rides/:rideId", async (req, res) => {
+  try {
+    const gid = parseInt(req.params.id, 10);
+    const rideId = parseInt(req.params.rideId, 10);
+    if (!gid || !rideId) return res.status(400).json({ error: "Invalid id" });
+
+    const me = req.player;
+    if (!me) return res.status(401).json({ error: "Not registered" });
+
+    const ride = await q1(
+      "SELECT * FROM game_rides WHERE id=? AND game_id=?",
+      [rideId, gid],
+    );
+    if (!ride) return res.status(404).json({ error: "Ride not found" });
+    if (ride.owner_player_id !== me.id) {
+      return res.status(403).json({ error: "Only ride owner can delete" });
+    }
+
+    const acceptedPassengers = await q(
+      `SELECT p.telegram_id, p.nickname, rr.seats_requested
+       FROM game_ride_requests rr
+       JOIN players p ON p.id = rr.requester_player_id
+       WHERE rr.ride_id=? AND rr.status='accepted'`,
+      [rideId],
+    );
+
+    await ins("UPDATE game_rides SET status='cancelled' WHERE id=?", [rideId]);
+    await ins(
+      "UPDATE game_ride_requests SET status='cancelled', responded_at=NOW() WHERE ride_id=? AND status='pending'",
+      [rideId],
+    );
+
+    // Telegram notify accepted passengers (best-effort)
+    try {
+      const deepLink = gameDeepLink(gid);
+      for (const p of acceptedPassengers) {
+        if (!p.telegram_id) continue;
+        await bot.api.sendMessage(
+          p.telegram_id,
+          `🚫 <b>Поїздку скасовано</b>\n\n🎮 Гра #${gid}\nВласник поїздки скасував пропозицію. Будь ласка, знайди інший варіант.`,
+          {
+            parse_mode: "HTML",
+            reply_markup: deepLink
+              ? { inline_keyboard: [[{ text: "📋 Відкрити гру", url: deepLink }]] }
+              : undefined,
+          },
+        );
+      }
+    } catch (e) {
+      log.error("Ride cancel notify error", { e: e.message });
+    }
 
     res.json({ success: true });
   } catch (e) {
