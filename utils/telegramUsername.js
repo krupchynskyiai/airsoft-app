@@ -5,6 +5,28 @@
 const TG_HANDLE_RE = /^@?[a-zA-Z0-9_]{5,32}$/;
 const AUTO_PLAYER_NICK_RE = /^player_\d+$/;
 
+/** Stable numeric Telegram user id for DB (avoids string vs number mismatches). */
+function telegramIdNumber(id) {
+  if (id == null || id === "") return null;
+  let v = id;
+  if (typeof v === "bigint") {
+    v = Number(v);
+  }
+  const n = typeof v === "string" ? parseInt(v, 10) : Number(v);
+  return Number.isFinite(n) && n > 0 ? n : null;
+}
+
+/**
+ * Display nickname without user input: @username from Telegram, else player_<id> (unique).
+ */
+function defaultDisplayNicknameFromTelegramUser(tgUser) {
+  const tid = telegramIdNumber(tgUser?.id);
+  if (!tid) return null;
+  const un = normalizeTelegramUsername(tgUser?.username);
+  if (un) return `@${un}`;
+  return `player_${tid}`;
+}
+
 function normalizeTelegramUsername(raw) {
   if (raw == null || raw === "") return null;
   const t = String(raw).replace(/^@/, "").trim().toLowerCase();
@@ -28,6 +50,8 @@ function resolveTelegramUsername(apiUsername, nickname) {
 }
 
 module.exports = {
+  telegramIdNumber,
+  defaultDisplayNicknameFromTelegramUser,
   normalizeTelegramUsername,
   telegramUsernameFromNickname,
   resolveTelegramUsername,

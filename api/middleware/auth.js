@@ -4,6 +4,8 @@ const log = require("../../utils/logger");
 const { q1, ins } = require("../../database/helpers");
 const { syncTelegramUsernameWithDbPlayer } = require("../../services/playerTelegramUsernameSync");
 const {
+  telegramIdNumber,
+  defaultDisplayNicknameFromTelegramUser,
   normalizeTelegramUsername,
   resolveTelegramUsername,
   telegramUsernameFromNickname,
@@ -67,9 +69,14 @@ function validateInitData(initData) {
  * Load or create player
  */
 async function loadPlayerByTelegram(tgUser) {
+  const tgId = telegramIdNumber(tgUser.id);
+  if (!tgId) {
+    throw new Error("Invalid Telegram user id");
+  }
+
   let player = await q1(
     "SELECT * FROM players WHERE telegram_id=?",
-    [tgUser.id]
+    [tgId]
   );
 
   // If not found, try to attach an existing placeholder row by telegram username
@@ -101,7 +108,7 @@ async function loadPlayerByTelegram(tgUser) {
         try {
           await ins(
             "UPDATE players SET telegram_id=?, telegram_username=? WHERE id=?",
-            [tgUser.id, uname, player.id],
+            [tgId, uname, player.id],
           );
           player = await q1("SELECT * FROM players WHERE id=?", [player.id]);
           log.info("Player attached to placeholder", {
@@ -117,12 +124,12 @@ async function loadPlayerByTelegram(tgUser) {
     }
   }
 
-  // auto-register player if not exists
+  // auto-register player if not exists (нік з Telegram @username або унікальний player_<id>)
   if (!player) {
-    const nickname =
-      tgUser.username ||
-      `${tgUser.first_name || ""}${tgUser.last_name || ""}`.trim() ||
-      `player_${tgUser.id}`;
+    const nickname = defaultDisplayNicknameFromTelegramUser(tgUser);
+    if (!nickname) {
+      throw new Error("Cannot derive player nickname");
+    }
 
     const uname = resolveTelegramUsername(tgUser.username, nickname);
 
@@ -131,12 +138,12 @@ async function loadPlayerByTelegram(tgUser) {
     try {
       r = await ins(
         "INSERT INTO players (telegram_id,telegram_username,nickname,rating,games_played,wins,total_deaths) VALUES (?,?,?,?,0,0,0)",
-        [tgUser.id, uname, nickname],
+        [tgId, uname, nickname],
       );
     } catch (e) {
       r = await ins(
         "INSERT INTO players (telegram_id,nickname,rating,games_played,wins,total_deaths) VALUES (?,?,0,0,0,0)",
-        [tgUser.id, nickname],
+        [tgId, nickname],
       );
     }
 
@@ -189,6 +196,9 @@ async function authMiddleware(req, res, next) {
         return res.status(401).json({ error: "Invalid auth" });
       }
 
+      const tid = telegramIdNumber(tgUser.id);
+      if (tid) tgUser.id = tid;
+
       log.info("API auth", {
         userId: tgUser.id,
         username: tgUser.username,
@@ -229,4 +239,5 @@ module.exports = {
   authMiddleware,
   adminMiddleware,
   validateInitData,
+  loadPlayerByTelegram,
 };

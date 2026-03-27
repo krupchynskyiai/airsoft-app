@@ -1,11 +1,5 @@
 import React, { useState, useEffect } from "react";
-import {
-  registerPlayer,
-  getTeamsList,
-  getFriends,
-  sendFriendRequest,
-  respondFriendRequest,
-} from "../api";
+import { getFriends, sendFriendRequest, respondFriendRequest } from "../api";
 import PlayerSearch from "../components/PlayerSearch";
 import { useTelegram } from "../hooks/useTelegram";
 import { getAvatarForLevel, getPlayerLevelState } from "../utils/playerLevel";
@@ -139,8 +133,26 @@ export default function Profile({ profile, onReload }) {
   }, [profile?.registered, retryProfileOnce, onReload]);
 
   if (!profile?.registered) {
+    if (profile?.profileLoadFailed) {
+      return (
+        <div className="flex flex-col items-center justify-center min-h-[60vh] px-6 text-center">
+          <p className="text-gray-300 text-sm mb-2">Не вдалося завантажити профіль</p>
+          <p className="text-gray-500 text-xs mb-6">
+            Відкрийте міні-ап з Telegram і перевірте з’єднання.
+          </p>
+          <button
+            type="button"
+            onClick={() => {
+              onReload();
+            }}
+            className="px-6 py-3 rounded-xl bg-emerald-700/50 border border-emerald-600/40 text-emerald-100 text-sm font-semibold active:scale-95"
+          >
+            Спробувати знову
+          </button>
+        </div>
+      );
+    }
     if (!retryProfileOnce) {
-      // короткий локальний лоадер, поки триває перша спроба завантаження профілю
       return (
         <div className="flex items-center justify-center min-h-[60vh]">
           <div className="text-center text-sm text-gray-400">
@@ -149,7 +161,22 @@ export default function Profile({ profile, onReload }) {
         </div>
       );
     }
-    return <RegisterForm onDone={onReload} />;
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] px-6 text-center">
+        <p className="text-gray-300 text-sm mb-2">Профіль ще не готовий</p>
+        <p className="text-gray-500 text-xs mb-6">
+          Зазвичай він створюється автоматично з вашого Telegram. Натисніть «Оновити» або
+          перезайдіть у додаток.
+        </p>
+        <button
+          type="button"
+          onClick={() => onReload()}
+          className="px-6 py-3 rounded-xl bg-emerald-700/50 border border-emerald-600/40 text-emerald-100 text-sm font-semibold active:scale-95"
+        >
+          Оновити
+        </button>
+      </div>
+    );
   }
 
   const p = profile.player;
@@ -688,183 +715,6 @@ function CombatStat({ icon, value, label, color }) {
       <div className="text-lg mb-0.5">{icon}</div>
       <div className={`text-xl font-black ${color}`}>{value}</div>
       <div className="text-[10px] text-gray-500 uppercase tracking-wider">{label}</div>
-    </div>
-  );
-}
-
-// ============================================
-// REGISTRATION FORM
-// ============================================
-
-function RegisterForm({ onDone }) {
-  const [nick, setNick] = useState("");
-  const [teamId, setTeamId] = useState(null);
-  const [teams, setTeams] = useState([]);
-  const [step, setStep] = useState("nick");
-  const [err, setErr] = useState("");
-  const [loading, setLoading] = useState(false);
-  const { haptic } = useTelegram();
-
-  async function loadTeams() {
-    try {
-      const t = await getTeamsList();
-      setTeams(t);
-    } catch (e) {}
-  }
-
-  async function submit() {
-    setLoading(true);
-    setErr("");
-    try {
-      await registerPlayer(nick, teamId);
-      haptic("success");
-      onDone();
-    } catch (e) {
-      setErr(e.message);
-      haptic("error");
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  if (step === "nick") {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[80vh] px-6">
-        <div className="relative mb-8">
-          <div className="w-24 h-24 rounded-3xl bg-gradient-to-br from-emerald-500 to-cyan-600 flex items-center justify-center text-5xl shadow-2xl shadow-emerald-900/50">
-            🎯
-          </div>
-          <div className="absolute -inset-3 rounded-[28px] border border-emerald-500/20 animate-pulse" />
-        </div>
-
-        <h1 className="text-3xl font-black mb-1 bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent">
-          Airsoft Club
-        </h1>
-        <p className="text-gray-400 text-sm mb-10">Введи свій бойовий позивний</p>
-
-        <div className="w-full max-w-sm">
-          <div className="relative mb-4">
-            <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 text-lg">👤</div>
-            <input
-              value={nick}
-              onChange={(e) => { setNick(e.target.value); setErr(""); }}
-              placeholder="Nickname"
-              maxLength={20}
-              className="w-full bg-slate-800/80 border-2 border-slate-600/50 rounded-2xl pl-12 pr-4 py-4 text-lg font-medium focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 transition-all placeholder:text-gray-600"
-              autoFocus
-            />
-            {nick.length > 0 && (
-              <div className="absolute right-4 top-1/2 -translate-y-1/2 text-xs text-gray-500">
-                {nick.length}/20
-              </div>
-            )}
-          </div>
-
-          {err && (
-            <div className="bg-red-900/30 border border-red-800/50 text-red-400 text-sm px-4 py-2.5 rounded-xl mb-4 flex items-center gap-2">
-              <span>⚠️</span> {err}
-            </div>
-          )}
-
-          <button
-            onClick={() => {
-              if (nick.trim().length >= 2) {
-                haptic("impact");
-                loadTeams();
-                setStep("team");
-              }
-            }}
-            disabled={nick.trim().length < 2}
-            className="w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 disabled:from-slate-700 disabled:to-slate-700 disabled:text-gray-500 py-4 rounded-2xl font-bold text-lg shadow-lg shadow-emerald-900/30 transition-all duration-300 active:scale-[0.98]"
-          >
-            Далі →
-          </button>
-        </div>
-
-        <p className="text-gray-600 text-xs mt-6">Мінімум 2 символи</p>
-      </div>
-    );
-  }
-
-  return (
-    <div className="flex flex-col min-h-[80vh] px-4">
-      <button
-        onClick={() => { setStep("nick"); haptic("impact"); }}
-        className="text-emerald-400 text-sm mb-6 flex items-center gap-1 self-start"
-      >
-        ← Назад
-      </button>
-
-      <div className="text-center mb-8">
-        <div className="text-4xl mb-3">🏠</div>
-        <h2 className="text-2xl font-black mb-1">Обери команду</h2>
-        <p className="text-gray-400 text-sm">Або грай як Соло Гравець</p>
-      </div>
-
-      <div className="space-y-2 mb-6 flex-1">
-        <button
-          onClick={() => { setTeamId(null); haptic("impact"); }}
-          className={`w-full p-4 rounded-2xl border-2 flex items-center gap-3 transition-all duration-200 active:scale-[0.98] ${
-            teamId === null
-              ? "border-emerald-500 bg-emerald-950/40 shadow-lg shadow-emerald-900/20"
-              : "border-slate-700/50 bg-slate-800/50"
-          }`}
-        >
-          <div className={`w-11 h-11 rounded-xl flex items-center justify-center text-xl ${
-            teamId === null ? "bg-emerald-600/20" : "bg-slate-700"
-          }`}>
-            🐺
-          </div>
-          <div className="text-left flex-1">
-            <div className="font-bold">Соло Гравець</div>
-            <div className="text-xs text-gray-500">Без команди</div>
-          </div>
-          {teamId === null && <div className="text-emerald-400 text-lg">✓</div>}
-        </button>
-
-        {teams.map((t) => (
-          <button
-            key={t.id}
-            onClick={() => { setTeamId(t.id); haptic("impact"); }}
-            className={`w-full p-4 rounded-2xl border-2 flex items-center gap-3 transition-all duration-200 active:scale-[0.98] ${
-              teamId === t.id
-                ? "border-emerald-500 bg-emerald-950/40 shadow-lg shadow-emerald-900/20"
-                : "border-slate-700/50 bg-slate-800/50"
-            }`}
-          >
-            <div className={`w-11 h-11 rounded-xl flex items-center justify-center text-xl ${
-              teamId === t.id ? "bg-emerald-600/20" : "bg-slate-700"
-            }`}>
-              🏠
-            </div>
-            <div className="text-left flex-1">
-              <div className="font-bold">{t.name}</div>
-            </div>
-            {teamId === t.id && <div className="text-emerald-400 text-lg">✓</div>}
-          </button>
-        ))}
-      </div>
-
-      {err && (
-        <div className="bg-red-900/30 border border-red-800/50 text-red-400 text-sm px-4 py-2.5 rounded-xl mb-4 flex items-center gap-2">
-          <span>⚠️</span> {err}
-        </div>
-      )}
-
-      <button
-        onClick={() => { haptic("impact"); submit(); }}
-        disabled={loading}
-        className="w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 disabled:opacity-50 py-4 rounded-2xl font-bold text-lg shadow-lg shadow-emerald-900/30 transition-all active:scale-[0.98] mb-4"
-      >
-        {loading ? (
-          <span className="flex items-center justify-center gap-2">
-            <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-            Реєстрація...
-          </span>
-        ) : (
-          "Зареєструватись ✓"
-        )}
-      </button>
     </div>
   );
 }

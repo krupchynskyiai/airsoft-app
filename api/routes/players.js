@@ -1,8 +1,12 @@
 const { Router } = require("express");
 const { q, q1, ins } = require("../../database/helpers");
 const log = require("../../utils/logger");
-const { normalizeTelegramUsername, resolveTelegramUsername } = require("../../utils/telegramUsername");
+const {
+  telegramIdNumber,
+  resolveTelegramUsername,
+} = require("../../utils/telegramUsername");
 const { syncTelegramUsernameWithDbPlayer } = require("../../services/playerTelegramUsernameSync");
+const { loadPlayerByTelegram } = require("../middleware/auth");
 
 const router = Router();
 
@@ -11,11 +15,25 @@ router.get("/profile", async (req, res) => {
   try {
     const tgId = req.tgUser.id;
 
+    let base = req.player;
+    if (!base) {
+      try {
+        base = await loadPlayerByTelegram(req.tgUser);
+        req.player = base;
+      } catch (e) {
+        log.warn("Profile: ensure player failed", { err: e.message });
+      }
+    }
+
+    if (!base) {
+      return res.json({ registered: false, is_admin: false });
+    }
+
     const player = await q1(
       `SELECT p.*, t.name AS team_name
        FROM players p LEFT JOIN teams t ON p.team_id = t.id
-       WHERE p.telegram_id = ?`,
-      [tgId]
+       WHERE p.id = ?`,
+      [base.id],
     );
 
     if (!player) {
@@ -110,80 +128,51 @@ router.get("/profile", async (req, res) => {
   }
 });
 
-// POST /api/register
+// POST /api/register — профіль створюється автоматично в auth; тут лише оновлення команди (legacy / міні-ап)
 router.post("/register", async (req, res) => {
   try {
-    const tgId = req.tgUser.id;
+    const tgId = telegramIdNumber(req.tgUser.id) || req.tgUser.id;
     const { nickname, team_id } = req.body;
-    const tgUsername = normalizeTelegramUsername(req.tgUser?.username) || "";
 
-    if (!nickname || nickname.trim().length < 2) {
-      return res.status(400).json({ error: "Nickname required (min 2 chars)" });
-    }
+    let row = await q1("SELECT id FROM players WHERE telegram_id = ?", [tgId]);
 
-    const desiredNick = nickname.trim();
-    const storedTgUsername = resolveTelegramUsername(req.tgUser?.username, desiredNick);
-    const dup = await q1(
-      "SELECT id, telegram_id, telegram_username FROM players WHERE nickname = ? LIMIT 1",
-      [desiredNick],
-    );
-
-    const existing = await q1("SELECT id FROM players WHERE telegram_id = ?", [tgId]);
-    if (existing) return res.status(400).json({ error: "Already registered" });
-
-    // If there is a pre-created placeholder by telegram username, attach and reuse it.
-    let placeholder = null;
-    if (tgUsername) {
-      try {
-        placeholder = await q1(
-          "SELECT id FROM players WHERE telegram_username=? AND (telegram_id IS NULL OR telegram_id=0) LIMIT 1",
-          [tgUsername],
-        );
-      } catch (e) {
-        // ignore if schema doesn't support telegram_username / nullable telegram_id yet
+    if (!row) {
+      const created = await loadPlayerByTelegram(req.tgUser);
+      if (!created?.id) {
+        return res.status(500).json({ error: "Could not create player" });
       }
+      row = { id: created.id };
     }
 
-    // If nickname is taken by someone else, block it.
-    // But allow if it's taken by *our own placeholder* (same telegram_username, unattached).
-    if (dup) {
-      const isOwnPlaceholder =
-        !!placeholder && dup.id === placeholder.id;
-      if (!isOwnPlaceholder) {
+    // Опційно: кастомний нік (старі клієнти); інакше лишаємо авто @username / player_<id>
+    if (nickname && String(nickname).trim().length >= 2) {
+      const desiredNick = String(nickname).trim();
+      const taken = await q1(
+        "SELECT id FROM players WHERE nickname = ? AND id <> ? LIMIT 1",
+        [desiredNick, row.id],
+      );
+      if (taken) {
         return res.status(400).json({ error: "Nickname taken" });
       }
+      const storedTg = resolveTelegramUsername(req.tgUser?.username, desiredNick);
+      try {
+        await ins(
+          "UPDATE players SET nickname=?, telegram_username=COALESCE(NULLIF(telegram_username,''), ?) WHERE id=?",
+          [desiredNick, storedTg || null, row.id],
+        );
+      } catch (e) {
+        await ins("UPDATE players SET nickname=? WHERE id=?", [desiredNick, row.id]);
+      }
+    }
+    if (team_id !== undefined) {
+      await ins("UPDATE players SET team_id=? WHERE id=?", [team_id || null, row.id]);
     }
 
-    if (placeholder) {
-      await ins(
-        "UPDATE players SET telegram_id=?, nickname=?, team_id=?, telegram_username=IF(telegram_username IS NULL OR telegram_username='', ?, telegram_username) WHERE id=?",
-        [tgId, desiredNick, team_id || null, storedTgUsername || tgUsername || null, placeholder.id],
-      );
-      log.info("API register attached placeholder", { tgId, nickname, id: placeholder.id });
-      const attached = await q1("SELECT * FROM players WHERE id=?", [placeholder.id]);
-      if (attached) await syncTelegramUsernameWithDbPlayer(attached, req.tgUser);
-      return res.json({ success: true, player_id: placeholder.id });
-    }
+    const full = await q1("SELECT * FROM players WHERE id=?", [row.id]);
+    if (full) await syncTelegramUsernameWithDbPlayer(full, req.tgUser);
 
-    // Otherwise create new row (store telegram_username if available/column exists)
-    let r;
-    try {
-      r = await ins(
-        "INSERT INTO players (telegram_id,telegram_username,nickname,team_id,games_played,wins,mvp_count,total_kills,total_deaths,rating) VALUES (?,?,?,?,0,0,0,0,0,0)",
-        [tgId, storedTgUsername || null, desiredNick, team_id || null],
-      );
-    } catch (e) {
-      r = await ins(
-        "INSERT INTO players (telegram_id,nickname,team_id,games_played,wins,mvp_count,total_kills,total_deaths,rating) VALUES (?,?,?,0,0,0,0,0,0)",
-        [tgId, desiredNick, team_id || null],
-      );
-    }
-
-    const created = await q1("SELECT * FROM players WHERE id=?", [r.insertId]);
-    if (created) await syncTelegramUsernameWithDbPlayer(created, req.tgUser);
-
-    log.info("API register", { tgId, nickname, id: r.insertId });
-    res.json({ success: true, player_id: r.insertId });
+    log.info("API register", { tgId, playerId: row.id });
+    res.json({ success: true, player_id: row.id });
   } catch (e) {
     log.error("API /register error", { error: e.message });
     res.status(500).json({ error: e.message });

@@ -80,6 +80,7 @@ export default function App() {
       setIsAdmin(data.is_admin === true);
     } catch (e) {
       console.error("Profile load error:", e);
+      setProfile({ registered: false, profileLoadFailed: true });
       setIsAdmin(false);
     } finally {
       setLoading(false);
