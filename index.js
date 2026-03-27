@@ -9,6 +9,7 @@ const { initDB } = require("./database/connection");
 const { q1 } = require("./database/helpers");
 const { esc } = require("./utils/markdown");
 const { createPlayer } = require("./services/players");
+const { syncTelegramUsernameWithDbPlayer } = require("./services/playerTelegramUsernameSync");
 const { handleGeoCheckin, handleGameGeo } = require("./handlers/games");
 const { handleTextSteps } = require("./handlers/admin");
 const { createServer } = require("./api/server");
@@ -50,6 +51,7 @@ bot.command("start", async (ctx) => {
   const webappUrl = process.env.WEBAPP_URL || "https://yourdomain.com";
 
   if (existing) {
+    await syncTelegramUsernameWithDbPlayer(existing, ctx.from);
     const kb = new InlineKeyboard().webApp("🎯 Увійти", webappUrl);
     return ctx.reply(
       `👋 Вітаю, *${esc(existing.nickname)}*\\!\n\nНатисни кнопку щоб відкрити додаток:`,
@@ -103,9 +105,13 @@ bot.on("message:text", async (ctx) => {
 
   // No step — show "Увійти" button
   if (!step) {
-    const p = await q1("SELECT nickname FROM players WHERE telegram_id=?", [ctx.from.id]);
+    const p = await q1(
+      "SELECT id, telegram_id, telegram_username, nickname FROM players WHERE telegram_id=?",
+      [ctx.from.id],
+    );
     const kb = new InlineKeyboard().webApp("🎯 Увійти", webappUrl);
     if (p) {
+      await syncTelegramUsernameWithDbPlayer(p, ctx.from);
       return ctx.reply(
         `👋 *${esc(p.nickname)}*, натисни кнопку щоб відкрити додаток:`,
         { parse_mode: "MarkdownV2", reply_markup: kb }

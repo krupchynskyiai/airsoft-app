@@ -2,6 +2,31 @@ const crypto = require("crypto");
 const config = require("../../config");
 const log = require("../../utils/logger");
 const { q1, ins } = require("../../database/helpers");
+const { syncTelegramUsernameWithDbPlayer } = require("../../services/playerTelegramUsernameSync");
+const {
+  normalizeTelegramUsername,
+  resolveTelegramUsername,
+  telegramUsernameFromNickname,
+} = require("../../utils/telegramUsername");
+
+async function backfillTelegramUsernameColumn(player) {
+  if (!player?.id) return;
+  // Реальні акаунти: username береться лише з Telegram API (sync), не з ніка
+  if (player.telegram_id != null && Number(player.telegram_id) !== 0) return;
+  const cur = player.telegram_username;
+  if (cur != null && String(cur).trim() !== "") return;
+  const derived = telegramUsernameFromNickname(player.nickname);
+  if (!derived) return;
+  try {
+    await ins(
+      "UPDATE players SET telegram_username=? WHERE id=? AND (telegram_username IS NULL OR telegram_username='')",
+      [derived, player.id],
+    );
+    player.telegram_username = derived;
+  } catch (e) {
+    // column missing or constraint
+  }
+}
 
 /**
  * Validates Telegram WebApp initData
@@ -48,8 +73,8 @@ async function loadPlayerByTelegram(tgUser) {
   );
 
   // If not found, try to attach an existing placeholder row by telegram username
-  if (!player && tgUser.username) {
-    const uname = String(tgUser.username).replace(/^@/, "").trim();
+  if (tgUser.username) {
+    const uname = normalizeTelegramUsername(tgUser.username);
     if (uname) {
       try {
         player = await q1(
@@ -75,7 +100,7 @@ async function loadPlayerByTelegram(tgUser) {
       if (player) {
         try {
           await ins(
-            "UPDATE players SET telegram_id=?, telegram_username=COALESCE(telegram_username, ?) WHERE id=?",
+            "UPDATE players SET telegram_id=?, telegram_username=? WHERE id=?",
             [tgUser.id, uname, player.id],
           );
           player = await q1("SELECT * FROM players WHERE id=?", [player.id]);
@@ -99,7 +124,7 @@ async function loadPlayerByTelegram(tgUser) {
       `${tgUser.first_name || ""}${tgUser.last_name || ""}`.trim() ||
       `player_${tgUser.id}`;
 
-    const uname = tgUser.username ? String(tgUser.username).replace(/^@/, "").trim() : null;
+    const uname = resolveTelegramUsername(tgUser.username, nickname);
 
     // Prefer storing telegram_username if column exists (best-effort)
     let r;
@@ -123,6 +148,10 @@ async function loadPlayerByTelegram(tgUser) {
     });
   }
 
+  if (player) {
+    await syncTelegramUsernameWithDbPlayer(player, tgUser);
+    await backfillTelegramUsernameColumn(player);
+  }
   return player;
 }
 

@@ -1,4 +1,5 @@
 const { q1 } = require("../database/helpers");
+const { syncTelegramUsernameWithDbPlayer } = require("../services/playerTelegramUsernameSync");
 const { esc } = require("../utils/markdown");
 const { sendMenu } = require("../menus/main");
 const log = require("../utils/logger");
@@ -11,6 +12,7 @@ function register(bot) {
     const ex = await q1("SELECT * FROM players WHERE telegram_id = ?", [tgId]);
 
     if (ex) {
+      await syncTelegramUsernameWithDbPlayer(ex, ctx.from);
       return sendMenu(ctx, `👋 *${esc(ex.nickname)}*, обери дію:`);
     }
 

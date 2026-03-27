@@ -1,6 +1,8 @@
 const { Router } = require("express");
 const { q, q1, ins } = require("../../database/helpers");
 const log = require("../../utils/logger");
+const { normalizeTelegramUsername, resolveTelegramUsername } = require("../../utils/telegramUsername");
+const { syncTelegramUsernameWithDbPlayer } = require("../../services/playerTelegramUsernameSync");
 
 const router = Router();
 
@@ -113,15 +115,14 @@ router.post("/register", async (req, res) => {
   try {
     const tgId = req.tgUser.id;
     const { nickname, team_id } = req.body;
-    const tgUsername = req.tgUser?.username
-      ? String(req.tgUser.username).replace(/^@/, "").trim()
-      : "";
+    const tgUsername = normalizeTelegramUsername(req.tgUser?.username) || "";
 
     if (!nickname || nickname.trim().length < 2) {
       return res.status(400).json({ error: "Nickname required (min 2 chars)" });
     }
 
     const desiredNick = nickname.trim();
+    const storedTgUsername = resolveTelegramUsername(req.tgUser?.username, desiredNick);
     const dup = await q1(
       "SELECT id, telegram_id, telegram_username FROM players WHERE nickname = ? LIMIT 1",
       [desiredNick],
@@ -155,10 +156,12 @@ router.post("/register", async (req, res) => {
 
     if (placeholder) {
       await ins(
-        "UPDATE players SET telegram_id=?, nickname=?, team_id=? WHERE id=?",
-        [tgId, desiredNick, team_id || null, placeholder.id],
+        "UPDATE players SET telegram_id=?, nickname=?, team_id=?, telegram_username=IF(telegram_username IS NULL OR telegram_username='', ?, telegram_username) WHERE id=?",
+        [tgId, desiredNick, team_id || null, storedTgUsername || tgUsername || null, placeholder.id],
       );
       log.info("API register attached placeholder", { tgId, nickname, id: placeholder.id });
+      const attached = await q1("SELECT * FROM players WHERE id=?", [placeholder.id]);
+      if (attached) await syncTelegramUsernameWithDbPlayer(attached, req.tgUser);
       return res.json({ success: true, player_id: placeholder.id });
     }
 
@@ -167,7 +170,7 @@ router.post("/register", async (req, res) => {
     try {
       r = await ins(
         "INSERT INTO players (telegram_id,telegram_username,nickname,team_id,games_played,wins,mvp_count,total_kills,total_deaths,rating) VALUES (?,?,?,?,0,0,0,0,0,0)",
-        [tgId, tgUsername || null, desiredNick, team_id || null],
+        [tgId, storedTgUsername || null, desiredNick, team_id || null],
       );
     } catch (e) {
       r = await ins(
@@ -175,6 +178,9 @@ router.post("/register", async (req, res) => {
         [tgId, desiredNick, team_id || null],
       );
     }
+
+    const created = await q1("SELECT * FROM players WHERE id=?", [r.insertId]);
+    if (created) await syncTelegramUsernameWithDbPlayer(created, req.tgUser);
 
     log.info("API register", { tgId, nickname, id: r.insertId });
     res.json({ success: true, player_id: r.insertId });

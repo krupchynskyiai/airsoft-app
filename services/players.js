@@ -1,4 +1,6 @@
 const { q, q1, ins } = require("../database/helpers");
+const { resolveTelegramUsername } = require("../utils/telegramUsername");
+const { syncTelegramUsernameWithDbPlayer } = require("./playerTelegramUsernameSync");
 const { esc } = require("../utils/markdown");
 const { sendMenu } = require("../menus/main");
 const config = require("../config");
@@ -8,12 +10,24 @@ const BADGES = require("../constants/badges");
 async function createPlayer(ctx, bot, teamId) {
   const nick = ctx.session.data.nickname;
   const tgId = ctx.from.id;
+  const uname = resolveTelegramUsername(ctx.from?.username, nick);
 
   try {
-    const r = await ins(
-      "INSERT INTO players (telegram_id,nickname,team_id,games_played,wins,mvp_count,total_kills,total_deaths,rating) VALUES (?,?,?,0,0,0,0,0,0)",
-      [tgId, nick, teamId]
-    );
+    let r;
+    try {
+      r = await ins(
+        "INSERT INTO players (telegram_id,telegram_username,nickname,team_id,games_played,wins,mvp_count,total_kills,total_deaths,rating) VALUES (?,?,?,?,0,0,0,0,0,0)",
+        [tgId, uname, nick, teamId],
+      );
+    } catch (e) {
+      r = await ins(
+        "INSERT INTO players (telegram_id,nickname,team_id,games_played,wins,mvp_count,total_kills,total_deaths,rating) VALUES (?,?,?,0,0,0,0,0,0)",
+        [tgId, nick, teamId],
+      );
+    }
+
+    const created = await q1("SELECT * FROM players WHERE id=?", [r.insertId]);
+    if (created) await syncTelegramUsernameWithDbPlayer(created, ctx.from);
 
     let tn = "Без команди";
     if (teamId) {
