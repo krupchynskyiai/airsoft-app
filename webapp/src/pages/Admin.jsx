@@ -145,6 +145,7 @@ function CreateGameForm({ onDone }) {
     game_mode: "team_vs_team",
     max_players: 18,
     payment: 600,
+    score_round_outcomes_only: false,
   });
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState(1);
@@ -272,6 +273,21 @@ function CreateGameForm({ onDone }) {
           <p className="text-sm text-gray-400 mb-2 font-medium">
             Обери формат гри
           </p>
+          <label className="flex items-start gap-3 p-4 rounded-2xl border border-slate-700/40 bg-slate-800/40 cursor-pointer active:scale-[0.99] transition-transform">
+            <input
+              type="checkbox"
+              checked={form.score_round_outcomes_only}
+              onChange={(e) => set("score_round_outcomes_only", e.target.checked)}
+              className="mt-1 w-4 h-4 rounded border-slate-600 text-emerald-600 focus:ring-emerald-500/40"
+            />
+            <div>
+              <div className="font-bold text-sm">Лише результат раундів</div>
+              <p className="text-xs text-gray-500 mt-1 leading-relaxed">
+                Рейтинг після гри — лише за підсумком раундів (перемоги команди та нічия). Смерті й виживання в раундах не змінюють нараховані очки.
+              </p>
+            </div>
+          </label>
+
           {modes.map((m) => (
             <button
               key={m.id}
@@ -314,6 +330,9 @@ function CreateGameForm({ onDone }) {
               </p>
               <p>📍 {form.location}</p>
               <p>🎯 {modes.find((m) => m.id === form.game_mode)?.label}</p>
+              {form.score_round_outcomes_only && (
+                <p>📋 Скоринг: лише перемоги раундів / нічия</p>
+              )}
               <p>👥 До {form.max_players} гравців</p>
               <p>🪙 Вартість участі {form.payment} грн</p>
               <p>⏱ Тривалість: {form.duration || "не вказано"}</p>

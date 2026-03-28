@@ -32,6 +32,19 @@ export function useTelegram() {
         window.alert(msg);
       }
     },
+    /** Підтвердження (Telegram showConfirm або window.confirm у браузері). Повертає Promise<boolean>. */
+    showConfirm: (msg) => {
+      if (isRealTelegram && typeof tg?.showConfirm === "function") {
+        return new Promise((resolve) => {
+          try {
+            tg.showConfirm(msg, (ok) => resolve(!!ok));
+          } catch (e) {
+            resolve(window.confirm(msg));
+          }
+        });
+      }
+      return Promise.resolve(window.confirm(msg));
+    },
     haptic: (type = "impact") => {
       if (!isRealTelegram) return;
       try {

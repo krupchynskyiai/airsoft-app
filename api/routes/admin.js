@@ -20,12 +20,13 @@ router.post("/games", async (req, res) => {
       duration,
       checkin_lat,
       checkin_lng,
+      score_round_outcomes_only,
     } = req.body;
 
     const season = await q1("SELECT id FROM seasons WHERE is_active=1 LIMIT 1");
 
     const r = await ins(
-      "INSERT INTO games (date,time,location,game_mode,max_players,payment,duration,total_rounds,status,season_id,checkin_lat,checkin_lng) VALUES (?,?,?,?,?,?,?,0,'upcoming',?,?,?)",
+      "INSERT INTO games (date,time,location,game_mode,max_players,payment,duration,score_round_outcomes_only,total_rounds,status,season_id,checkin_lat,checkin_lng) VALUES (?,?,?,?,?,?,?,?,0,'upcoming',?,?,?)",
       [
         date,
         time,
@@ -34,6 +35,7 @@ router.post("/games", async (req, res) => {
         max_players || null,
         payment || 0,
         duration || null,
+        score_round_outcomes_only ? 1 : 0,
         season?.id || null,
         checkin_lat || null,
         checkin_lng || null,
@@ -343,7 +345,15 @@ ${info}`,
 router.post("/games/:id/end-round", async (req, res) => {
   try {
     const gid = parseInt(req.params.id);
-    const { winner_team } = req.body;
+    let { winner_team } = req.body;
+
+    if (winner_team === "" || winner_team === undefined) winner_team = null;
+    if (["draw", "X", "tie", "нічия"].includes(winner_team)) winner_team = null;
+    if (winner_team !== null && !["A", "B"].includes(winner_team)) {
+      return res.status(400).json({
+        error: "winner_team must be A, B, or null (draw)",
+      });
+    }
 
     const game = await q1("SELECT * FROM games WHERE id=?", [gid]);
 
@@ -374,7 +384,7 @@ router.post("/games/:id/end-round", async (req, res) => {
             ? "🔵 Команда A"
             : winner_team === "B"
               ? "🔴 Команда B"
-              : "⚪ Без переможця";
+              : "⚖ Нічия";
 
         const info = `📅 Дата: ${game.date}
 ⏰ Час: ${game.time || "—"}
@@ -927,6 +937,9 @@ router.post("/games/:id/checkin-review", async (req, res) => {
       return res.status(400).json({ error: "Invalid parameters" });
     }
 
+    const game = await q1("SELECT id, status FROM games WHERE id=?", [gid]);
+    if (!game) return res.status(404).json({ error: "Game not found" });
+
     const reg = await q1(
       "SELECT attendance FROM game_players WHERE game_id=? AND player_id=?",
       [gid, player_id],
@@ -935,16 +948,28 @@ router.post("/games/:id/checkin-review", async (req, res) => {
       return res.status(404).json({ error: "Player not registered for game" });
     }
 
-    if (reg.attendance !== "checkin_pending") {
-      return res.status(400).json({ error: "Check-in not in pending state" });
-    }
-
+    // Підтвердити чекін: з очікування АБО напряму з «записаний» (адмін без телефону гравця)
     if (action === "confirm") {
+      if (!["checkin", "active"].includes(game.status)) {
+        return res
+          .status(400)
+          .json({ error: "Check-in only during check-in or live game" });
+      }
+      if (!["registered", "checkin_pending"].includes(reg.attendance)) {
+        return res.status(400).json({
+          error: "Can only confirm players who are registered or pending check-in",
+        });
+      }
       await ins(
         "UPDATE game_players SET attendance='checked_in', checkin_time=COALESCE(checkin_time, NOW()) WHERE game_id=? AND player_id=?",
         [gid, player_id],
       );
     } else {
+      if (reg.attendance !== "checkin_pending") {
+        return res
+          .status(400)
+          .json({ error: "Can only reject pending geo check-in" });
+      }
       await ins(
         "UPDATE game_players SET attendance='registered', checkin_time=NULL WHERE game_id=? AND player_id=?",
         [gid, player_id],
@@ -1072,10 +1097,12 @@ async function calculateGameScores(gid) {
   });
 
   const roundWins = await q(
-    "SELECT winner_game_team, COUNT(*) as wins FROM rounds WHERE game_id=? AND winner_game_team IS NOT NULL GROUP BY winner_game_team ORDER BY wins DESC",
+    "SELECT winner_game_team, COUNT(*) as wins FROM rounds WHERE game_id=? AND winner_game_team IN ('A','B') GROUP BY winner_game_team ORDER BY wins DESC",
     [gid],
   );
   const winnerTeam = roundWins.length ? roundWins[0].winner_game_team : null;
+
+  const outcomeOnly = !!g.score_round_outcomes_only;
 
   const deathStats = await q(
     "SELECT killed_player_id, COUNT(*) as deaths FROM round_kills WHERE game_id=? GROUP BY killed_player_id",
@@ -1101,7 +1128,8 @@ async function calculateGameScores(gid) {
 
   for (const gp of gps) {
     const isWinner = gp.game_team === winnerTeam;
-    const playerDeaths = deathMap[gp.player_id] || 0;
+    const rawDeaths = deathMap[gp.player_id] || 0;
+    const playerDeaths = outcomeOnly ? 0 : rawDeaths;
     const myRating = gp.rating || 0;
 
     // Суперники = всі checked-in, хто не в моїй команді
@@ -1157,8 +1185,9 @@ async function calculateGameScores(gid) {
     const rawAliveWinBonus = 2 * multiplier * roundsAliveAndWon;
     const rawAliveLoseBonus = 1 * multiplier * roundsAliveLost;
 
-    const performanceRaw =
-      rawWinBonus + rawSurvivalPts + rawAliveWinBonus + rawAliveLoseBonus;
+    const performanceRaw = outcomeOnly
+      ? rawWinBonus
+      : rawWinBonus + rawSurvivalPts + rawAliveWinBonus + rawAliveLoseBonus;
 
     // difficulty bonus applied only to performance
     const performancePts = Math.round(performanceRaw * difficultyFactor);
@@ -1182,7 +1211,9 @@ async function calculateGameScores(gid) {
       ratingDiff: Math.round(ratingDiff),
       difficultyFactor: difficultyFactor.toFixed(2),
       isWinner,
+      outcomeOnly,
       deaths: playerDeaths,
+      rawDeaths,
       roundsSurvived,
       roundsAliveAndWon,
       roundsAliveLost,

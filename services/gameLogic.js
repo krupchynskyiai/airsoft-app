@@ -52,12 +52,13 @@ async function finishGame(ctx, gid, bot) {
   await ins("UPDATE games SET status='finished' WHERE id=?", [gid]);
 
   const roundWins = await q(
-    "SELECT winner_game_team, COUNT(*) as wins FROM rounds WHERE game_id=? AND winner_game_team IS NOT NULL GROUP BY winner_game_team ORDER BY wins DESC",
+    "SELECT winner_game_team, COUNT(*) as wins FROM rounds WHERE game_id=? AND winner_game_team IN ('A','B') GROUP BY winner_game_team ORDER BY wins DESC",
     [gid]
   );
   const g = await q1("SELECT * FROM games WHERE id=?", [gid]);
 
   let winnerTeam = roundWins.length ? roundWins[0].winner_game_team : null;
+  const outcomeOnly = !!g.score_round_outcomes_only;
 
   const killStats = await q(
     "SELECT rk.killed_player_id, COUNT(*) as deaths FROM round_kills rk WHERE rk.game_id=? GROUP BY rk.killed_player_id",
@@ -76,23 +77,27 @@ async function finishGame(ctx, gid, bot) {
   for (const gp of gps) {
     const isWinner = gp.game_team === winnerTeam;
     const playerKills = killerStats.find((k) => k.killer_player_id === gp.player_id)?.kills || 0;
-    const playerDeaths = killStats.find((k) => k.killed_player_id === gp.player_id)?.deaths || 0;
-    const pts = 5 + (isWinner ? 10 : 0) + playerKills * 2;
+    const rawDeaths = killStats.find((k) => k.killed_player_id === gp.player_id)?.deaths || 0;
+    const playerDeaths = outcomeOnly ? 0 : rawDeaths;
+    const addKills = outcomeOnly ? 0 : playerKills;
+    const pts = outcomeOnly
+      ? 5 + (isWinner ? 10 : 0)
+      : 5 + (isWinner ? 10 : 0) + playerKills * 2;
 
     await ins(
       "UPDATE players SET games_played=games_played+1, wins=wins+?, total_kills=total_kills+?, total_deaths=total_deaths+?, rating=rating+? WHERE id=?",
-      [isWinner ? 1 : 0, playerKills, playerDeaths, pts, gp.player_id]
+      [isWinner ? 1 : 0, addKills, playerDeaths, pts, gp.player_id]
     );
     await ins(
       "UPDATE game_players SET kills_total=?, deaths_total=?, result=? WHERE game_id=? AND player_id=?",
-      [playerKills, playerDeaths, isWinner ? "win" : "loss", gid, gp.player_id]
+      [addKills, playerDeaths, isWinner ? "win" : "loss", gid, gp.player_id]
     );
 
     const newStats = await q1("SELECT * FROM players WHERE id=?", [gp.player_id]);
     await checkBadges(gp.player_id, newStats, bot);
 
     if (g.season_id) {
-      await updateSeasonStats(gp.player_id, g.season_id, isWinner, playerKills, playerDeaths, pts);
+      await updateSeasonStats(gp.player_id, g.season_id, isWinner, addKills, playerDeaths, pts);
     }
   }
 
@@ -114,13 +119,14 @@ async function finishGame(ctx, gid, bot) {
   const rounds = await q("SELECT * FROM rounds WHERE game_id=? ORDER BY round_number", [gid]);
   msg += `*Раунди:*\n`;
   rounds.forEach((r) => {
-    const w = r.winner_game_team
-      ? r.winner_game_team === "A"
+    const w =
+      r.winner_game_team === "A"
         ? "🔵A"
         : r.winner_game_team === "B"
           ? "🔴B"
-          : esc(r.winner_game_team)
-      : "—";
+          : r.status === "finished"
+            ? "⚖ нічия"
+            : "—";
     msg += `  R${r.round_number}: ${w}\n`;
   });
 

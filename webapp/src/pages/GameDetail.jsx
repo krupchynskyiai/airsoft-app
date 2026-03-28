@@ -79,7 +79,7 @@ export default function GameDetail({ gameId, onBack, isAdmin }) {
   const [actionLoading, setActionLoading] = useState(null);
   const [mvpState, setMvpState] = useState(null);
   const [mvpLoading, setMvpLoading] = useState(false);
-  const { haptic, showAlert } = useTelegram();
+  const { haptic, showAlert, showConfirm } = useTelegram();
   const [addUsersText, setAddUsersText] = useState("");
   const [rides, setRides] = useState([]);
   const [ridesLoading, setRidesLoading] = useState(false);
@@ -93,20 +93,6 @@ export default function GameDetail({ gameId, onBack, isAdmin }) {
   });
   const [requestRideModal, setRequestRideModal] = useState(null); // { rideId, ownerNickname }
   const [requestSeats, setRequestSeats] = useState(1);
-  async function confirmShuffleTeams() {
-    const tg = window.Telegram?.WebApp;
-    if (tg?.showConfirm) {
-      return await new Promise((resolve) => {
-        tg.showConfirm(
-          "Перемішати команди випадково перед наступним раундом?",
-          (ok) => resolve(!!ok),
-        );
-      });
-    }
-    return window.confirm(
-      "Перемішати команди випадково перед наступним раундом?",
-    );
-  }
 
   const isLoadingRef = useRef(false);
 
@@ -289,6 +275,11 @@ export default function GameDetail({ gameId, onBack, isAdmin }) {
             <p>📅 {g.date} {g.time && <span className="text-gray-400">о {g.time}</span>}</p>
             <p className="text-gray-300">📍 {g.location}</p>
             <p className="text-gray-300">🎯 {MODE[g.game_mode]}</p>
+            {!!g.score_round_outcomes_only && (
+              <p className="text-amber-200/90 text-sm">
+                📋 Рейтинг за підсумком раундів (перемога / нічия); смерті в раундах не впливають на очки.
+              </p>
+            )}
             {g.duration && (
               <p className="text-gray-300">
                 ⏱ Тривалість: <span className="font-semibold">{g.duration}</span>
@@ -395,7 +386,11 @@ export default function GameDetail({ gameId, onBack, isAdmin }) {
           )}
           {myRegistration && (g.status === "upcoming" || g.status === "checkin") && (
             <ActionButton
-              onClick={() => doAction(() => cancelJoinGame(gameId), "Запис скасовано")}
+              onClick={async () => {
+                const ok = await showConfirm("Скасувати запис на цю гру?");
+                if (!ok) return;
+                doAction(() => cancelJoinGame(gameId), "Запис скасовано");
+              }}
               loading={actionLoading}
               icon="❌"
               label="Скасувати запис"
@@ -404,10 +399,34 @@ export default function GameDetail({ gameId, onBack, isAdmin }) {
           )}
           {myRegistration?.attendance === "registered" &&
             g.status === "checkin" && (
-            <ActionButton onClick={() => doAction(() => checkinGame(gameId))} loading={actionLoading} icon="📍" label="Check-in — я на місці" className="bg-gradient-to-r from-amber-600 to-orange-600" />
+            <ActionButton
+              onClick={async () => {
+                const ok = await showConfirm(
+                  "Підтвердити check-in: ви на місці проведення гри?",
+                );
+                if (!ok) return;
+                doAction(() => checkinGame(gameId));
+              }}
+              loading={actionLoading}
+              icon="📍"
+              label="Check-in — я на місці"
+              className="bg-gradient-to-r from-amber-600 to-orange-600"
+            />
           )}
           {g.status === "active" && hasActiveRound && myRegistration?.attendance === "checked_in" && (
-            <ActionButton onClick={() => doAction(() => reportDead(gameId))} loading={actionLoading} icon="💀" label="Мене вбили" className="bg-gradient-to-r from-red-700 to-red-800" />
+            <ActionButton
+              onClick={async () => {
+                const ok = await showConfirm(
+                  "Повідомити, що вас вибули з раунду?",
+                );
+                if (!ok) return;
+                doAction(() => reportDead(gameId));
+              }}
+              loading={actionLoading}
+              icon="💀"
+              label="Мене вбили"
+              className="bg-gradient-to-r from-red-700 to-red-800"
+            />
           )}
         </div>
       )}
@@ -499,7 +518,11 @@ export default function GameDetail({ gameId, onBack, isAdmin }) {
                               Редагувати
                             </button>
                             <button
-                              onClick={() => doAction(() => deleteRide(gameId, r.id), "Поїздку скасовано")}
+                              onClick={async () => {
+                                const ok = await showConfirm("Скасувати цю поїздку?");
+                                if (!ok) return;
+                                doAction(() => deleteRide(gameId, r.id), "Поїздку скасовано");
+                              }}
                               disabled={actionLoading}
                               className="px-2.5 py-1 rounded-lg bg-red-700/30 border border-red-600/30 text-[10px] font-bold text-red-200 active:scale-95 disabled:opacity-50"
                             >
@@ -552,7 +575,14 @@ export default function GameDetail({ gameId, onBack, isAdmin }) {
                                   Так
                                 </button>
                                 <button
-                                  onClick={() => doAction(() => respondRideRequest(gameId, r.id, pr.request_id, "reject"), "Запит відхилено")}
+                                  onClick={async () => {
+                                    const ok = await showConfirm("Відхилити запит на місце?");
+                                    if (!ok) return;
+                                    doAction(
+                                      () => respondRideRequest(gameId, r.id, pr.request_id, "reject"),
+                                      "Запит відхилено",
+                                    );
+                                  }}
                                   disabled={actionLoading}
                                   className="px-2 py-1 rounded-lg bg-red-700/60 text-[10px] font-bold text-white active:scale-95 disabled:opacity-50"
                                 >
@@ -578,15 +608,19 @@ export default function GameDetail({ gameId, onBack, isAdmin }) {
                                 <span className="font-semibold">{ar.seats_requested}</span>
                               </div>
                               <button
-                                onClick={() =>
+                                onClick={async () => {
+                                  const ok = await showConfirm(
+                                    `Прибрати пасажира ${formatNick(ar.requester_nickname)} з поїздки?`,
+                                  );
+                                  if (!ok) return;
                                   doAction(
                                     () => kickRidePassenger(gameId, r.id, ar.request_id),
                                     (resp) =>
                                       `Пасажира прибрано${
                                         resp?.passenger_notified ? "\n📣 Сповіщення надіслано" : ""
                                       }`,
-                                  )
-                                }
+                                  );
+                                }}
                                 disabled={actionLoading}
                                 className="px-2 py-1 rounded-lg bg-red-700/40 border border-red-600/30 text-[10px] font-bold text-red-200 active:scale-95 disabled:opacity-50"
                               >
@@ -739,9 +773,13 @@ export default function GameDetail({ gameId, onBack, isAdmin }) {
           <div className="flex flex-wrap gap-2">
             {g.status === "upcoming" && (
               <SmallButton
-                onClick={() =>
-                  doAction(() => adminSetGameStatus(gameId, "checkin"))
-                }
+                onClick={async () => {
+                  const ok = await showConfirm(
+                    "Відкрити check-in? Гравці зможуть позначитися на місці з телефону.",
+                  );
+                  if (!ok) return;
+                  doAction(() => adminSetGameStatus(gameId, "checkin"));
+                }}
                 icon="📍"
                 label="Відкрити Check-in"
                 color="amber"
@@ -749,9 +787,13 @@ export default function GameDetail({ gameId, onBack, isAdmin }) {
             )}
             {g.status === "checkin" && (
               <SmallButton
-                onClick={() =>
-                  doAction(() => adminSetGameStatus(gameId, "active"))
-                }
+                onClick={async () => {
+                  const ok = await showConfirm(
+                    "Почати гру (LIVE)? Переконайся, що готові до старту.",
+                  );
+                  if (!ok) return;
+                  doAction(() => adminSetGameStatus(gameId, "active"));
+                }}
                 icon="▶️"
                 label="Почати гру"
                 color="red"
@@ -759,12 +801,16 @@ export default function GameDetail({ gameId, onBack, isAdmin }) {
             )}
             {g.status === "active" && (
               <SmallButton
-                onClick={() =>
+                onClick={async () => {
+                  const ok = await showConfirm(
+                    "Завершити гру остаточно? Результат буде зафіксовано.",
+                  );
+                  if (!ok) return;
                   doAction(
                     () => adminSetGameStatus(gameId, "finished"),
                     "🏁 Гру завершено!",
-                  )
-                }
+                  );
+                }}
                 icon="🏁"
                 label="Завершити гру"
                 color="red"
@@ -773,18 +819,63 @@ export default function GameDetail({ gameId, onBack, isAdmin }) {
             {/* Cancel game in any non-final state */}
             {g.status !== "finished" && g.status !== "cancelled" && (
               <SmallButton
-                onClick={() =>
+                onClick={async () => {
+                  const ok = await showConfirm(
+                    "Скасувати гру для всіх? Цю дію не можна відмінити.",
+                  );
+                  if (!ok) return;
                   doAction(
                     () => adminSetGameStatus(gameId, "cancelled"),
                     "❌ Гру скасовано",
-                  )
-                }
+                  );
+                }}
                 icon="❌"
                 label="Скасувати гру"
                 color="emerald"
               />
             )}
           </div>
+
+          {/* Гравці ще без чек-іну (адмін може відмітити без телефону) */}
+          {(g.status === "checkin" || g.status === "active") &&
+            players.some((p) => p.attendance === "registered") && (
+              <div className="mt-3 bg-slate-900/40 border border-slate-600/40 rounded-2xl p-3">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-sm">🪖</span>
+                  <p className="text-xs font-semibold text-gray-300 uppercase tracking-wider">
+                    Записані, ще без check-in
+                  </p>
+                </div>
+                <p className="text-[10px] text-gray-500 mb-2">
+                  Якщо гравці вже на полі без телефону — відмітьте вручну.
+                </p>
+                <div className="space-y-1.5 max-h-40 overflow-y-auto pr-1">
+                  {players
+                    .filter((p) => p.attendance === "registered")
+                    .map((p) => (
+                      <div
+                        key={`reg-${p.player_id}`}
+                        className="flex items-center justify-between py-1.5 px-2 rounded-xl bg-slate-800/70"
+                      >
+                        <span className="text-xs font-medium">{formatNick(p.nickname)}</span>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            doAction(
+                              () =>
+                                adminReviewCheckin(gameId, p.player_id, "confirm"),
+                              "Гравця відмічено на місці",
+                            )
+                          }
+                          className="px-2 py-1 rounded-lg bg-emerald-600/70 text-[10px] font-bold text-white active:scale-95"
+                        >
+                          Чекін
+                        </button>
+                      </div>
+                    ))}
+                </div>
+              </div>
+            )}
 
           {/* Pending check-ins list */}
           {g.status === "checkin" &&
@@ -828,7 +919,11 @@ export default function GameDetail({ gameId, onBack, isAdmin }) {
                             ✅ Так
                           </button>
                           <button
-                            onClick={() =>
+                            onClick={async () => {
+                              const ok = await showConfirm(
+                                "Відхилити geo check-in цього гравця?",
+                              );
+                              if (!ok) return;
                               doAction(
                                 () =>
                                   adminReviewCheckin(
@@ -837,8 +932,8 @@ export default function GameDetail({ gameId, onBack, isAdmin }) {
                                     "reject",
                                   ),
                                 "Check-in скасовано",
-                              )
-                            }
+                              );
+                            }}
                             className="px-2 py-1 rounded-lg bg-red-700/70 text-[10px] font-bold text-white active:scale-95"
                           >
                             ✕ Ні
@@ -938,6 +1033,10 @@ export default function GameDetail({ gameId, onBack, isAdmin }) {
                           {isAdmin && (
                             <button
                               onClick={async () => {
+                                const ok = await showConfirm(
+                                  `Обрати MVP: ${formatNick(c.nickname)}?`,
+                                );
+                                if (!ok) return;
                                 try {
                                   haptic("impact");
                                   await adminSelectMvp(
@@ -986,7 +1085,9 @@ export default function GameDetail({ gameId, onBack, isAdmin }) {
               {g.game_mode !== "ffa" && (
                 <button
                   onClick={async () => {
-                    const ok = await confirmShuffleTeams();
+                    const ok = await showConfirm(
+                      "Перемішати команди випадково перед наступним раундом?",
+                    );
                     if (!ok) return;
                     doAction(
                       () => adminShuffleGameTeams(gameId),
@@ -1000,7 +1101,11 @@ export default function GameDetail({ gameId, onBack, isAdmin }) {
                 </button>
               )}
               <button
-                onClick={() => doAction(() => adminStartRound(gameId))}
+                onClick={async () => {
+                  const ok = await showConfirm("Почати наступний раунд?");
+                  if (!ok) return;
+                  doAction(() => adminStartRound(gameId));
+                }}
                 disabled={actionLoading}
                 className="w-full bg-gradient-to-r from-emerald-600 to-teal-600 py-4 rounded-2xl font-bold text-[15px] shadow-lg transition-all active:scale-[0.98] disabled:opacity-50"
               >
@@ -1069,13 +1174,17 @@ export default function GameDetail({ gameId, onBack, isAdmin }) {
                         </div>
                         {isAdmin && p.is_alive && (
                           <button
-                            onClick={() =>
+                            onClick={async () => {
+                              const ok = await showConfirm(
+                                `Kill для ${formatNick(p.nickname)}?`,
+                              );
+                              if (!ok) return;
                               doAction(
                                 () => adminKillPlayer(gameId, p.player_id),
                                 null,
                                 "round",
-                              )
-                            }
+                              );
+                            }}
                             className="text-xs bg-red-800/60 hover:bg-red-700/60 px-3 py-1.5 rounded-lg font-semibold active:scale-95 transition-all"
                           >
                             💀 Kill
@@ -1096,17 +1205,45 @@ export default function GameDetail({ gameId, onBack, isAdmin }) {
                 <>
                   <p className="text-xs text-gray-500 mb-2 font-medium">Завершити раунд — хто виграв?</p>
                   <div className="flex gap-2">
-                    <button onClick={() => doAction(() => adminEndRound(gameId, "A"), null, "full")} className="flex-1 bg-blue-700/40 border border-blue-600/30 py-2.5 rounded-xl text-sm font-bold text-blue-300 active:scale-95 transition-transform">
+                    <button
+                      onClick={async () => {
+                        const ok = await showConfirm("Завершити раунд — перемогла команда A?");
+                        if (!ok) return;
+                        doAction(() => adminEndRound(gameId, "A"), null, "full");
+                      }}
+                      className="flex-1 bg-blue-700/40 border border-blue-600/30 py-2.5 rounded-xl text-sm font-bold text-blue-300 active:scale-95 transition-transform"
+                    >
                       🔵 Team A
                     </button>
-                    <button onClick={() => doAction(() => adminEndRound(gameId, "B"), null, "full")} className="flex-1 bg-red-700/40 border border-red-600/30 py-2.5 rounded-xl text-sm font-bold text-red-300 active:scale-95 transition-transform">
+                    <button
+                      onClick={async () => {
+                        const ok = await showConfirm("Завершити раунд — перемогла команда B?");
+                        if (!ok) return;
+                        doAction(() => adminEndRound(gameId, "B"), null, "full");
+                      }}
+                      className="flex-1 bg-red-700/40 border border-red-600/30 py-2.5 rounded-xl text-sm font-bold text-red-300 active:scale-95 transition-transform"
+                    >
                       🔴 Team B
                     </button>
                   </div>
+                  <button
+                    onClick={async () => {
+                      const ok = await showConfirm("Завершити раунд як нічию (без переможця)?");
+                      if (!ok) return;
+                      doAction(() => adminEndRound(gameId, null), null, "full");
+                    }}
+                    className="mt-2 w-full bg-slate-700/50 border border-slate-500/30 py-2.5 rounded-xl text-sm font-bold text-gray-300 active:scale-95 transition-transform"
+                  >
+                    ⚖ Нічия
+                  </button>
                 </>
               ) : (
                 <button
-                  onClick={() => doAction(() => adminEndRound(gameId, null), null, "full")}
+                  onClick={async () => {
+                    const ok = await showConfirm("Завершити поточний раунд?");
+                    if (!ok) return;
+                    doAction(() => adminEndRound(gameId, null), null, "full");
+                  }}
                   className="w-full bg-slate-700/60 border border-slate-600/30 py-2.5 rounded-xl text-sm font-bold text-gray-300 active:scale-95 transition-transform"
                 >
                   ⏹ Завершити раунд
@@ -1210,12 +1347,16 @@ export default function GameDetail({ gameId, onBack, isAdmin }) {
                   g.status !== "cancelled" &&
                   p.attendance !== "no_show" && (
                     <button
-                      onClick={() =>
+                      onClick={async () => {
+                        const ok = await showConfirm(
+                          `Виключити ${formatNick(p.nickname)} з гри?`,
+                        );
+                        if (!ok) return;
                         doAction(
                           () => adminKickFromGame(gameId, p.player_id),
                           "Гравця видалено з гри",
-                        )
-                      }
+                        );
+                      }}
                       className="ml-1 px-2 py-1 rounded-lg bg-red-800/60 text-[10px] font-semibold text-red-100 active:scale-95"
                     >
                       Kick
@@ -1236,10 +1377,26 @@ export default function GameDetail({ gameId, onBack, isAdmin }) {
           </div>
           <div className="space-y-2">
             {rounds.map((r) => {
-              const winColor = r.winner_game_team === "A" ? "text-blue-400" : r.winner_game_team === "B" ? "text-red-400" : "text-gray-400";
+              const winColor =
+                r.winner_game_team === "A"
+                  ? "text-blue-400"
+                  : r.winner_game_team === "B"
+                    ? "text-red-400"
+                    : r.status === "finished" && !r.winner_game_team
+                      ? "text-amber-300/90"
+                      : "text-gray-400";
               const duration = r.started_at && r.ended_at
                 ? formatDuration(new Date(r.ended_at) - new Date(r.started_at))
                 : r.status === "active" ? timerValue : "";
+              const outcomeLabel = r.winner_game_team
+                ? r.winner_game_team === "A"
+                  ? "🔵 A"
+                  : "🔴 B"
+                : r.status === "active"
+                  ? "⏳"
+                  : r.status === "finished"
+                    ? "⚖ Нічия"
+                    : "—";
               return (
                 <div key={r.id} className="flex items-center justify-between py-2 px-3 rounded-xl bg-slate-700/20">
                   <div className="flex items-center gap-2">
@@ -1257,9 +1414,7 @@ export default function GameDetail({ gameId, onBack, isAdmin }) {
                   <div className="flex items-center gap-2">
                     {duration && <span className="text-[11px] text-gray-500 font-mono">{duration}</span>}
                     <span className={`text-sm font-bold ${winColor}`}>
-                      {r.winner_game_team
-                        ? r.winner_game_team === "A" ? "🔵 A" : "🔴 B"
-                        : r.status === "active" ? "⏳" : "—"}
+                      {outcomeLabel}
                     </span>
                   </div>
                 </div>
