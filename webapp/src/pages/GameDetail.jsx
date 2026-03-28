@@ -808,7 +808,10 @@ export default function GameDetail({ gameId, onBack, isAdmin }) {
                   if (!ok) return;
                   doAction(
                     () => adminSetGameStatus(gameId, "finished"),
-                    "🏁 Гру завершено!",
+                    (res) =>
+                      res?.winner_message
+                        ? `🏁 Гру завершено\n\n${res.winner_message}`
+                        : "🏁 Гру завершено!",
                   );
                 }}
                 icon="🏁"

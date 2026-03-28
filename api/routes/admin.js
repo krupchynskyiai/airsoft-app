@@ -105,6 +105,8 @@ router.post("/games/:id/status", async (req, res) => {
 
     await ins("UPDATE games SET status=? WHERE id=?", [status, gid]);
 
+    let finishSummary = null;
+
     // Finish game
     if (status === "finished") {
       const activeRound = await q1(
@@ -125,6 +127,7 @@ router.post("/games/:id/status", async (req, res) => {
       ]);
 
       await calculateGameScores(gid);
+      finishSummary = await getGameFinishWinnerSummary(gid, g.game_mode);
     }
 
     // Start game
@@ -235,7 +238,12 @@ router.post("/games/:id/status", async (req, res) => {
 ⏱ Тривалість: <b>${g.duration || "—"}</b>
 🪙 Вартість участі: <b>${g.payment || 0} грн</b>`;
 
-        const msg = `${labels[status] || "ℹ️ Статус гри змінено"}
+        const statusHead =
+          status === "finished" && finishSummary
+            ? `🏁 <b>Гру завершено</b>\n\n${finishSummary.winner_message_html}`
+            : labels[status] || "ℹ️ Статус гри змінено";
+
+        const msg = `${statusHead}
 
 🎮 Гра #${gid}
 
@@ -252,7 +260,13 @@ ${info}`;
       }
     }
 
-    res.json({ success: true });
+    const payload = { success: true };
+    if (finishSummary) {
+      payload.winner_game_team = finishSummary.winner_game_team;
+      payload.winner_message = finishSummary.winner_message;
+      payload.round_record_line = finishSummary.round_record_line;
+    }
+    res.json(payload);
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
@@ -1078,6 +1092,68 @@ router.post("/blacklist/remove", async (req, res) => {
 // SCORING
 // ============================================
 
+/** Підсумок переможця за раундами (узгоджено з calculateGameScores). */
+async function getGameFinishWinnerSummary(gid, gameMode) {
+  if (gameMode === "ffa") {
+    return {
+      winner_game_team: null,
+      winner_message:
+        "Режим FFA — командного переможця немає.",
+      winner_message_html:
+        "🎯 <b>FFA</b> — командного переможця немає.",
+      round_record_line: null,
+    };
+  }
+
+  const rows = await q(
+    `SELECT winner_game_team, COUNT(*) AS wins
+     FROM rounds
+     WHERE game_id=? AND status='finished' AND winner_game_team IN ('A','B')
+     GROUP BY winner_game_team
+     ORDER BY wins DESC`,
+    [gid],
+  );
+
+  const fmt = (team) =>
+    team === "A" ? "🔵 Команда A" : team === "B" ? "🔴 Команда B" : team;
+  const short = (team) => (team === "A" ? "🔵 A" : "🔴 B");
+
+  if (!rows.length) {
+    return {
+      winner_game_team: null,
+      winner_message:
+        "Переможець командою не визначений (немає раундів із перемогою A чи B).",
+      winner_message_html:
+        "⚖️ <b>Переможець командою не визначений</b> (немає перемог A/B у раундах).",
+      round_record_line: null,
+    };
+  }
+
+  const recordLine = rows
+    .map((r) => `${short(r.winner_game_team)}: ${r.wins}`)
+    .join(" · ");
+
+  const topWins = rows[0].wins;
+  const leaders = rows.filter((r) => r.wins === topWins);
+
+  if (leaders.length > 1) {
+    return {
+      winner_game_team: null,
+      winner_message: `Нічия за раундами (${recordLine}).`,
+      winner_message_html: `⚖️ <b>Нічия за раундами</b>\n📊 ${recordLine}`,
+      round_record_line: recordLine,
+    };
+  }
+
+  const w = leaders[0].winner_game_team;
+  return {
+    winner_game_team: w,
+    winner_message: `Переможець: ${fmt(w)}. Раунди: ${recordLine}.`,
+    winner_message_html: `🏆 <b>Переможець: ${fmt(w)}</b>\n📊 ${recordLine}`,
+    round_record_line: recordLine,
+  };
+}
+
 async function calculateGameScores(gid) {
   log.info("=== CALCULATING SCORES ===", { gid });
 
@@ -1097,7 +1173,7 @@ async function calculateGameScores(gid) {
   });
 
   const roundWins = await q(
-    "SELECT winner_game_team, COUNT(*) as wins FROM rounds WHERE game_id=? AND winner_game_team IN ('A','B') GROUP BY winner_game_team ORDER BY wins DESC",
+    "SELECT winner_game_team, COUNT(*) as wins FROM rounds WHERE game_id=? AND status='finished' AND winner_game_team IN ('A','B') GROUP BY winner_game_team ORDER BY wins DESC",
     [gid],
   );
   const winnerTeam = roundWins.length ? roundWins[0].winner_game_team : null;
