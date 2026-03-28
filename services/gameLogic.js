@@ -121,9 +121,9 @@ async function finishGame(ctx, gid, bot) {
   rounds.forEach((r) => {
     const w =
       r.winner_game_team === "A"
-        ? "🔵A"
+        ? "🟡A"
         : r.winner_game_team === "B"
-          ? "🔴B"
+          ? "🔵B"
           : r.status === "finished"
             ? "⚖ нічия"
             : "—";
@@ -131,7 +131,7 @@ async function finishGame(ctx, gid, bot) {
   });
 
   if (roundWins.length) {
-    msg += `\n🏆 *Переможець: ${winnerTeam === "A" ? "🔵 Team A" : winnerTeam === "B" ? "🔴 Team B" : esc(winnerTeam)}*\n`;
+    msg += `\n🏆 *Переможець: ${winnerTeam === "A" ? "🟡 Team A" : winnerTeam === "B" ? "🔵 Team B" : esc(winnerTeam)}*\n`;
     msg += `📊 Рахунок: ${roundWins.map((r) => `${r.winner_game_team}\\=${r.wins}`).join(" / ")}\n`;
   }
 

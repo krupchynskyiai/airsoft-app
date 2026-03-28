@@ -30,7 +30,7 @@ async function showRoundPanel(ctx, gid, bot) {
     teams[t].push(rp);
   });
 
-  const teamLabels = g.game_mode === "ffa" ? {} : { A: "🔵 Team A", B: "🔴 Team B" };
+  const teamLabels = g.game_mode === "ffa" ? {} : { A: "🟡 Team A", B: "🔵 Team B" };
 
   for (const [team, players] of Object.entries(teams)) {
     const alive = players.filter((p) => p.is_alive).length;
@@ -130,9 +130,9 @@ async function endCurrentRound(ctx, gid, bot) {
   teamAlive.forEach((t) => {
     const label =
       t.game_team === "A"
-        ? "🔵 Team A"
+        ? "🟡 Team A"
         : t.game_team === "B"
-          ? "🔴 Team B"
+          ? "🔵 Team B"
           : `Team ${t.game_team}`;
     kb.text(`${label} (${t.alive} alive)`, `rwinner_${t.game_team}_g${gid}`).row();
   });

@@ -27,8 +27,8 @@ import { useTelegram } from "../hooks/useTelegram";
 
 const MODE = { team_vs_team: "Team vs Team", random_teams: "Random Teams", ffa: "FFA" };
 const TEAM_COLORS = {
-  A: { bg: "bg-blue-500/15", border: "border-blue-500/30", text: "text-blue-400", label: "🔵 Team A", dot: "bg-blue-400" },
-  B: { bg: "bg-red-500/15", border: "border-red-500/30", text: "text-red-400", label: "🔴 Team B", dot: "bg-red-400" },
+  A: { bg: "bg-amber-500/15", border: "border-amber-500/35", text: "text-amber-300", label: "🟡 Team A", dot: "bg-amber-400" },
+  B: { bg: "bg-blue-500/15", border: "border-blue-500/30", text: "text-blue-400", label: "🔵 Team B", dot: "bg-blue-400" },
 };
 
 function formatNick(n) {
@@ -1214,9 +1214,9 @@ export default function GameDetail({ gameId, onBack, isAdmin }) {
                         if (!ok) return;
                         doAction(() => adminEndRound(gameId, "A"), null, "full");
                       }}
-                      className="flex-1 bg-blue-700/40 border border-blue-600/30 py-2.5 rounded-xl text-sm font-bold text-blue-300 active:scale-95 transition-transform"
+                      className="flex-1 bg-amber-700/35 border border-amber-600/35 py-2.5 rounded-xl text-sm font-bold text-amber-200 active:scale-95 transition-transform"
                     >
-                      🔵 Team A
+                      🟡 Team A
                     </button>
                     <button
                       onClick={async () => {
@@ -1224,9 +1224,9 @@ export default function GameDetail({ gameId, onBack, isAdmin }) {
                         if (!ok) return;
                         doAction(() => adminEndRound(gameId, "B"), null, "full");
                       }}
-                      className="flex-1 bg-red-700/40 border border-red-600/30 py-2.5 rounded-xl text-sm font-bold text-red-300 active:scale-95 transition-transform"
+                      className="flex-1 bg-blue-700/40 border border-blue-600/30 py-2.5 rounded-xl text-sm font-bold text-blue-300 active:scale-95 transition-transform"
                     >
-                      🔴 Team B
+                      🔵 Team B
                     </button>
                   </div>
                   <button
@@ -1290,9 +1290,9 @@ export default function GameDetail({ gameId, onBack, isAdmin }) {
                     <span
                       className={`ml-2 text-[10px] font-bold px-1.5 py-0.5 rounded ${
                         p.game_team === "A"
-                          ? "bg-blue-500/20 text-blue-400"
+                          ? "bg-amber-500/20 text-amber-300"
                           : p.game_team === "B"
-                          ? "bg-red-500/20 text-red-400"
+                          ? "bg-blue-500/20 text-blue-400"
                           : "bg-slate-600 text-gray-400"
                       }`}
                     >
@@ -1322,7 +1322,7 @@ export default function GameDetail({ gameId, onBack, isAdmin }) {
                         }
                         className={`px-2 py-1 rounded-lg text-[10px] font-semibold active:scale-95 transition-all ${
                           p.game_team === "A"
-                            ? "bg-blue-600 text-white"
+                            ? "bg-amber-600 text-white"
                             : "bg-slate-700 text-gray-200"
                         }`}
                       >
@@ -1337,7 +1337,7 @@ export default function GameDetail({ gameId, onBack, isAdmin }) {
                         }
                         className={`px-2 py-1 rounded-lg text-[10px] font-semibold active:scale-95 transition-all ${
                           p.game_team === "B"
-                            ? "bg-red-600 text-white"
+                            ? "bg-blue-600 text-white"
                             : "bg-slate-700 text-gray-200"
                         }`}
                       >
@@ -1382,9 +1382,9 @@ export default function GameDetail({ gameId, onBack, isAdmin }) {
             {rounds.map((r) => {
               const winColor =
                 r.winner_game_team === "A"
-                  ? "text-blue-400"
+                  ? "text-amber-300"
                   : r.winner_game_team === "B"
-                    ? "text-red-400"
+                    ? "text-blue-400"
                     : r.status === "finished" && !r.winner_game_team
                       ? "text-amber-300/90"
                       : "text-gray-400";
@@ -1393,8 +1393,8 @@ export default function GameDetail({ gameId, onBack, isAdmin }) {
                 : r.status === "active" ? timerValue : "";
               const outcomeLabel = r.winner_game_team
                 ? r.winner_game_team === "A"
-                  ? "🔵 A"
-                  : "🔴 B"
+                  ? "🟡 A"
+                  : "🔵 B"
                 : r.status === "active"
                   ? "⏳"
                   : r.status === "finished"

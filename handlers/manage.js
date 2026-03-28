@@ -116,7 +116,7 @@ function register(bot) {
     const shuffled = checkedIn.sort(() => Math.random() - 0.5);
     const half = Math.ceil(shuffled.length / 2);
 
-    let msgA = "🔵 *Team A:*\n", msgB = "🔴 *Team B:*\n";
+    let msgA = "🟡 *Team A:*\n", msgB = "🔵 *Team B:*\n";
     for (let i = 0; i < shuffled.length; i++) {
       const team = i < half ? "A" : "B";
       await ins("UPDATE game_players SET game_team=? WHERE id=?", [team, shuffled[i].id]);

@@ -395,9 +395,9 @@ router.post("/games/:id/end-round", async (req, res) => {
 
         const winner =
           winner_team === "A"
-            ? "🔵 Команда A"
+            ? "🟡 Команда A"
             : winner_team === "B"
-              ? "🔴 Команда B"
+              ? "🔵 Команда B"
               : "⚖ Нічия";
 
         const info = `📅 Дата: ${game.date}
@@ -1115,8 +1115,8 @@ async function getGameFinishWinnerSummary(gid, gameMode) {
   );
 
   const fmt = (team) =>
-    team === "A" ? "🔵 Команда A" : team === "B" ? "🔴 Команда B" : team;
-  const short = (team) => (team === "A" ? "🔵 A" : "🔴 B");
+    team === "A" ? "🟡 Команда A" : team === "B" ? "🔵 Команда B" : team;
+  const short = (team) => (team === "A" ? "🟡 A" : "🔵 B");
 
   if (!rows.length) {
     return {

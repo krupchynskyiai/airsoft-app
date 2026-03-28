@@ -53,6 +53,9 @@ router.get("/profile", async (req, res) => {
         badge_name: b.badge_name,
         badge_icon: def?.icon || "Award",
         badge_color: def?.color || "#64748b",
+        badge_description:
+          def?.description ||
+          "Нагорода з історії клубу; актуальні умови дивись у правилах бейджів.",
       };
     });
 

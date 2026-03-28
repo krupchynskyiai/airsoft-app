@@ -242,6 +242,7 @@ export default function Profile({ profile, onReload }) {
         setBadgeCelebration({
           name: badge?.badge_name || firstNew,
           color: badge?.badge_color || "#fbbf24",
+          description: badge?.badge_description || "",
         });
 
         const updated = Array.from(new Set([...seen, ...newNames]));
@@ -326,9 +327,15 @@ export default function Profile({ profile, onReload }) {
               <span className="text-base mr-2">🏅</span>
               <span className="text-sm font-semibold">{badgeCelebration.name}</span>
             </div>
-            <p className="text-xs text-gray-400 mb-4">
-              Продовжуй у тому ж дусі, щоб відкрити ще більше нагород.
-            </p>
+            {badgeCelebration.description ? (
+              <p className="text-xs text-gray-300 mb-4 leading-relaxed px-1">
+                {badgeCelebration.description}
+              </p>
+            ) : (
+              <p className="text-xs text-gray-400 mb-4">
+                Продовжуй у тому ж дусі, щоб відкрити ще більше нагород.
+              </p>
+            )}
             <button
               onClick={() => setBadgeCelebration(null)}
               className="px-5 py-2 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-500 text-xs font-bold tracking-wide text-black shadow-lg shadow-emerald-900/40 active:scale-95 transition-transform"
@@ -447,10 +454,18 @@ export default function Profile({ profile, onReload }) {
           <div className="flex flex-wrap gap-2">
             {profile.badges.map((b, i) => {
               const IconComponent = BADGE_ICONS[b.badge_icon] || Award;
+              const desc =
+                b.badge_description ||
+                "Опис нагороди з’явиться після оновлення профілю.";
               return (
-                <div
+                <button
                   key={i}
-                  className="group relative px-3 py-2 rounded-xl border transition-all duration-300 hover:scale-105"
+                  type="button"
+                  onClick={() => {
+                    haptic("impact");
+                    showAlert(`${b.badge_name}\n\n${desc}`);
+                  }}
+                  className="group relative px-3 py-2 rounded-xl border transition-all duration-300 hover:scale-105 active:scale-95 text-left cursor-pointer"
                   style={{
                     borderColor: `${b.badge_color}40`,
                     background: `linear-gradient(135deg, ${b.badge_color}15, ${b.badge_color}08)`,
@@ -458,7 +473,7 @@ export default function Profile({ profile, onReload }) {
                 >
                   <div className="flex items-center gap-2">
                     <div
-                      className="w-7 h-7 rounded-lg flex items-center justify-center"
+                      className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0"
                       style={{ backgroundColor: `${b.badge_color}25` }}
                     >
                       <IconComponent
@@ -471,7 +486,8 @@ export default function Profile({ profile, onReload }) {
                       {b.badge_name}
                     </span>
                   </div>
-                </div>
+                  <span className="sr-only">Натисни, щоб прочитати за що нагорода</span>
+                </button>
               );
             })}
           </div>
