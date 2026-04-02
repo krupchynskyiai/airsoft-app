@@ -52,13 +52,51 @@ async function finishGame(ctx, gid, bot) {
   await ins("UPDATE games SET status='finished' WHERE id=?", [gid]);
 
   const roundWins = await q(
-    "SELECT winner_game_team, COUNT(*) as wins FROM rounds WHERE game_id=? AND winner_game_team IN ('A','B') GROUP BY winner_game_team ORDER BY wins DESC",
+    "SELECT winner_game_team, COUNT(*) as wins FROM rounds WHERE game_id=? AND winner_game_team IN ('A','B') AND status='finished' GROUP BY winner_game_team ORDER BY wins DESC",
     [gid]
   );
   const g = await q1("SELECT * FROM games WHERE id=?", [gid]);
 
-  let winnerTeam = roundWins.length ? roundWins[0].winner_game_team : null;
+  // Якщо по раундах рівність (нічия) — командного переможця нема
+  let winnerTeam = null;
+  if (roundWins.length) {
+    const topWins = Math.max(...roundWins.map((r) => r.wins));
+    const leaders = roundWins.filter((r) => r.wins === topWins);
+    winnerTeam = leaders.length === 1 ? leaders[0].winner_game_team : null;
+  }
   const outcomeOnly = !!g.score_round_outcomes_only;
+
+  // Під час swap’ів `game_players.game_team` може змінюватись, тому win/lose визначаємо по `round_players.game_team`.
+  const playerWinLose = await q(
+    `SELECT
+        rp.player_id,
+        SUM(CASE
+          WHEN r.status='finished'
+           AND r.winner_game_team IN ('A','B')
+           AND rp.game_team = r.winner_game_team
+          THEN 1 ELSE 0
+        END) AS win_rounds_all,
+        SUM(CASE
+          WHEN r.status='finished'
+           AND r.winner_game_team IN ('A','B')
+           AND rp.game_team <> r.winner_game_team
+          THEN 1 ELSE 0
+        END) AS lose_rounds_all
+      FROM round_players rp
+      JOIN rounds r ON r.id = rp.round_id
+      WHERE r.game_id=? AND r.status='finished' AND r.winner_game_team IN ('A','B')
+      GROUP BY rp.player_id`,
+    [gid],
+  );
+  const winLoseMap = new Map(
+    playerWinLose.map((r) => [
+      r.player_id,
+      {
+        winRoundsAll: r.win_rounds_all || 0,
+        loseRoundsAll: r.lose_rounds_all || 0,
+      },
+    ]),
+  );
 
   const killStats = await q(
     "SELECT rk.killed_player_id, COUNT(*) as deaths FROM round_kills rk WHERE rk.game_id=? GROUP BY rk.killed_player_id",
@@ -75,7 +113,10 @@ async function finishGame(ctx, gid, bot) {
   );
 
   for (const gp of gps) {
-    const isWinner = gp.game_team === winnerTeam;
+    const st = winLoseMap.get(gp.player_id);
+    const winRoundsAll = st?.winRoundsAll ?? 0;
+    const loseRoundsAll = st?.loseRoundsAll ?? 0;
+    const isWinner = winnerTeam !== null && winRoundsAll > loseRoundsAll;
     const playerKills = killerStats.find((k) => k.killer_player_id === gp.player_id)?.kills || 0;
     const rawDeaths = killStats.find((k) => k.killed_player_id === gp.player_id)?.deaths || 0;
     const playerDeaths = outcomeOnly ? 0 : rawDeaths;
@@ -131,7 +172,11 @@ async function finishGame(ctx, gid, bot) {
   });
 
   if (roundWins.length) {
-    msg += `\n🏆 *Переможець: ${winnerTeam === "A" ? "🟡 Team A" : winnerTeam === "B" ? "🔵 Team B" : esc(winnerTeam)}*\n`;
+    if (winnerTeam) {
+      msg += `\n🏆 *Переможець: ${winnerTeam === "A" ? "🟡 Team A" : "🔵 Team B"}*\n`;
+    } else {
+      msg += `\n⚖️ *Нічия за раундами*\n`;
+    }
     msg += `📊 Рахунок: ${roundWins.map((r) => `${r.winner_game_team}\\=${r.wins}`).join(" / ")}\n`;
   }
 

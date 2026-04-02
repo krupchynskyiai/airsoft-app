@@ -1176,7 +1176,13 @@ async function calculateGameScores(gid) {
     "SELECT winner_game_team, COUNT(*) as wins FROM rounds WHERE game_id=? AND status='finished' AND winner_game_team IN ('A','B') GROUP BY winner_game_team ORDER BY wins DESC",
     [gid],
   );
-  const winnerTeam = roundWins.length ? roundWins[0].winner_game_team : null;
+  // Якщо по раундах рівність (нічия) — командного переможця нема
+  let winnerTeam = null;
+  if (roundWins.length) {
+    const topWins = Math.max(...roundWins.map((r) => r.wins));
+    const leaders = roundWins.filter((r) => r.wins === topWins);
+    winnerTeam = leaders.length === 1 ? leaders[0].winner_game_team : null;
+  }
 
   const outcomeOnly = !!g.score_round_outcomes_only;
 
@@ -1198,12 +1204,73 @@ async function calculateGameScores(gid) {
     [gid],
   );
 
+  // Підрахунки по раундах мають брати `round_players.game_team`, а не фінальний `game_players.game_team`,
+  // бо команди можуть оновлюватись під час гри.
+  const roundOutcomeStats = await q(
+    `SELECT
+        rp.player_id,
+        SUM(CASE WHEN rp.is_alive=1 THEN 1 ELSE 0 END) AS rounds_survived,
+        SUM(CASE
+          WHEN rp.is_alive=1
+           AND r.status='finished'
+           AND r.winner_game_team IN ('A','B')
+           AND rp.game_team = r.winner_game_team
+          THEN 1 ELSE 0
+        END) AS rounds_alive_and_won,
+        SUM(CASE
+          WHEN rp.is_alive=1
+           AND r.status='finished'
+           AND r.winner_game_team IN ('A','B')
+           AND rp.game_team <> r.winner_game_team
+          THEN 1 ELSE 0
+        END) AS rounds_alive_lost,
+        SUM(CASE
+          WHEN r.status='finished'
+           AND r.winner_game_team IN ('A','B')
+           AND rp.game_team = r.winner_game_team
+          THEN 1 ELSE 0
+        END) AS win_rounds_all,
+        SUM(CASE
+          WHEN r.status='finished'
+           AND r.winner_game_team IN ('A','B')
+           AND rp.game_team <> r.winner_game_team
+          THEN 1 ELSE 0
+        END) AS lose_rounds_all
+      FROM round_players rp
+      JOIN rounds r ON r.id = rp.round_id
+      WHERE r.game_id=? AND r.status='finished'
+      GROUP BY rp.player_id`,
+    [gid],
+  );
+
+  const roundOutcomeMap = new Map(
+    roundOutcomeStats.map((s) => [
+      s.player_id,
+      {
+        roundsSurvived: s.rounds_survived || 0,
+        roundsAliveAndWon: s.rounds_alive_and_won || 0,
+        roundsAliveLost: s.rounds_alive_lost || 0,
+        winRoundsAll: s.win_rounds_all || 0,
+        loseRoundsAll: s.lose_rounds_all || 0,
+      },
+    ]),
+  );
+
   function clamp(min, val, max) {
     return Math.max(min, Math.min(val, max));
   }
 
   for (const gp of gps) {
-    const isWinner = gp.game_team === winnerTeam;
+    const st = roundOutcomeMap.get(gp.player_id);
+    const roundsSurvived = st?.roundsSurvived ?? 0;
+    const roundsAliveAndWon = st?.roundsAliveAndWon ?? 0;
+    const roundsAliveLost = st?.roundsAliveLost ?? 0;
+    const winRoundsAll = st?.winRoundsAll ?? 0;
+    const loseRoundsAll = st?.loseRoundsAll ?? 0;
+
+    // Під час swap’ів команди змінюються, тому “виграв/програв матч”
+    // визначаємо за тим, чи більше раундів у нього виграли та програли його команди (по `rp.game_team`).
+    const isWinner = winnerTeam !== null && winRoundsAll > loseRoundsAll;
     const rawDeaths = deathMap[gp.player_id] || 0;
     const playerDeaths = outcomeOnly ? 0 : rawDeaths;
     const myRating = gp.rating || 0;
@@ -1225,32 +1292,6 @@ async function calculateGameScores(gid) {
     // сильніші суперники => більше очок
     // слабші суперники => менше бонусу, але не штраф
     const difficultyFactor = clamp(0.85, 1 + ratingDiff / 1000, 1.35);
-
-    const survivedRow = await q1(
-      `SELECT COUNT(*) as c FROM round_players rp 
-       JOIN rounds r ON rp.round_id = r.id 
-       WHERE r.game_id=? AND rp.player_id=? AND rp.is_alive=1 AND r.status='finished'`,
-      [gid, gp.player_id],
-    );
-    const roundsSurvived = survivedRow?.c || 0;
-
-    const aliveAndWonRow = await q1(
-      `SELECT COUNT(*) as c FROM round_players rp
-       JOIN rounds r ON rp.round_id = r.id
-       WHERE r.game_id=? AND rp.player_id=? AND rp.is_alive=1 
-       AND r.status='finished' AND r.winner_game_team=?`,
-      [gid, gp.player_id, gp.game_team],
-    );
-    const roundsAliveAndWon = aliveAndWonRow?.c || 0;
-
-    const aliveLostRow = await q1(
-      `SELECT COUNT(*) as c FROM round_players rp
-       JOIN rounds r ON rp.round_id = r.id
-       WHERE r.game_id=? AND rp.player_id=? AND rp.is_alive=1
-       AND r.status='finished' AND r.winner_game_team IS NOT NULL AND r.winner_game_team!=?`,
-      [gid, gp.player_id, gp.game_team],
-    );
-    const roundsAliveLost = aliveLostRow?.c || 0;
 
     // Стабільна база
     const basePts = Math.round(5 * multiplier);

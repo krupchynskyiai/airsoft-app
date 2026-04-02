@@ -1353,16 +1353,18 @@ router.get("/:id/mvp-state", async (req, res) => {
       return res.json({ hasRound: false });
     }
 
-    // voter must be checked-in and in winning game_team
+    // voter must be checked-in and belong to the winning team in that finished round.
+    // `game_players.game_team` може змінюватись під час гри, тому звіряємо з `round_players`.
     const gp = await q1(
       "SELECT * FROM game_players WHERE game_id=? AND player_id=?",
       [gid, player.id],
     );
+    const voterInWinningTeam = await q1(
+      "SELECT id FROM round_players WHERE round_id=? AND player_id=? AND game_team=?",
+      [round.id, player.id, round.winner_game_team],
+    );
 
-    const canVote =
-      !!gp &&
-      gp.attendance === "checked_in" &&
-      gp.game_team === round.winner_game_team;
+    const canVote = !!gp && gp.attendance === "checked_in" && !!voterInWinningTeam;
 
     // candidates: all players from winning team in that round
     const candidates = await q(
@@ -1429,16 +1431,16 @@ router.post("/:id/mvp-vote", async (req, res) => {
       return res.status(400).json({ error: "Round not eligible for MVP voting" });
     }
 
-    // voter must be checked-in and winner team
+    // voter must be checked-in and belong to the winner team in that finished round
     const voterGp = await q1(
       "SELECT * FROM game_players WHERE game_id=? AND player_id=?",
       [gid, player.id],
     );
-    if (
-      !voterGp ||
-      voterGp.attendance !== "checked_in" ||
-      voterGp.game_team !== round.winner_game_team
-    ) {
+    const voterInWinningTeam = await q1(
+      "SELECT id FROM round_players WHERE round_id=? AND player_id=? AND game_team=?",
+      [round_id, player.id, round.winner_game_team],
+    );
+    if (!voterGp || voterGp.attendance !== "checked_in" || !voterInWinningTeam) {
       return res.status(403).json({ error: "Only winners can vote" });
     }
 

@@ -79,6 +79,9 @@ export default function GameDetail({ gameId, onBack, isAdmin }) {
   const [actionLoading, setActionLoading] = useState(null);
   const [mvpState, setMvpState] = useState(null);
   const [mvpLoading, setMvpLoading] = useState(false);
+  const [mvpPickOpen, setMvpPickOpen] = useState(false);
+  const [mvpPickSelected, setMvpPickSelected] = useState(null);
+  const [mvpPickPromptedRoundId, setMvpPickPromptedRoundId] = useState(null);
   const { haptic, showAlert, showConfirm } = useTelegram();
   const [addUsersText, setAddUsersText] = useState("");
   const [rides, setRides] = useState([]);
@@ -186,6 +189,11 @@ export default function GameDetail({ gameId, onBack, isAdmin }) {
   const hasActiveRound = round?.active || false;
   const isBetweenRounds = isActiveGame && !hasActiveRound;
 
+  // Адміну потрібно обрати MVP для щойно завершеного раунду,
+  // перш ніж він зможе почати наступний.
+  const adminNeedsMvp =
+    isAdmin && isBetweenRounds && !!mvpState && !mvpLoading && mvpState.myVoteTargetId === null;
+
   // MVP voting state (latest finished round)
   useEffect(() => {
     if (!data?.game) return;
@@ -212,6 +220,18 @@ export default function GameDetail({ gameId, onBack, isAdmin }) {
       cancelled = true;
     };
   }, [gameId, isBetweenRounds, data?.game]);
+
+  // Auto-open MVP picker modal for admin after each finished round (once per round)
+  useEffect(() => {
+    if (!adminNeedsMvp) return;
+    const rid = mvpState?.round_id || null;
+    if (!rid) return;
+    if (mvpPickPromptedRoundId === rid) return;
+
+    setMvpPickPromptedRoundId(rid);
+    setMvpPickSelected(null);
+    setMvpPickOpen(true);
+  }, [adminNeedsMvp, mvpState?.round_id, mvpPickPromptedRoundId]);
 
   if (loading) {
     return (
@@ -761,6 +781,111 @@ export default function GameDetail({ gameId, onBack, isAdmin }) {
         </div>
       )}
 
+      {/* ---- MVP picker modal (admin, between rounds) ---- */}
+      {isAdmin && isBetweenRounds && mvpPickOpen && mvpState && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
+          <div
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            onClick={() => setMvpPickOpen(false)}
+          />
+          <div className="relative w-full max-w-md bg-slate-900/95 border border-amber-500/30 rounded-3xl p-4">
+            <div className="flex items-start justify-between gap-3 mb-3">
+              <div>
+                <div className="text-[11px] text-gray-400">
+                  MVP Раунду {mvpState.round_number}
+                </div>
+                <div className="text-sm font-black text-amber-200">
+                  Кого команда переможців визначає як MVP?
+                </div>
+                <div className="text-[11px] text-gray-400 mt-1">
+                  Адмін чує рішення переможців і фіксує його тут.
+                </div>
+              </div>
+              <button
+                onClick={() => setMvpPickOpen(false)}
+                className="text-gray-400 text-sm px-2 py-1"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="space-y-2 max-h-64 overflow-y-auto pr-1">
+              {(mvpState.candidates || []).map((c) => {
+                const selected = mvpPickSelected === c.player_id;
+                return (
+                  <button
+                    key={c.player_id}
+                    type="button"
+                    onClick={() => {
+                      haptic("impact");
+                      setMvpPickSelected(c.player_id);
+                    }}
+                    className={`w-full flex items-center justify-between py-2 px-3 rounded-2xl border transition-all active:scale-[0.99] ${
+                      selected
+                        ? "border-amber-500/60 bg-amber-500/10"
+                        : "border-slate-700/40 bg-slate-800/50 hover:bg-slate-700/50"
+                    }`}
+                  >
+                    <div className="flex items-center gap-2">
+                      <span className="text-base">{selected ? "✅" : "🪖"}</span>
+                      <span className="text-sm font-semibold">
+                        {formatNick(c.nickname)}
+                      </span>
+                    </div>
+                    <span className="text-[11px] text-gray-400">
+                      Голосів:{" "}
+                      <span className="font-bold text-amber-300">
+                        {c.mvp_votes}
+                      </span>
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+
+            <div className="grid grid-cols-2 gap-2 mt-3">
+              <button
+                onClick={() => setMvpPickOpen(false)}
+                className="py-3 rounded-2xl bg-slate-800/70 border border-slate-700/40 text-sm font-bold text-gray-200 active:scale-[0.98]"
+              >
+                Пізніше
+              </button>
+              <button
+                onClick={async () => {
+                  if (!mvpPickSelected) {
+                    showAlert("Обери гравця MVP зі списку.");
+                    return;
+                  }
+                  const c = (mvpState.candidates || []).find(
+                    (x) => x.player_id === mvpPickSelected,
+                  );
+                  const ok = await showConfirm(
+                    `Підтвердити MVP: ${formatNick(c?.nickname)}?`,
+                  );
+                  if (!ok) return;
+                  await doAction(
+                    () =>
+                      adminSelectMvp(
+                        gameId,
+                        mvpState.round_id,
+                        mvpPickSelected,
+                      ),
+                    `✅ MVP обрано: ${formatNick(c?.nickname)}`,
+                    "full",
+                  );
+                  setMvpPickOpen(false);
+                  setMvpPickSelected(null);
+                }}
+                disabled={actionLoading || !mvpPickSelected}
+                className="py-3 rounded-2xl bg-gradient-to-r from-amber-500 to-yellow-400 text-sm font-black text-black shadow-lg shadow-amber-900/30 active:scale-[0.98] disabled:opacity-50"
+              >
+                Підтвердити
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ---- Admin panel ---- */}
       {isAdmin && g.status !== "finished" && g.status !== "cancelled" && (
         <div className="bg-orange-950/20 border border-orange-800/30 rounded-2xl p-4 mb-5 space-y-3">
@@ -1018,7 +1143,26 @@ export default function GameDetail({ gameId, onBack, isAdmin }) {
                     return (
                       <div
                         key={c.player_id}
-                        className="flex items-center justify-between py-1.5 px-2 rounded-xl bg-slate-800/60"
+                        onClick={async () => {
+                          if (!isAdmin || isMine || actionLoading) return;
+                          const ok = await showConfirm(
+                            `Обрати MVP: ${formatNick(c.nickname)}?`,
+                          );
+                          if (!ok) return;
+                          await doAction(
+                            () =>
+                              adminSelectMvp(
+                                gameId,
+                                mvpState.round_id,
+                                c.player_id,
+                              ),
+                            `✅ MVP обрано: ${formatNick(c.nickname)}`,
+                            "full",
+                          );
+                        }}
+                        className={`flex items-center justify-between py-1.5 px-2 rounded-xl bg-slate-800/60 ${
+                          isAdmin && !isMine ? "cursor-pointer hover:bg-slate-700/60" : ""
+                        } ${isMine ? "bg-emerald-900/20" : ""}`}
                       >
                         <div className="flex items-center gap-2">
                           <span className="text-sm">{isMine ? "✅" : "🪖"}</span>
@@ -1033,39 +1177,10 @@ export default function GameDetail({ gameId, onBack, isAdmin }) {
                               {c.mvp_votes}
                             </span>
                           </span>
-                          {isAdmin && (
-                            <button
-                              onClick={async () => {
-                                const ok = await showConfirm(
-                                  `Обрати MVP: ${formatNick(c.nickname)}?`,
-                                );
-                                if (!ok) return;
-                                try {
-                                  haptic("impact");
-                                  await adminSelectMvp(
-                                    gameId,
-                                    mvpState.round_id,
-                                    c.player_id,
-                                  );
-                                  showAlert(
-                                    `✅ MVP обрано: ${formatNick(c.nickname)}`,
-                                  );
-                                  const s = await getMvpState(gameId);
-                                  setMvpState(s.hasRound ? s : null);
-                                } catch (e) {
-                                  showAlert(e.message);
-                                  haptic("error");
-                                }
-                              }}
-                              disabled={actionLoading || isMine}
-                              className={`px-2 py-1 rounded-lg text-[10px] font-bold active:scale-95 ${
-                                isMine
-                                  ? "bg-slate-700/60 text-gray-200 opacity-90"
-                                  : "bg-emerald-600/70 text-white"
-                              }`}
-                            >
-                              {isMine ? "Обраний" : "Обрати MVP"}
-                            </button>
+                          {isAdmin && isMine && (
+                            <span className="px-2 py-1 rounded-lg text-[10px] font-bold bg-slate-700/60 text-gray-200 opacity-90">
+                              Обраний
+                            </span>
                           )}
                         </div>
                       </div>
@@ -1085,6 +1200,11 @@ export default function GameDetail({ gameId, onBack, isAdmin }) {
                 Раундів зіграно:{" "}
                 {rounds.filter((r) => r.status === "finished").length}
               </p>
+              {adminNeedsMvp && (
+                <p className="text-xs text-amber-300/90 mb-3">
+                  Спочатку обери MVP для щойно завершеного раунду.
+                </p>
+              )}
               {g.game_mode !== "ffa" && (
                 <button
                   onClick={async () => {
@@ -1109,7 +1229,7 @@ export default function GameDetail({ gameId, onBack, isAdmin }) {
                   if (!ok) return;
                   doAction(() => adminStartRound(gameId));
                 }}
-                disabled={actionLoading}
+                disabled={actionLoading || adminNeedsMvp}
                 className="w-full bg-gradient-to-r from-emerald-600 to-teal-600 py-4 rounded-2xl font-bold text-[15px] shadow-lg transition-all active:scale-[0.98] disabled:opacity-50"
               >
                 {actionLoading ? <Spinner /> : "▶️ Почати наступний раунд"}
