@@ -944,9 +944,13 @@ export default function GameDetail({ gameId, onBack, isAdmin }) {
                 color="red"
               />
             )}
-            {/* Cancel game in any non-final state */}
-            {g.status !== "finished" && g.status !== "cancelled" && (
-              <SmallButton
+          </div>
+
+          {/* Cancel game — keep far from frequent actions */}
+          {g.status !== "finished" && g.status !== "cancelled" && (
+            <div className="pt-2 mt-1 border-t border-orange-900/30">
+              <button
+                type="button"
                 onClick={async () => {
                   const ok = await showConfirm(
                     "Скасувати гру для всіх? Цю дію не можна відмінити.",
@@ -957,12 +961,16 @@ export default function GameDetail({ gameId, onBack, isAdmin }) {
                     "❌ Гру скасовано",
                   );
                 }}
-                icon="❌"
-                label="Скасувати гру"
-                color="emerald"
-              />
-            )}
-          </div>
+                disabled={actionLoading}
+                className="w-full py-3 rounded-2xl bg-slate-800/60 border border-red-700/30 text-sm font-bold text-red-200 active:scale-[0.99] disabled:opacity-50"
+              >
+                ❌ Скасувати гру
+              </button>
+              <p className="mt-2 text-[10px] text-gray-500">
+                Рекомендується використовувати лише в екстрених випадках.
+              </p>
+            </div>
+          )}
 
           {/* Гравці ще без чек-іну (адмін може відмітити без телефону) */}
           {(g.status === "checkin" || g.status === "active") &&
