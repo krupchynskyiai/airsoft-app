@@ -1,10 +1,12 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   adminCreateGame,
   adminCreateTeam,
   adminAddPoints,
   adminAddToBlacklist,
   adminRemoveFromBlacklist,
+  adminGetLootRequests,
+  adminDeactivateLoot,
 } from "../api";
 import { useTelegram } from "../hooks/useTelegram";
 import PlayerSearch from "../components/PlayerSearch";
@@ -37,6 +39,14 @@ export default function Admin() {
       desc: "Проблемні гравці, яким заборонено грати",
       color: "from-red-600/20 to-rose-700/10",
       border: "border-red-700/40",
+    },
+    {
+      id: "loot",
+      icon: "🎁",
+      label: "Запити бонусів",
+      desc: "Підтвердження використання бонусів гравцями",
+      color: "from-sky-600/20 to-indigo-700/10",
+      border: "border-sky-700/40",
     },
   ];
 
@@ -128,6 +138,9 @@ export default function Admin() {
           )}
           {section === "blacklist" && (
             <BlacklistForm onDone={() => setSection(null)} />
+          )}
+          {section === "loot" && (
+            <LootRequestsForm onDone={() => setSection(null)} />
           )}
         </div>
       )}
@@ -633,6 +646,179 @@ function BlacklistForm({ onDone }) {
           </button>
         </div>
       </div>
+    </div>
+  );
+}
+
+// ---- Loot requests ----
+function LootRequestsForm({ onDone }) {
+  const [requests, setRequests] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [resolvingId, setResolvingId] = useState(null);
+  const [confirmReward, setConfirmReward] = useState(null);
+  const [resultModal, setResultModal] = useState(null);
+  const { haptic, showAlert } = useTelegram();
+
+  async function loadRequests() {
+    try {
+      setLoading(true);
+      const data = await adminGetLootRequests();
+      setRequests(data.requests || []);
+    } catch (e) {
+      showAlert(e.message || "Не вдалося завантажити запити");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    loadRequests();
+  }, []);
+
+  async function confirmUse(rw) {
+    try {
+      setResolvingId(rw.id);
+      await adminDeactivateLoot(rw.id);
+      setRequests((prev) => prev.filter((x) => x.id !== rw.id));
+      haptic("success");
+      setResultModal({
+        title: "Готово",
+        message: "Бонус позначено як використаний.",
+      });
+    } catch (e) {
+      haptic("error");
+      setResultModal({
+        title: "Помилка",
+        message: e.message || "Не вдалося підтвердити використання",
+      });
+    } finally {
+      setResolvingId(null);
+      setConfirmReward(null);
+    }
+  }
+
+  return (
+    <div>
+      <div className="flex items-center gap-3 mb-4">
+        <div className="w-12 h-12 rounded-2xl bg-sky-600/20 flex items-center justify-center text-2xl">
+          🎁
+        </div>
+        <div className="flex-1">
+          <h3 className="text-lg font-black">Запити бонусів</h3>
+          <p className="text-xs text-gray-500">Тільки адмін списує бонус після фактичного використання</p>
+        </div>
+      </div>
+
+      <div className="flex items-center gap-2 mb-3">
+        <button
+          onClick={loadRequests}
+          disabled={loading}
+          className="px-3 py-2 rounded-xl bg-slate-800/70 border border-slate-700/50 text-xs font-semibold disabled:opacity-50"
+        >
+          {loading ? "Оновлення..." : "Оновити"}
+        </button>
+        <button
+          onClick={onDone}
+          className="px-3 py-2 rounded-xl bg-slate-800/70 border border-slate-700/50 text-xs font-semibold"
+        >
+          Закрити
+        </button>
+      </div>
+
+      {loading ? (
+        <div className="text-sm text-gray-400">Завантаження запитів...</div>
+      ) : requests.length === 0 ? (
+        <div className="bg-slate-800/40 border border-slate-700/30 rounded-2xl p-4 text-sm text-gray-400">
+          Немає запитів на використання бонусів.
+        </div>
+      ) : (
+        <div className="space-y-2">
+          {requests.map((rw) => (
+            <div
+              key={rw.id}
+              className="bg-slate-800/60 border border-slate-700/40 rounded-2xl p-3"
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <div className="text-sm font-bold">{rw.player_nickname}</div>
+                  <div className="text-xs text-gray-300">{rw.reward_title || rw.reward_key}</div>
+                  {rw.reward_description ? (
+                    <div className="text-[11px] text-gray-500 mt-0.5">
+                      {rw.reward_description}
+                    </div>
+                  ) : null}
+                  <div className="text-[11px] text-gray-500 mt-1">
+                    rarity: {rw.rarity} • id: {rw.id}
+                  </div>
+                </div>
+                <button
+                  onClick={() => setConfirmReward(rw)}
+                  disabled={resolvingId === rw.id}
+                  className="px-3 py-2 rounded-xl bg-emerald-600/80 text-black text-xs font-bold disabled:opacity-50"
+                >
+                  {resolvingId === rw.id ? "..." : "Підтвердити"}
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {confirmReward && (
+        <div className="fixed inset-0 z-40 flex items-center justify-center px-4">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+          <div className="relative z-50 w-full max-w-sm rounded-3xl bg-slate-900/95 border border-emerald-400/40 p-5 text-center shadow-2xl shadow-emerald-900/40">
+            <div className="text-3xl mb-2">🧾</div>
+            <h4 className="text-sm font-bold text-emerald-300 uppercase tracking-[0.15em] mb-2">
+              Підтвердження
+            </h4>
+            <p className="text-sm text-gray-200 mb-1">
+              Позначити бонус як використаний?
+            </p>
+            <p className="text-xs text-gray-400 mb-1">
+              {confirmReward.player_nickname}
+            </p>
+            <p className="text-xs text-sky-300 mb-4">
+              {confirmReward.reward_title || confirmReward.reward_key}
+            </p>
+
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() => setConfirmReward(null)}
+                className="py-2 rounded-xl bg-slate-800 border border-slate-700 text-xs font-semibold"
+              >
+                Скасувати
+              </button>
+              <button
+                type="button"
+                onClick={() => confirmUse(confirmReward)}
+                disabled={resolvingId === confirmReward.id}
+                className="py-2 rounded-xl bg-emerald-600 text-black text-xs font-bold disabled:opacity-50"
+              >
+                {resolvingId === confirmReward.id ? "..." : "Підтвердити"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {resultModal && (
+        <div className="fixed inset-0 z-40 flex items-center justify-center px-4">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+          <div className="relative z-50 w-full max-w-sm rounded-3xl bg-slate-900/95 border border-slate-700 p-5 text-center shadow-2xl">
+            <h4 className="text-sm font-bold text-gray-200 mb-2">{resultModal.title}</h4>
+            <p className="text-xs text-gray-400 mb-4">{resultModal.message}</p>
+            <button
+              type="button"
+              onClick={() => setResultModal(null)}
+              className="px-4 py-2 rounded-xl bg-emerald-600 text-black text-xs font-bold"
+            >
+              OK
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

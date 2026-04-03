@@ -76,11 +76,11 @@ async function loadPlayerByTelegram(tgUser) {
 
   let player = await q1(
     "SELECT * FROM players WHERE telegram_id=?",
-    [tgId]
+    [tgId],
   );
 
   // If not found, try to attach an existing placeholder row by telegram username
-  if (tgUser.username) {
+  if (!player && tgUser.username) {
     const uname = normalizeTelegramUsername(tgUser.username);
     if (uname) {
       try {
@@ -133,17 +133,16 @@ async function loadPlayerByTelegram(tgUser) {
 
     const uname = resolveTelegramUsername(tgUser.username, nickname);
 
-    // Prefer storing telegram_username if column exists (best-effort)
     let r;
     try {
       r = await ins(
-        "INSERT INTO players (telegram_id,telegram_username,nickname,rating,games_played,wins,total_deaths) VALUES (?,?,?,?,0,0,0)",
-        [tgId, uname, nickname],
+        "INSERT INTO players (telegram_id,telegram_username,nickname,team_id,games_played,wins,mvp_count,total_kills,total_deaths,rating) VALUES (?,?,?,?,0,0,0,0,0,0)",
+        [tgId, uname, nickname, null],
       );
     } catch (e) {
       r = await ins(
-        "INSERT INTO players (telegram_id,nickname,rating,games_played,wins,total_deaths) VALUES (?,?,0,0,0,0)",
-        [tgId, nickname],
+        "INSERT INTO players (telegram_id,nickname,team_id,games_played,wins,mvp_count,total_kills,total_deaths,rating) VALUES (?,?,?,?,0,0,0,0,0)",
+        [tgId, nickname, null],
       );
     }
 

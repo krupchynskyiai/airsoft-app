@@ -117,6 +117,19 @@ export const transferCaptain = (teamId, newCaptainId) =>
 export const disbandTeam = (teamId) =>
   api(`/teams/${teamId}/disband`, { method: "POST" });
 
+// ---- Loot / Fortune ----
+export const getLootState = () => api("/loot/state");
+export const spinLoot = () =>
+  api("/loot/spin", { method: "POST" });
+export const requestUseLootReward = (rewardId) =>
+  api(`/loot/rewards/${rewardId}/request-use`, { method: "POST" });
+
+// ---- Admin loot ----
+export const adminGetLootRequests = () =>
+  api("/admin/loot/requests");
+export const adminDeactivateLoot = (rewardId) =>
+  api(`/admin/loot/${rewardId}/deactivate`, { method: "POST" });
+
 // ---- Admin ----
 export const adminCreateGame = (data) =>
   api("/admin/games", { method: "POST", body: data });

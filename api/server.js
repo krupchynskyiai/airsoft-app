@@ -37,11 +37,16 @@ function createServer() {
   app.use("/api/games", require("./routes/games"));
   app.use("/api/teams", require("./routes/teams"));
   app.use("/api/leaderboard", require("./routes/leaderboard"));
+  app.use("/api/loot", require("./routes/loot"));
   app.use("/api/admin", require("./routes/admin"));
 
   // Serve React build (production)
   const webappDist = path.join(__dirname, "..", "webapp", "dist");
   app.use(express.static(webappDist));
+
+  // Static gifts for loot wheel
+  const giftsDir = path.join(__dirname, "..", "constants", "gifts");
+  app.use("/gifts", express.static(giftsDir));
   app.get("*", (req, res) => {
     res.sendFile(path.join(webappDist, "index.html"));
   });

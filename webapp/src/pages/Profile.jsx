@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { getFriends, sendFriendRequest, respondFriendRequest } from "../api";
+import { getFriends, sendFriendRequest, respondFriendRequest, getLootState, spinLoot, requestUseLootReward } from "../api";
 import PlayerSearch from "../components/PlayerSearch";
 import { useTelegram } from "../hooks/useTelegram";
 import { getAvatarForLevel, getPlayerLevelState } from "../utils/playerLevel";
@@ -116,12 +116,26 @@ function ProgressRing({ value, max, size = 72, stroke = 5, color = "#10b981" }) 
 
 // ---- Main Profile Component ----
 export default function Profile({ profile, onReload }) {
+  const ITEM_STEP_PX = 88;
+  const CENTER_OFFSET_PX = 80;
+  const START_CENTER_INDEX = 8;
+
   const { haptic, showAlert } = useTelegram();
   const [retryProfileOnce, setRetryProfileOnce] = useState(false);
   const [badgeCelebration, setBadgeCelebration] = useState(null);
   const [friendsInfo, setFriendsInfo] = useState({ friends: [], incoming: [] });
   const [friendsLoading, setFriendsLoading] = useState(false);
   const [friendsError, setFriendsError] = useState("");
+  const [lootState, setLootState] = useState(null);
+  const [lootLoading, setLootLoading] = useState(false);
+  const [spinning, setSpinning] = useState(false);
+  const [rollItems, setRollItems] = useState([]);
+  const [rollTargetIndex, setRollTargetIndex] = useState(null);
+  const [lootWinModal, setLootWinModal] = useState(null);
+  const [pendingLootReward, setPendingLootReward] = useState(null);
+  const [requestingRewardId, setRequestingRewardId] = useState(null);
+  const [requestUseModalReward, setRequestUseModalReward] = useState(null);
+  const [requestUseResultModal, setRequestUseResultModal] = useState(null);
 
   // If профіль ще не зареєстрований, спробувати один раз перезавантажити,
   // щоб дочекатися даних з Telegram / бекенду, перш ніж показувати форму.
@@ -183,6 +197,52 @@ export default function Profile({ profile, onReload }) {
   const levelState = getPlayerLevelState(p.rating);
   const avatar = getAvatarForLevel(levelState.level);
 
+  function closeLootWinModal() {
+    if (pendingLootReward) {
+      setLootState((prev) => ({
+        ...(prev || {}),
+        rewards: [
+          pendingLootReward,
+          ...((prev && Array.isArray(prev.rewards)) ? prev.rewards : []),
+        ],
+      }));
+      setPendingLootReward(null);
+    }
+    setLootWinModal(null);
+  }
+
+  async function handleRequestUseReward(reward) {
+    if (!reward?.id || reward.status !== "active") return;
+    if (reward.source === "use_requested") return;
+    if (requestingRewardId) return;
+
+    try {
+      setRequestingRewardId(reward.id);
+      await requestUseLootReward(reward.id);
+      setLootState((prev) => ({
+        ...(prev || {}),
+        rewards: (prev?.rewards || []).map((rw) =>
+          rw.id === reward.id ? { ...rw, source: "use_requested" } : rw,
+        ),
+      }));
+      haptic("success");
+      setRequestUseResultModal({
+        title: "Запит надіслано",
+        message:
+          "Адмін отримає запит у панелі керування. Після підтвердження бонус буде списано.",
+      });
+    } catch (e) {
+      haptic("error");
+      setRequestUseResultModal({
+        title: "Не вдалося надіслати",
+        message: e.message || "Спробуй ще раз трохи пізніше.",
+      });
+    } finally {
+      setRequestingRewardId(null);
+      setRequestUseModalReward(null);
+    }
+  }
+
   useEffect(() => {
     async function loadFriends() {
       setFriendsLoading(true);
@@ -202,6 +262,19 @@ export default function Profile({ profile, onReload }) {
     }
 
     loadFriends();
+  }, []);
+
+  // Load loot / spins state
+  useEffect(() => {
+    async function loadLoot() {
+      try {
+        const s = await getLootState();
+        setLootState(s);
+      } catch (e) {
+        console.error("Loot state error", e);
+      }
+    }
+    loadLoot();
   }, []);
 
   async function handleRespondFriend(requestId, action) {
@@ -341,6 +414,118 @@ export default function Profile({ profile, onReload }) {
               className="px-5 py-2 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-500 text-xs font-bold tracking-wide text-black shadow-lg shadow-emerald-900/40 active:scale-95 transition-transform"
             >
               Круто!
+            </button>
+          </div>
+        </div>
+      )}
+      {/* ---- Loot win modal ---- */}
+      {lootWinModal && (
+        <div className="fixed inset-0 z-40 flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+          <div className="relative z-50 w-[84%] max-w-sm px-5 py-6 rounded-3xl bg-slate-900/95 border border-emerald-400/40 shadow-2xl shadow-emerald-900/60 text-center">
+            <div className="mb-2 text-4xl">🎉</div>
+            <h3 className="text-sm font-bold text-emerald-300 uppercase tracking-[0.2em] mb-2">
+              Вітаємо з виграшем!
+            </h3>
+
+            <div
+              className="inline-flex items-center justify-center px-4 py-2 rounded-2xl mb-3"
+              style={{
+                background: "linear-gradient(135deg, rgba(16,185,129,0.20), rgba(16,185,129,0.08))",
+                border: "1px solid rgba(16,185,129,0.45)",
+              }}
+            >
+              <div
+                className="w-16 h-12 rounded-xl bg-slate-900/80 mr-2 overflow-hidden flex items-center justify-center border"
+                style={{
+                  borderColor: lootWinModal.color || "rgba(148,163,184,0.5)",
+                }}
+              >
+                {lootWinModal.imageUrl ? (
+                  <img
+                    src={lootWinModal.imageUrl}
+                    alt={lootWinModal.title}
+                    className="w-full h-full object-contain"
+                  />
+                ) : (
+                  <span>🎁</span>
+                )}
+              </div>
+              <span className="text-sm font-semibold text-gray-100">
+                {lootWinModal.title}
+              </span>
+            </div>
+
+            {lootWinModal.description ? (
+              <p className="text-xs text-gray-300 mb-4 leading-relaxed px-1">
+                {lootWinModal.description}
+              </p>
+            ) : (
+              <p className="text-xs text-gray-400 mb-4">
+                Нагорода додана у розділ «Бонуси».
+              </p>
+            )}
+
+            <button
+              onClick={closeLootWinModal}
+              className="px-5 py-2 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-500 text-xs font-bold tracking-wide text-black shadow-lg shadow-emerald-900/40 active:scale-95 transition-transform"
+            >
+              Забрати
+            </button>
+          </div>
+        </div>
+      )}
+      {requestUseModalReward && (
+        <div className="fixed inset-0 z-40 flex items-center justify-center px-4">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+          <div className="relative z-50 w-full max-w-sm rounded-3xl bg-slate-900/95 border border-sky-400/40 p-5 text-center shadow-2xl shadow-sky-900/30">
+            <div className="text-3xl mb-2">📨</div>
+            <h3 className="text-sm font-bold text-sky-300 uppercase tracking-[0.15em] mb-2">
+              Запит на використання
+            </h3>
+            <p className="text-xs text-gray-300 mb-1">
+              Надіслати адміну запит для бонуса:
+            </p>
+            <p className="text-sm font-semibold text-gray-100 mb-4">
+              {(() => {
+                const def = (lootState?.catalog || []).find(
+                  (c) => c.reward_key === requestUseModalReward.reward_key,
+                );
+                return def?.title || requestUseModalReward.reward_key;
+              })()}
+            </p>
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() => setRequestUseModalReward(null)}
+                className="py-2 rounded-xl bg-slate-800 border border-slate-700 text-xs font-semibold"
+              >
+                Скасувати
+              </button>
+              <button
+                type="button"
+                onClick={() => handleRequestUseReward(requestUseModalReward)}
+                disabled={!!requestingRewardId}
+                className="py-2 rounded-xl bg-sky-600 text-black text-xs font-bold disabled:opacity-50"
+              >
+                {requestingRewardId ? "Надсилання..." : "Надіслати"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {requestUseResultModal && (
+        <div className="fixed inset-0 z-40 flex items-center justify-center px-4">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+          <div className="relative z-50 w-full max-w-sm rounded-3xl bg-slate-900/95 border border-slate-700 p-5 text-center shadow-2xl">
+            <h3 className="text-sm font-bold text-gray-100 mb-2">{requestUseResultModal.title}</h3>
+            <p className="text-xs text-gray-400 mb-4">{requestUseResultModal.message}</p>
+            <button
+              type="button"
+              onClick={() => setRequestUseResultModal(null)}
+              className="px-4 py-2 rounded-xl bg-emerald-600 text-black text-xs font-bold"
+            >
+              ОК
             </button>
           </div>
         </div>
@@ -488,6 +673,343 @@ export default function Profile({ profile, onReload }) {
                   </div>
                   <span className="sr-only">Натисни, щоб прочитати за що нагорода</span>
                 </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* ---- Колесо фортуни ---- */}
+      {lootState && (
+        <div className="bg-slate-800/80 backdrop-blur-sm rounded-2xl p-4 mb-4 border border-slate-700/50">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <span className="text-base">🎰</span>
+              <h3 className="text-sm font-bold text-gray-300 uppercase tracking-wider">
+                Колесо фортуни
+              </h3>
+            </div>
+            <span className="text-xs text-gray-400">
+              Доступні оберти:{" "}
+              <span className="font-semibold text-emerald-300">
+                {lootState.remainingSpins}
+              </span>
+            </span>
+          </div>
+
+          {/* Смуга кейсів у стилі CS:GO */}
+          <div className="relative h-20 bg-slate-900/80 rounded-2xl overflow-hidden border border-slate-700/60 mb-3">
+            <div className="absolute inset-y-0 left-1/2 w-[2px] bg-emerald-400/80 shadow-[0_0_10px_rgba(16,185,129,0.8)] z-20" />
+            {/* Контур активного айтема по центру */}
+            <div className="pointer-events-none absolute inset-y-1 left-1/2 -translate-x-1/2 w-[88px] rounded-xl border-2 border-emerald-400/80 shadow-[0_0_16px_rgba(16,185,129,0.8)] z-10" />
+            <div
+              className="absolute inset-y-0 left-1/2 flex items-center"
+              style={{
+                transform:
+                  spinning && rollTargetIndex != null
+                    ? `translateX(-${rollTargetIndex * ITEM_STEP_PX + CENTER_OFFSET_PX}px)`
+                    : `translateX(-${START_CENTER_INDEX * ITEM_STEP_PX + CENTER_OFFSET_PX}px)`,
+                transition:
+                  spinning && rollTargetIndex != null
+                    ? "transform 5s cubic-bezier(0.16, 1, 0.3, 1)"
+                    : "none",
+              }}
+            >
+              <div className="flex gap-2 px-10">
+                {(() => {
+                  // Стрічка показує уніфікований набір усіх можливих типів призів:
+                  // поєднуємо каталог + типи виграних нагород, щоб була візуальна різноманітність.
+                  const catalogList = Array.isArray(lootState.catalog)
+                    ? lootState.catalog
+                    : [];
+                  const rewardTypeList = Array.isArray(lootState.rewards)
+                    ? lootState.rewards.map((rw) => ({
+                        reward_key: rw.reward_key,
+                        rarity: rw.rarity,
+                        image_url: rw.image_url,
+                      }))
+                    : [];
+                  const byKey = new Map();
+                  for (const item of catalogList) {
+                    if (!item?.reward_key) continue;
+                    byKey.set(item.reward_key, item);
+                  }
+                  for (const item of rewardTypeList) {
+                    if (!item?.reward_key) continue;
+                    if (!byKey.has(item.reward_key)) {
+                      byKey.set(item.reward_key, item);
+                    }
+                  }
+                  const baseStatic = Array.from(byKey.values());
+                  const sourceList = rollItems.length ? rollItems : baseStatic;
+                  const list = [];
+                  if (rollItems.length) {
+                    // Під час анімації використовуємо довгу послідовність rollItems:
+                    // це вже згенерована смуга з багатьох айтемів перед виграшем.
+                    list.push(...sourceList);
+                  } else {
+                    // У статиці робимо стрічку дуже довгою за рахунок багаторазового повторення каталогу.
+                    for (let k = 0; k < 10; k++) {
+                      list.push(...sourceList);
+                    }
+                  }
+                  return list.map((rw, idx) => {
+                    const catalogDef =
+                      (lootState.catalog || []).find(
+                        (c) =>
+                          (c.reward_key || c.key) ===
+                          (rw.reward_key || rw.key),
+                      ) || null;
+                    const rarityKey = catalogDef?.rarity || rw.rarity;
+                    const rarityColor =
+                      lootState.rarities?.[rarityKey]?.color ||
+                      "rgba(148,163,184,0.6)";
+                    const rawUrl =
+                      catalogDef?.image_url || rw.image_url || "";
+                    const imgUrl = rawUrl.startsWith("./")
+                      ? rawUrl.replace("./", "/")
+                      : rawUrl;
+                    const displayTitle =
+                      catalogDef?.title ||
+                      rw.title ||
+                      rw.reward_key ||
+                      rw.key;
+                    return (
+                      <div
+                        key={`${rw.key || rw.reward_key}_${idx}`}
+                        className="w-20 h-16 rounded-xl flex flex-col items-center justify-center text-[10px] font-semibold text-gray-100 shadow-md bg-slate-800/80 border"
+                        style={{ borderColor: rarityColor }}
+                      >
+                        <div className="w-12 h-8 rounded-lg bg-slate-900/80 mb-1 overflow-hidden flex items-center justify-center">
+                          {imgUrl ? (
+                            <img
+                              src={imgUrl}
+                            alt={displayTitle}
+                              className="w-full h-full object-contain"
+                            />
+                          ) : (
+                            <span>🎁</span>
+                          )}
+                        </div>
+                        <span className="truncate max-w-[70px]">
+                          {displayTitle}
+                        </span>
+                      </div>
+                    );
+                  });
+                })()}
+              </div>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            disabled={spinning || lootLoading || lootState.remainingSpins <= 0}
+            onClick={async () => {
+              if (spinning || lootLoading || lootState.remainingSpins <= 0) return;
+              try {
+                setSpinning(true);
+                setLootLoading(true);
+                haptic("impact");
+                const res = await spinLoot();
+                const reward = res.reward;
+
+                // Побудувати стрічку: багато випадкових айтемів + гарантований виграшний у кінці
+                const staticPool =
+                  lootState.catalog && lootState.catalog.length > 0
+                    ? lootState.catalog
+                    : lootState.rewards || [];
+                const basePool = staticPool.concat([
+                  {
+                    reward_key: reward.key,
+                    title: reward.title,
+                    rarity: reward.rarity,
+                    image_url: reward.image_url,
+                  },
+                ]);
+                const items = [];
+                const beforeCount = 80;
+                const afterCount = 24;
+
+                // Довга стрічка перед виграшем
+                for (let i = 0; i < beforeCount; i++) {
+                  const rnd = basePool[Math.floor(Math.random() * basePool.length)];
+                  items.push(rnd);
+                }
+                const winIndex = items.length;
+                items.push({
+                  reward_key: reward.key,
+                  title: reward.title,
+                  rarity: reward.rarity,
+                  image_url: reward.image_url,
+                });
+                // І ще хвіст після виграшу, щоб не було "пустоти" справа
+                for (let i = 0; i < afterCount; i++) {
+                  const rnd = basePool[Math.floor(Math.random() * basePool.length)];
+                  items.push(rnd);
+                }
+
+                setRollItems(items);
+                setRollTargetIndex(winIndex);
+                setLootState((prev) => ({
+                  ...(prev || {}),
+                  ...res.state,
+                }));
+
+                setTimeout(() => {
+                  haptic("success");
+                  const rawImageUrl = reward.image_url || "";
+                  const imageUrl = rawImageUrl.startsWith("./")
+                    ? rawImageUrl.replace("./", "/")
+                    : rawImageUrl;
+                  setPendingLootReward({
+                    id: reward.id,
+                    reward_key: reward.key,
+                    rarity: reward.rarity,
+                    image_url: reward.image_url,
+                    status: "active",
+                    source: "spin",
+                  });
+                  setLootWinModal({
+                    title: reward.title || reward.key,
+                    description: reward.description || "",
+                    imageUrl,
+                    color:
+                      lootState?.rarities?.[reward.rarity]?.color ||
+                      "rgba(148,163,184,0.6)",
+                  });
+                  setSpinning(false);
+                  // Після завершення анімації повертаємо колесо до базового каталогу
+                  setRollItems([]);
+                }, 5200);
+              } catch (e) {
+                showAlert(e.message);
+                haptic("error");
+                setSpinning(false);
+              } finally {
+                setLootLoading(false);
+              }
+            }}
+            className="w-full bg-gradient-to-r from-emerald-600 to-teal-600 py-3 rounded-2xl font-bold text-[14px] shadow-lg shadow-emerald-900/30 active:scale-[0.98] disabled:opacity-50"
+          >
+            {spinning || lootLoading ? (
+              <span className="inline-flex items-center gap-2">
+                <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                Крутиться...
+              </span>
+            ) : lootState.remainingSpins > 0 ? (
+              "🎰 Крутити"
+            ) : (
+              "Немає обертів"
+            )}
+          </button>
+
+          <p className="mt-2 text-[10px] text-gray-500">
+            1 оберт / 50 рейтингу + 1 безкоштовний при реєстрації. Нагороди
+            погоджуються з адміністратором.
+          </p>
+        </div>
+      )}
+
+      {/* ---- Бонуси (виграні нагороди) ---- */}
+      {lootState && (lootState.rewards || []).length > 0 && (
+        <div className="bg-slate-800/80 backdrop-blur-sm rounded-2xl p-4 mb-4 border border-slate-700/50">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <span>🎁</span>
+              <h3 className="text-sm font-bold text-gray-300 uppercase tracking-wider">
+                Бонуси
+              </h3>
+            </div>
+            <span className="text-xs text-gray-500 bg-slate-700 px-2 py-0.5 rounded-full">
+              {(lootState.rewards || []).length}
+            </span>
+          </div>
+
+          <div className="space-y-1.5 max-h-40 overflow-y-auto pr-1">
+            {(lootState.rewards || []).map((rw) => {
+              const def =
+                (lootState.catalog || []).find(
+                  (c) => c.reward_key === rw.reward_key,
+                ) || null;
+              const title = def?.title || rw.reward_key;
+              const description = def?.description || "";
+              const rawImageUrl = def?.image_url || rw.image_url || "";
+              const imageUrl = rawImageUrl.startsWith("./")
+                ? rawImageUrl.replace("./", "/")
+                : rawImageUrl;
+              const rarityColor =
+                lootState.rarities?.[rw.rarity]?.color || "rgba(148,163,184,0.6)";
+              const isActive = rw.status === "active";
+              const isRequested = rw.source === "use_requested";
+              const isRequesting = requestingRewardId === rw.id;
+              return (
+                <div
+                  key={rw.id}
+                  className="flex items-center justify-between py-1.5 px-2 rounded-xl bg-slate-900/70 border border-slate-700/60"
+                >
+                  <div className="flex items-center gap-2">
+                    <div
+                      className="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold overflow-hidden"
+                      style={{
+                        border: `1px solid ${rarityColor}`,
+                        background: "rgba(15,23,42,0.8)",
+                      }}
+                    >
+                      {imageUrl ? (
+                        <img
+                          src={imageUrl}
+                          alt={title}
+                          className="w-full h-full object-contain"
+                        />
+                      ) : (
+                        <span>🎁</span>
+                      )}
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-xs font-semibold text-gray-100">
+                        {title}
+                      </span>
+                      {description && (
+                        <span className="text-[10px] text-gray-400 truncate max-w-[180px]">
+                          {description}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex flex-col items-end gap-1">
+                    <span
+                      className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
+                        isActive
+                          ? "bg-emerald-600/20 text-emerald-300"
+                          : "bg-slate-700/60 text-gray-400"
+                      }`}
+                    >
+                      {isActive ? "Активний" : "Використано"}
+                    </span>
+                    {/* <span className="text-[9px] text-gray-500">
+                      {rw.rarity}
+                    </span> */}
+                    {isActive && (
+                      <button
+                        type="button"
+                        onClick={() => setRequestUseModalReward(rw)}
+                        disabled={!!requestingRewardId || isRequested}
+                        className={`text-[10px] font-semibold px-2 py-1 rounded-lg border active:scale-95 disabled:opacity-50 ${
+                          isRequested
+                            ? "bg-sky-500/15 text-sky-300 border-sky-400/30"
+                            : "bg-amber-500/20 text-amber-300 border-amber-400/30"
+                        }`}
+                      >
+                        {isRequested
+                          ? "Очікує адміна"
+                          : isRequesting
+                            ? "Надсилання..."
+                            : "Використати"}
+                      </button>
+                    )}
+                  </div>
+                </div>
               );
             })}
           </div>

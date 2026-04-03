@@ -4,6 +4,7 @@ const { adminMiddleware } = require("../middleware/auth");
 const log = require("../../utils/logger");
 const config = require("../../config");
 const bot = require("../bot");
+const { LOOT_REWARDS } = require("../../constants/lootRewards");
 
 const router = Router();
 router.use(adminMiddleware);
@@ -1082,6 +1083,70 @@ router.post("/blacklist/remove", async (req, res) => {
     );
 
     log.info("Blacklist remove", { player_id });
+    res.json({ success: true });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// POST /api/admin/loot/:id/deactivate — mark loot reward as redeemed / inactive
+router.get("/loot/requests", async (req, res) => {
+  try {
+    const rows = await q(
+      `SELECT lr.id,
+              lr.player_id,
+              p.nickname AS player_nickname,
+              lr.reward_key,
+              lr.rarity,
+              lr.image_url,
+              lr.status,
+              lr.source,
+              lr.created_at
+       FROM player_loot_rewards lr
+       JOIN players p ON p.id = lr.player_id
+       WHERE lr.status = 'active' AND lr.source = 'use_requested'
+       ORDER BY lr.created_at ASC
+       LIMIT 200`,
+      [],
+    );
+    const rewardByKey = new Map(LOOT_REWARDS.map((r) => [r.key, r]));
+    const requests = rows.map((r) => {
+      const meta = rewardByKey.get(r.reward_key);
+      return {
+        ...r,
+        reward_title: meta?.title || r.reward_key,
+        reward_description: meta?.description || "",
+      };
+    });
+    res.json({ requests });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// POST /api/admin/loot/:id/deactivate — mark loot reward as redeemed / inactive
+router.post("/loot/:id/deactivate", async (req, res) => {
+  try {
+    const lootId = parseInt(req.params.id);
+
+    if (!lootId) {
+      return res.status(400).json({ error: "Invalid loot id" });
+    }
+
+    const row = await q1(
+      "SELECT * FROM player_loot_rewards WHERE id=?",
+      [lootId],
+    );
+    if (!row) {
+      return res.status(404).json({ error: "Reward not found" });
+    }
+
+    await ins(
+      "UPDATE player_loot_rewards SET status='redeemed', updated_at=NOW() WHERE id=?",
+      [lootId],
+    );
+
+    log.info("Loot deactivated", { lootId, player_id: row.player_id });
     res.json({ success: true });
   } catch (e) {
     res.status(500).json({ error: e.message });
