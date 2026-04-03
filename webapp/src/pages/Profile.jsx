@@ -639,7 +639,13 @@ export default function Profile({ profile, onReload }) {
           <div className="flex flex-wrap gap-2">
             {profile.badges.map((b, i) => {
               const IconComponent = BADGE_ICONS[b.badge_icon] || Award;
-              const badgeEmoji = b.badge_emoji || "";
+              const rawBadgeEmoji = (b.badge_emoji || "").trim();
+              // Для старих записів badge_emoji інколи містить текст (напр. "Users"),
+              // тому показуємо emoji лише якщо це не звичайний текстовий slug.
+              const badgeEmoji =
+                rawBadgeEmoji && !/^[A-Za-z0-9_ -]+$/.test(rawBadgeEmoji)
+                  ? rawBadgeEmoji
+                  : "";
               const desc =
                 b.badge_description ||
                 "Опис нагороди з’явиться після оновлення профілю.";
