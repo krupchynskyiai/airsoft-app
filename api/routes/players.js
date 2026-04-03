@@ -41,7 +41,7 @@ router.get("/profile", async (req, res) => {
     }
 
     const badges = await q(
-      "SELECT badge_name FROM player_badges WHERE player_id = ?",
+      "SELECT badge_name, badge_emoji FROM player_badges WHERE player_id = ?",
       [player.id],
     );
 
@@ -51,6 +51,7 @@ router.get("/profile", async (req, res) => {
       const def = BADGES.find((bd) => bd.name === b.badge_name);
       return {
         badge_name: b.badge_name,
+        badge_emoji: def?.emoji || b.badge_emoji || "",
         badge_icon: def?.icon || "Award",
         badge_color: def?.color || "#64748b",
         badge_description:

@@ -37,6 +37,7 @@ const BADGES = [
   { name: "Immortal", icon: "Skull", color: "#a855f7", description: "20+ ігор і смертей не більше половини від кількості ігор.", check: (s) => s.games_played >= 20 && s.total_deaths <= s.games_played * 0.5 },
   { name: "Ghost", icon: "Moon", color: "#6b7280", description: "20+ ігор і дуже мало смертей відносно ігор (стиль «привид»).", check: (s) => s.games_played >= 20 && s.total_deaths <= Math.floor(s.games_played * 0.2) },
   { name: "Berserker", icon: "Swords", color: "#dc2626", description: "10+ ігор і смертей удвічі більше за кількість ігор — агресивний стиль.", check: (s) => s.games_played >= 10 && s.total_deaths >= s.games_played * 2 },
+  { name: "Обмежено придатний", icon: "Moon", emoji: "🦿", color: "#93c5fd", description: "Бо треба берпі робити", check: (s) => Number(s.id) === 3 || Number(s.telegram_id) === 391102960 || String(s.telegram_username || "").toLowerCase() === "andrewuz" },
 
   // ---------- Убивства (якщо поле оновлюється в БД) ----------
   // { name: "Sharpshooter", icon: "Target", color: "#0ea5e9", check: (s) => (s.total_kills || 0) >= 30 },

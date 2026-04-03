@@ -639,6 +639,7 @@ export default function Profile({ profile, onReload }) {
           <div className="flex flex-wrap gap-2">
             {profile.badges.map((b, i) => {
               const IconComponent = BADGE_ICONS[b.badge_icon] || Award;
+              const badgeEmoji = b.badge_emoji || "";
               const desc =
                 b.badge_description ||
                 "Опис нагороди з’явиться після оновлення профілю.";
@@ -661,11 +662,15 @@ export default function Profile({ profile, onReload }) {
                       className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0"
                       style={{ backgroundColor: `${b.badge_color}25` }}
                     >
-                      <IconComponent
-                        size={16}
-                        color={b.badge_color}
-                        strokeWidth={2.5}
-                      />
+                      {badgeEmoji ? (
+                        <span className="text-sm leading-none">{badgeEmoji}</span>
+                      ) : (
+                        <IconComponent
+                          size={16}
+                          color={b.badge_color}
+                          strokeWidth={2.5}
+                        />
+                      )}
                     </div>
                     <span className="text-xs font-semibold">
                       {b.badge_name}
