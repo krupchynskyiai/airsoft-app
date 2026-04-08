@@ -182,6 +182,15 @@ export default function GameDetail({ gameId, onBack, isAdmin }) {
     };
   }, [isAdmin, data?.game?.id]);
 
+  useEffect(() => {
+    if (!showJoinEquipmentModal) return undefined;
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prevOverflow;
+    };
+  }, [showJoinEquipmentModal]);
+
   function openJoinEquipmentModal() {
     const initial = {};
     const list = data?.equipmentState?.items || [];
@@ -889,7 +898,7 @@ export default function GameDetail({ gameId, onBack, isAdmin }) {
             className="absolute inset-0 bg-black/60 backdrop-blur-sm"
             onClick={() => setShowJoinEquipmentModal(false)}
           />
-          <div className="relative w-full max-w-2xl max-h-[88vh] overflow-hidden bg-slate-900/95 border border-emerald-500/30 rounded-3xl p-4">
+          <div className="relative w-full max-w-2xl max-h-[88vh] overflow-y-auto bg-slate-900/95 border border-emerald-500/30 rounded-3xl p-4">
             <div className="flex items-start justify-between gap-3 mb-3">
               <div>
                 <div className="text-[11px] text-gray-400">Запис на гру #{g.id}</div>
@@ -924,7 +933,7 @@ export default function GameDetail({ gameId, onBack, isAdmin }) {
               База включає форму, привід, 1 повний магазин, маску та окуляри. Основний привід обирається один.
             </p>
 
-            <div className="max-h-[52vh] overflow-y-auto pr-1 space-y-2">
+            <div className="pr-1 space-y-2">
               {equipmentItems.map((it) => {
                 const qty = Number(joinEquipmentMap[it.item_key] || 0);
                 const selectedPrimaryCount = equipmentItems.reduce((sum, x) => {
