@@ -5,6 +5,7 @@ const log = require("../../utils/logger");
 const config = require("../../config");
 const bot = require("../bot");
 const { LOOT_REWARDS } = require("../../constants/lootRewards");
+const { EQUIPMENT_CATALOG, EQUIPMENT_BY_KEY } = require("../../constants/equipmentCatalog");
 
 const router = Router();
 router.use(adminMiddleware);
@@ -1083,6 +1084,91 @@ router.post("/blacklist/remove", async (req, res) => {
     );
 
     log.info("Blacklist remove", { player_id });
+    res.json({ success: true });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// GET /api/admin/games/:id/equipment-stock
+router.get("/games/:id/equipment-stock", async (req, res) => {
+  try {
+    const gid = parseInt(req.params.id, 10);
+    if (!gid) return res.status(400).json({ error: "Invalid game id" });
+
+    const stockRows = await q(
+      "SELECT item_key, total_qty, is_disabled, notes, updated_at FROM game_equipment_stock WHERE game_id=?",
+      [gid],
+    );
+    const stockByKey = new Map(stockRows.map((r) => [r.item_key, r]));
+
+    const reservedRows = await q(
+      `SELECT item_key, COALESCE(SUM(quantity),0) AS reserved_qty
+       FROM game_player_equipment
+       WHERE game_id=?
+       GROUP BY item_key`,
+      [gid],
+    );
+    const reservedByKey = new Map(
+      reservedRows.map((r) => [r.item_key, Number(r.reserved_qty) || 0]),
+    );
+
+    const items = EQUIPMENT_CATALOG.map((item) => {
+      const st = stockByKey.get(item.key) || null;
+      const totalQty =
+        st && st.total_qty !== null && st.total_qty !== undefined
+          ? Number(st.total_qty)
+          : item.defaultStock;
+      const reservedQty = reservedByKey.get(item.key) || 0;
+      return {
+        item_key: item.key,
+        title: item.title,
+        category: item.category,
+        total_qty: totalQty,
+        reserved_qty: reservedQty,
+        remaining_qty:
+          totalQty === null || totalQty === undefined
+            ? null
+            : Math.max(0, totalQty - reservedQty),
+        is_disabled: st ? !!st.is_disabled : false,
+        notes: st?.notes || "",
+        updated_at: st?.updated_at || null,
+      };
+    });
+
+    res.json({ items });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// POST /api/admin/games/:id/equipment-stock
+router.post("/games/:id/equipment-stock", async (req, res) => {
+  try {
+    const gid = parseInt(req.params.id, 10);
+    const { item_key, total_qty, is_disabled, notes } = req.body || {};
+    if (!gid) return res.status(400).json({ error: "Invalid game id" });
+    if (!item_key || !EQUIPMENT_BY_KEY[item_key]) {
+      return res.status(400).json({ error: "Unknown equipment item" });
+    }
+    const qty = total_qty === null || total_qty === undefined || total_qty === ""
+      ? null
+      : Number(total_qty);
+    if (qty !== null && (!Number.isInteger(qty) || qty < 0)) {
+      return res.status(400).json({ error: "total_qty must be null or non-negative integer" });
+    }
+
+    await ins(
+      `INSERT INTO game_equipment_stock (game_id, item_key, total_qty, is_disabled, notes)
+       VALUES (?,?,?,?,?)
+       ON DUPLICATE KEY UPDATE
+         total_qty=VALUES(total_qty),
+         is_disabled=VALUES(is_disabled),
+         notes=VALUES(notes),
+         updated_at=NOW()`,
+      [gid, item_key, qty, is_disabled ? 1 : 0, notes || null],
+    );
+
     res.json({ success: true });
   } catch (e) {
     res.status(500).json({ error: e.message });

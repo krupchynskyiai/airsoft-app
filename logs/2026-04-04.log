@@ -1,0 +1,1 @@
+[2026-04-03T22:52:05.978Z] [WARN] Keep-warm ping failed | {"healthUrl":"https://airsoft-app.onrender.com/api/health","error":"getaddrinfo ENOTFOUND airsoft-app.onrender.com"}

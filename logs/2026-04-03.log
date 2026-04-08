@@ -6034,3 +6034,6 @@
 [2026-04-03T19:33:36.482Z] [ERROR] UnhandledRej | {"r":"GrammyError: Call to 'getUpdates' failed! (409: Conflict: terminated by other getUpdates request; make sure that only one bot instance is running)"}
 [2026-04-03T19:34:19.692Z] [DEBUG] Keep-warm ping OK | {"status":200}
 [2026-04-03T19:39:51.695Z] [WARN] Keep-warm ping failed | {"healthUrl":"https://airsoft-app.onrender.com/api/health","error":"getaddrinfo ENOTFOUND airsoft-app.onrender.com"}
+[2026-04-03T19:44:51.756Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-03T19:49:52.189Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-03T19:54:51.770Z] [DEBUG] Keep-warm ping OK | {"status":200}

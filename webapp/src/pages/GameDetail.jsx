@@ -22,6 +22,8 @@ import {
   respondRideRequest,
   deleteRide,
   kickRidePassenger,
+  adminGetGameEquipmentStock,
+  adminUpdateGameEquipmentStock,
 } from "../api";
 import { useTelegram } from "../hooks/useTelegram";
 
@@ -96,6 +98,10 @@ export default function GameDetail({ gameId, onBack, isAdmin }) {
   });
   const [requestRideModal, setRequestRideModal] = useState(null); // { rideId, ownerNickname }
   const [requestSeats, setRequestSeats] = useState(1);
+  const [showJoinEquipmentModal, setShowJoinEquipmentModal] = useState(false);
+  const [joinEquipmentMap, setJoinEquipmentMap] = useState({});
+  const [adminEquipmentItems, setAdminEquipmentItems] = useState([]);
+  const [adminEqLoading, setAdminEqLoading] = useState(false);
 
   const isLoadingRef = useRef(false);
 
@@ -154,6 +160,61 @@ export default function GameDetail({ gameId, onBack, isAdmin }) {
     const interval = setInterval(load, data?.game?.status === "active" ? 4000 : 3000);
     return () => clearInterval(interval);
   }, [data?.game?.status, load]);
+
+  useEffect(() => {
+    if (!isAdmin) return;
+    if (!data?.game?.id) return;
+    let cancelled = false;
+    async function loadAdminEq() {
+      try {
+        setAdminEqLoading(true);
+        const s = await adminGetGameEquipmentStock(data.game.id);
+        if (!cancelled) setAdminEquipmentItems(s.items || []);
+      } catch {
+        if (!cancelled) setAdminEquipmentItems([]);
+      } finally {
+        if (!cancelled) setAdminEqLoading(false);
+      }
+    }
+    loadAdminEq();
+    return () => {
+      cancelled = true;
+    };
+  }, [isAdmin, data?.game?.id]);
+
+  function openJoinEquipmentModal() {
+    const initial = {};
+    const list = data?.equipmentState?.items || [];
+    for (const it of list) {
+      if (it.my_quantity > 0) initial[it.item_key] = it.my_quantity;
+    }
+    setJoinEquipmentMap(initial);
+    setShowJoinEquipmentModal(true);
+  }
+
+  async function saveAdminEquipmentItem(item) {
+    if (!data?.game?.id) return;
+    try {
+      setAdminEqLoading(true);
+      await adminUpdateGameEquipmentStock(data.game.id, {
+        item_key: item.item_key,
+        total_qty:
+          item.total_qty === "" || item.total_qty === undefined || item.total_qty === null
+            ? null
+            : Number(item.total_qty),
+        is_disabled: !!item.is_disabled,
+        notes: item.notes || null,
+      });
+      const s = await adminGetGameEquipmentStock(data.game.id);
+      setAdminEquipmentItems(s.items || []);
+      await load();
+      showAlert("✅ Налаштування спорядження оновлено");
+    } catch (e) {
+      showAlert(e.message || "Не вдалося оновити спорядження");
+    } finally {
+      setAdminEqLoading(false);
+    }
+  }
 
   async function doAction(fn, successMsg, refreshMode = "full") {
     setActionLoading(true);
@@ -253,11 +314,31 @@ export default function GameDetail({ gameId, onBack, isAdmin }) {
     );
   }
 
-  const { game: g, players, rounds, myRegistration, myWaitlist } = data;
+  const {
+    game: g,
+    players,
+    rounds,
+    myRegistration,
+    myWaitlist,
+    equipmentState,
+    myEquipment,
+    myEquipmentTotal,
+    myTotalCost,
+  } = data;
   const freeSlots =
     typeof g.max_players === "number"
       ? Math.max(0, g.max_players - players.length)
       : null;
+  const equipmentItems = equipmentState?.items || [];
+
+  const joinAdditionalCost = Object.entries(joinEquipmentMap).reduce((sum, [itemKey, qty]) => {
+    const n = Number(qty) || 0;
+    if (n <= 0) return sum;
+    const it = equipmentItems.find((x) => x.item_key === itemKey);
+    if (!it || it.unit_price == null) return sum;
+    return sum + n * Number(it.unit_price || 0);
+  }, 0);
+  const joinTotalCost = (Number(g.payment) || 0) + joinAdditionalCost;
 
   return (
     <div className="pb-6">
@@ -316,6 +397,13 @@ export default function GameDetail({ gameId, onBack, isAdmin }) {
             )}
             {typeof g.payment === "number" && (
               <p className="text-gray-400">🪙 Вартість участі: <span className="font-semibold text-gray-300">{g.payment} грн</span></p>
+            )}
+            {myRegistration && myTotalCost != null && (
+              <p className="text-gray-300">
+                💳 Моя сума: <span className="font-semibold text-emerald-300">{myTotalCost} грн</span>
+                {" "}
+                <span className="text-xs text-gray-500">(база {g.payment || 0} + допи {myEquipmentTotal || 0})</span>
+              </p>
             )}
           </div>
 
@@ -379,16 +467,7 @@ export default function GameDetail({ gameId, onBack, isAdmin }) {
         <div className="space-y-2 mb-5">
           {!myRegistration && !myWaitlist && (
             <ActionButton
-              onClick={() =>
-                doAction(async () => {
-                  const res = await joinGame(gameId);
-                  if (res.waitlisted) {
-                    showAlert("🕒 Гра заповнена. Тебе додано до листа очікування.");
-                  } else {
-                    showAlert("✅ Ти записався на гру");
-                  }
-                })
-              }
+              onClick={openJoinEquipmentModal}
               loading={actionLoading}
               icon="📝"
               label="Записатись на гру"
@@ -448,6 +527,29 @@ export default function GameDetail({ gameId, onBack, isAdmin }) {
               className="bg-gradient-to-r from-red-700 to-red-800"
             />
           )}
+        </div>
+      )}
+
+      {myRegistration && Array.isArray(myEquipment) && myEquipment.length > 0 && (
+        <div className="bg-slate-800/60 backdrop-blur-sm rounded-2xl p-4 mb-5 border border-slate-700/40">
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="text-sm font-bold text-gray-300 uppercase tracking-wider">Моє спорядження</h3>
+            <span className="text-xs text-emerald-300 font-semibold">+{myEquipmentTotal || 0} грн</span>
+          </div>
+          <div className="space-y-1.5">
+            {myEquipment.map((rw, idx) => {
+              const def = equipmentItems.find((it) => it.item_key === rw.item_key);
+              return (
+                <div key={`${rw.item_key}_${idx}`} className="flex items-center justify-between text-xs bg-slate-900/50 border border-slate-700/40 rounded-xl px-3 py-2">
+                  <span className="text-gray-200">{def?.title || rw.item_key}</span>
+                  <span className="text-gray-400">
+                    {rw.quantity} × {rw.unit_price ?? 0} ={" "}
+                    <span className="text-emerald-300 font-semibold">{rw.total_price || 0} грн</span>
+                  </span>
+                </div>
+              );
+            })}
+          </div>
         </div>
       )}
 
@@ -776,6 +878,140 @@ export default function GameDetail({ gameId, onBack, isAdmin }) {
               className="mt-3 w-full bg-gradient-to-r from-emerald-600 to-teal-600 py-3 rounded-2xl font-bold text-[14px] active:scale-[0.98] disabled:opacity-50"
             >
               {actionLoading ? <Spinner /> : "Відправити запит"}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {showJoinEquipmentModal && !myRegistration && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
+          <div
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            onClick={() => setShowJoinEquipmentModal(false)}
+          />
+          <div className="relative w-full max-w-2xl max-h-[88vh] overflow-hidden bg-slate-900/95 border border-emerald-500/30 rounded-3xl p-4">
+            <div className="flex items-start justify-between gap-3 mb-3">
+              <div>
+                <div className="text-[11px] text-gray-400">Запис на гру #{g.id}</div>
+                <div className="text-sm font-black text-emerald-200">
+                  Обери спорядження та одразу побач суму
+                </div>
+              </div>
+              <button
+                onClick={() => setShowJoinEquipmentModal(false)}
+                className="text-gray-400 text-sm px-2 py-1"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-3">
+              <div className="rounded-2xl border border-slate-700/50 bg-slate-800/50 p-3">
+                <div className="text-[10px] text-gray-400 uppercase tracking-wider">База</div>
+                <div className="text-lg font-black text-white">{g.payment || 0} грн</div>
+              </div>
+              <div className="rounded-2xl border border-emerald-700/40 bg-emerald-900/20 p-3">
+                <div className="text-[10px] text-emerald-300 uppercase tracking-wider">Додатково</div>
+                <div className="text-lg font-black text-emerald-200">{joinAdditionalCost} грн</div>
+              </div>
+              <div className="rounded-2xl border border-amber-700/40 bg-amber-900/20 p-3">
+                <div className="text-[10px] text-amber-300 uppercase tracking-wider">Разом</div>
+                <div className="text-lg font-black text-amber-200">{joinTotalCost} грн</div>
+              </div>
+            </div>
+
+            <p className="text-[11px] text-gray-400 mb-2">
+              База включає форму, привід, 1 повний магазин, маску та окуляри. Основний привід обирається один.
+            </p>
+
+            <div className="max-h-[52vh] overflow-y-auto pr-1 space-y-2">
+              {equipmentItems.map((it) => {
+                const qty = Number(joinEquipmentMap[it.item_key] || 0);
+                const selectedPrimaryCount = equipmentItems.reduce((sum, x) => {
+                  if (x.category !== "primary_weapon" && x.category !== "premium_weapon") return sum;
+                  return sum + (Number(joinEquipmentMap[x.item_key] || 0) > 0 ? 1 : 0);
+                }, 0);
+                const disabledByStock = it.remaining_qty !== null && it.remaining_qty <= 0;
+                const cannotPrice = it.unit_price == null;
+                const disabled = it.is_disabled || disabledByStock || cannotPrice;
+                const maxByStock = it.remaining_qty === null ? Infinity : it.remaining_qty;
+                const maxByPlayer = it.max_per_player || Infinity;
+                const maxQty = Math.max(0, Math.min(maxByStock, maxByPlayer));
+                const decDisabled = qty <= 0;
+                const primaryLocked =
+                  (it.category === "primary_weapon" || it.category === "premium_weapon") &&
+                  selectedPrimaryCount >= 1 &&
+                  qty <= 0;
+                const incDisabled = disabled || qty >= maxQty || primaryLocked;
+                return (
+                  <div key={it.item_key} className="flex items-center gap-2 rounded-2xl border border-slate-700/40 bg-slate-800/50 p-2.5">
+                    <div className="w-12 h-10 rounded-lg bg-slate-900/80 overflow-hidden flex items-center justify-center border border-slate-700/40">
+                      {it.image_url ? (
+                        <img src={it.image_url} alt={it.title} className="w-full h-full object-contain" />
+                      ) : (
+                        <span>🎯</span>
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-xs font-bold text-gray-100 truncate">{it.title}</div>
+                      <div className="text-[10px] text-gray-400 truncate">
+                        {it.unit_price == null ? "Ціна уточнюється" : `${it.unit_price} грн / шт`}
+                        {it.remaining_qty !== null ? ` • Доступно: ${it.remaining_qty}` : " • Без ліміту"}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setJoinEquipmentMap((prev) => ({
+                            ...prev,
+                            [it.item_key]: Math.max(0, (Number(prev[it.item_key] || 0) - 1)),
+                          }))
+                        }
+                        disabled={decDisabled}
+                        className="w-7 h-7 rounded-lg bg-slate-700/70 text-gray-200 text-sm font-bold disabled:opacity-40"
+                      >
+                        −
+                      </button>
+                      <div className="w-8 text-center text-xs font-bold">{qty}</div>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setJoinEquipmentMap((prev) => ({
+                            ...prev,
+                            [it.item_key]: Math.min(maxQty, Number(prev[it.item_key] || 0) + 1),
+                          }))
+                        }
+                        disabled={incDisabled}
+                        className="w-7 h-7 rounded-lg bg-emerald-600/80 text-black text-sm font-black disabled:opacity-40"
+                      >
+                        +
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            <button
+              onClick={() =>
+                doAction(async () => {
+                  const equipment = Object.entries(joinEquipmentMap)
+                    .map(([item_key, quantity]) => ({ item_key, quantity: Number(quantity) || 0 }))
+                    .filter((x) => x.quantity > 0);
+                  const res = await joinGame(gameId, { equipment });
+                  if (res.waitlisted) {
+                    showAlert("🕒 Гра заповнена. Тебе додано до листа очікування.");
+                  } else {
+                    showAlert(`✅ Записано. Орієнтовна сума: ${res.total_cost ?? g.payment} грн`);
+                  }
+                  setShowJoinEquipmentModal(false);
+                })
+              }
+              disabled={actionLoading}
+              className="mt-3 w-full bg-gradient-to-r from-emerald-600 to-teal-600 py-3 rounded-2xl font-bold text-[14px] active:scale-[0.98] disabled:opacity-50"
+            >
+              {actionLoading ? <Spinner /> : "Підтвердити запис"}
             </button>
           </div>
         </div>
@@ -1119,6 +1355,107 @@ export default function GameDetail({ gameId, onBack, isAdmin }) {
             >
               {actionLoading ? <Spinner /> : "➕ Додати в гру"}
             </button>
+          </div>
+
+          <div className="mt-2 bg-slate-900/40 border border-slate-700/40 rounded-2xl p-3">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <span className="text-sm">🧰</span>
+                <p className="text-xs font-semibold text-gray-300 uppercase tracking-wider">
+                  Наявність спорядження
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={async () => {
+                  try {
+                    setAdminEqLoading(true);
+                    const s = await adminGetGameEquipmentStock(gameId);
+                    setAdminEquipmentItems(s.items || []);
+                  } catch {
+                    setAdminEquipmentItems([]);
+                  } finally {
+                    setAdminEqLoading(false);
+                  }
+                }}
+                className="px-2 py-1 rounded-lg bg-slate-800/70 text-[10px] font-bold text-gray-300"
+              >
+                Оновити
+              </button>
+            </div>
+            <div className="space-y-1.5 max-h-56 overflow-y-auto pr-1">
+              {(adminEquipmentItems || []).map((it) => (
+                <div key={it.item_key} className="rounded-xl border border-slate-700/40 bg-slate-800/60 p-2">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="min-w-0">
+                      <div className="text-xs font-semibold text-gray-200 truncate">{it.title}</div>
+                      <div className="text-[10px] text-gray-500">
+                        Бронь: {it.reserved_qty} • Залишок: {it.remaining_qty === null ? "∞" : it.remaining_qty}
+                      </div>
+                    </div>
+                    <label className="flex items-center gap-1 text-[10px] text-gray-400">
+                      Off
+                      <input
+                        type="checkbox"
+                        checked={!!it.is_disabled}
+                        onChange={(e) =>
+                          setAdminEquipmentItems((prev) =>
+                            prev.map((x) =>
+                              x.item_key === it.item_key
+                                ? { ...x, is_disabled: e.target.checked }
+                                : x,
+                            ),
+                          )
+                        }
+                      />
+                    </label>
+                  </div>
+                  <div className="mt-2 flex items-center gap-2">
+                    <input
+                      type="number"
+                      min={0}
+                      value={it.total_qty ?? ""}
+                      onChange={(e) =>
+                        setAdminEquipmentItems((prev) =>
+                          prev.map((x) =>
+                            x.item_key === it.item_key
+                              ? {
+                                  ...x,
+                                  total_qty:
+                                    e.target.value === "" ? "" : Number(e.target.value),
+                                }
+                              : x,
+                          ),
+                        )
+                      }
+                      placeholder="∞"
+                      className="w-20 bg-slate-900/70 border border-slate-700/40 rounded-lg px-2 py-1 text-xs"
+                    />
+                    <input
+                      type="text"
+                      value={it.notes || ""}
+                      onChange={(e) =>
+                        setAdminEquipmentItems((prev) =>
+                          prev.map((x) =>
+                            x.item_key === it.item_key ? { ...x, notes: e.target.value } : x,
+                          ),
+                        )
+                      }
+                      placeholder="Примітка (напр. в ремонті)"
+                      className="flex-1 bg-slate-900/70 border border-slate-700/40 rounded-lg px-2 py-1 text-xs"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => saveAdminEquipmentItem(it)}
+                      disabled={adminEqLoading}
+                      className="px-2 py-1 rounded-lg bg-emerald-600/70 text-[10px] font-bold text-black disabled:opacity-50"
+                    >
+                      Зберегти
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       )}

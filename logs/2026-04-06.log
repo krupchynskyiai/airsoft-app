@@ -1,0 +1,514 @@
+[2026-04-06T08:30:46.237Z] [WARN] Keep-warm ping failed | {"healthUrl":"https://airsoft-app.onrender.com/api/health","error":"getaddrinfo ENOTFOUND airsoft-app.onrender.com"}
+[2026-04-06T08:35:45.428Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-06T08:40:45.402Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-06T08:45:45.434Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-06T08:50:45.580Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-06T08:55:45.439Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-06T09:00:45.620Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-06T09:05:45.426Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-06T09:10:45.591Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-06T09:15:45.438Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-06T09:20:45.604Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-06T09:23:19.968Z] [INFO] =============================
+[2026-04-06T09:23:19.969Z] [INFO]   AIRSOFT CLUB BOT + APP v2  
+[2026-04-06T09:23:19.969Z] [INFO] =============================
+[2026-04-06T09:23:19.970Z] [INFO] =============================
+[2026-04-06T09:23:19.971Z] [INFO]   AIRSOFT CLUB BOT + APP v2  
+[2026-04-06T09:23:19.971Z] [INFO] Connecting MySQL... | {"host":"s5.thehost.com.ua","database":"airsoft_db"}
+[2026-04-06T09:23:19.971Z] [INFO] =============================
+[2026-04-06T09:23:19.973Z] [INFO] Connecting MySQL... | {"host":"s5.thehost.com.ua","database":"airsoft_db"}
+[2026-04-06T09:23:20.349Z] [INFO] MySQL OK
+[2026-04-06T09:23:20.350Z] [INFO] MySQL OK
+[2026-04-06T09:23:20.387Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM players","rows":1,"ms":37}
+[2026-04-06T09:23:20.387Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM players","rows":1,"ms":37}
+[2026-04-06T09:23:20.427Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM teams","rows":1,"ms":39}
+[2026-04-06T09:23:20.428Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM teams","rows":1,"ms":40}
+[2026-04-06T09:23:20.467Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM games","rows":1,"ms":38}
+[2026-04-06T09:23:20.468Z] [INFO] DB | {"players":72,"teams":1,"games":3}
+[2026-04-06T09:23:20.468Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM games","rows":1,"ms":38}
+[2026-04-06T09:23:20.468Z] [INFO] DB | {"players":72,"teams":1,"games":3}
+[2026-04-06T09:23:20.487Z] [INFO] Keep-warm started | {"healthUrl":"https://airsoft-app.onrender.com/api/health","intervalMs":300000}
+[2026-04-06T09:23:20.487Z] [INFO] Keep-warm started | {"healthUrl":"https://airsoft-app.onrender.com/api/health","intervalMs":300000}
+[2026-04-06T09:23:20.504Z] [INFO] Bot running!
+[2026-04-06T09:23:20.505Z] [INFO] Express server on port 1488
+[2026-04-06T09:23:20.505Z] [INFO] Mini App URL: http://localhost:1488
+[2026-04-06T09:23:20.512Z] [INFO] Bot running!
+[2026-04-06T09:23:20.513Z] [ERROR] UncaughtEx | {"msg":"listen EADDRINUSE: address already in use :::1488"}
+[2026-04-06T09:23:32.978Z] [INFO] =============================
+[2026-04-06T09:23:32.981Z] [INFO]   AIRSOFT CLUB BOT + APP v2  
+[2026-04-06T09:23:32.983Z] [INFO] =============================
+[2026-04-06T09:23:32.985Z] [INFO] Connecting MySQL... | {"host":"s5.thehost.com.ua","database":"airsoft_db"}
+[2026-04-06T09:23:33.128Z] [INFO] MySQL OK
+[2026-04-06T09:23:33.166Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM players","rows":1,"ms":37}
+[2026-04-06T09:23:33.210Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM teams","rows":1,"ms":43}
+[2026-04-06T09:23:33.248Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM games","rows":1,"ms":38}
+[2026-04-06T09:23:33.249Z] [INFO] DB | {"players":72,"teams":1,"games":3}
+[2026-04-06T09:23:33.260Z] [INFO] =============================
+[2026-04-06T09:23:33.261Z] [INFO]   AIRSOFT CLUB BOT + APP v2  
+[2026-04-06T09:23:33.262Z] [INFO] =============================
+[2026-04-06T09:23:33.263Z] [INFO] Connecting MySQL... | {"host":"s5.thehost.com.ua","database":"airsoft_db"}
+[2026-04-06T09:23:33.267Z] [INFO] Keep-warm started | {"healthUrl":"https://airsoft-app.onrender.com/api/health","intervalMs":300000}
+[2026-04-06T09:23:33.287Z] [INFO] Bot running!
+[2026-04-06T09:23:33.288Z] [INFO] Express server on port 1488
+[2026-04-06T09:23:33.289Z] [INFO] Mini App URL: http://localhost:1488
+[2026-04-06T09:23:33.394Z] [INFO] MySQL OK
+[2026-04-06T09:23:33.433Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM players","rows":1,"ms":37}
+[2026-04-06T09:23:33.480Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM teams","rows":1,"ms":47}
+[2026-04-06T09:23:33.517Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM games","rows":1,"ms":37}
+[2026-04-06T09:23:33.518Z] [INFO] DB | {"players":72,"teams":1,"games":3}
+[2026-04-06T09:23:33.530Z] [INFO] Keep-warm started | {"healthUrl":"https://airsoft-app.onrender.com/api/health","intervalMs":300000}
+[2026-04-06T09:23:33.546Z] [INFO] Bot running!
+[2026-04-06T09:23:33.547Z] [ERROR] UncaughtEx | {"msg":"listen EADDRINUSE: address already in use :::1488"}
+[2026-04-06T09:23:48.013Z] [INFO] =============================
+[2026-04-06T09:23:48.013Z] [INFO]   AIRSOFT CLUB BOT + APP v2  
+[2026-04-06T09:23:48.014Z] [INFO] =============================
+[2026-04-06T09:23:48.015Z] [INFO] Connecting MySQL... | {"host":"s5.thehost.com.ua","database":"airsoft_db"}
+[2026-04-06T09:23:48.134Z] [INFO] MySQL OK
+[2026-04-06T09:23:48.170Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM players","rows":1,"ms":36}
+[2026-04-06T09:23:48.206Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM teams","rows":1,"ms":34}
+[2026-04-06T09:23:48.243Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM games","rows":1,"ms":37}
+[2026-04-06T09:23:48.244Z] [INFO] DB | {"players":72,"teams":1,"games":3}
+[2026-04-06T09:23:48.262Z] [INFO] Keep-warm started | {"healthUrl":"https://airsoft-app.onrender.com/api/health","intervalMs":300000}
+[2026-04-06T09:23:48.277Z] [INFO] =============================
+[2026-04-06T09:23:48.277Z] [INFO]   AIRSOFT CLUB BOT + APP v2  
+[2026-04-06T09:23:48.278Z] [INFO] =============================
+[2026-04-06T09:23:48.279Z] [INFO] Connecting MySQL... | {"host":"s5.thehost.com.ua","database":"airsoft_db"}
+[2026-04-06T09:23:48.280Z] [INFO] Bot running!
+[2026-04-06T09:23:48.281Z] [INFO] Express server on port 1488
+[2026-04-06T09:23:48.281Z] [INFO] Mini App URL: http://localhost:1488
+[2026-04-06T09:23:48.394Z] [INFO] MySQL OK
+[2026-04-06T09:23:48.428Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM players","rows":1,"ms":33}
+[2026-04-06T09:23:48.461Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM teams","rows":1,"ms":31}
+[2026-04-06T09:23:48.494Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM games","rows":1,"ms":33}
+[2026-04-06T09:23:48.495Z] [INFO] DB | {"players":72,"teams":1,"games":3}
+[2026-04-06T09:23:48.519Z] [INFO] Keep-warm started | {"healthUrl":"https://airsoft-app.onrender.com/api/health","intervalMs":300000}
+[2026-04-06T09:23:48.544Z] [INFO] Bot running!
+[2026-04-06T09:23:48.546Z] [ERROR] UncaughtEx | {"msg":"listen EADDRINUSE: address already in use :::1488"}
+[2026-04-06T09:24:03.578Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-06T09:24:06.743Z] [INFO] =============================
+[2026-04-06T09:24:06.744Z] [INFO]   AIRSOFT CLUB BOT + APP v2  
+[2026-04-06T09:24:06.745Z] [INFO] =============================
+[2026-04-06T09:24:06.747Z] [INFO] Connecting MySQL... | {"host":"s5.thehost.com.ua","database":"airsoft_db"}
+[2026-04-06T09:24:06.893Z] [INFO] MySQL OK
+[2026-04-06T09:24:06.931Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM players","rows":1,"ms":38}
+[2026-04-06T09:24:06.968Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM teams","rows":1,"ms":36}
+[2026-04-06T09:24:07.008Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM games","rows":1,"ms":40}
+[2026-04-06T09:24:07.009Z] [INFO] DB | {"players":72,"teams":1,"games":3}
+[2026-04-06T09:24:07.024Z] [INFO] Keep-warm started | {"healthUrl":"https://airsoft-app.onrender.com/api/health","intervalMs":300000}
+[2026-04-06T09:24:07.044Z] [INFO] Bot running!
+[2026-04-06T09:24:07.045Z] [INFO] Express server on port 1488
+[2026-04-06T09:24:07.046Z] [INFO] Mini App URL: http://localhost:1488
+[2026-04-06T09:24:07.061Z] [INFO] =============================
+[2026-04-06T09:24:07.062Z] [INFO]   AIRSOFT CLUB BOT + APP v2  
+[2026-04-06T09:24:07.063Z] [INFO] =============================
+[2026-04-06T09:24:07.064Z] [INFO] Connecting MySQL... | {"host":"s5.thehost.com.ua","database":"airsoft_db"}
+[2026-04-06T09:24:07.201Z] [INFO] MySQL OK
+[2026-04-06T09:24:07.238Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM players","rows":1,"ms":36}
+[2026-04-06T09:24:07.274Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM teams","rows":1,"ms":35}
+[2026-04-06T09:24:07.316Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM games","rows":1,"ms":41}
+[2026-04-06T09:24:07.317Z] [INFO] DB | {"players":72,"teams":1,"games":3}
+[2026-04-06T09:24:07.333Z] [INFO] Keep-warm started | {"healthUrl":"https://airsoft-app.onrender.com/api/health","intervalMs":300000}
+[2026-04-06T09:24:07.351Z] [INFO] Bot running!
+[2026-04-06T09:24:07.352Z] [ERROR] UncaughtEx | {"msg":"listen EADDRINUSE: address already in use :::1488"}
+[2026-04-06T09:24:20.936Z] [INFO] =============================
+[2026-04-06T09:24:20.938Z] [INFO]   AIRSOFT CLUB BOT + APP v2  
+[2026-04-06T09:24:20.939Z] [INFO] =============================
+[2026-04-06T09:24:20.940Z] [INFO] Connecting MySQL... | {"host":"s5.thehost.com.ua","database":"airsoft_db"}
+[2026-04-06T09:24:21.076Z] [INFO] MySQL OK
+[2026-04-06T09:24:21.114Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM players","rows":1,"ms":38}
+[2026-04-06T09:24:21.151Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM teams","rows":1,"ms":36}
+[2026-04-06T09:24:21.188Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM games","rows":1,"ms":37}
+[2026-04-06T09:24:21.189Z] [INFO] DB | {"players":72,"teams":1,"games":3}
+[2026-04-06T09:24:21.207Z] [INFO] Keep-warm started | {"healthUrl":"https://airsoft-app.onrender.com/api/health","intervalMs":300000}
+[2026-04-06T09:24:21.229Z] [INFO] Bot running!
+[2026-04-06T09:24:21.230Z] [INFO] Express server on port 1488
+[2026-04-06T09:24:21.232Z] [INFO] Mini App URL: http://localhost:1488
+[2026-04-06T09:24:21.406Z] [INFO] =============================
+[2026-04-06T09:24:21.407Z] [INFO]   AIRSOFT CLUB BOT + APP v2  
+[2026-04-06T09:24:21.407Z] [INFO] =============================
+[2026-04-06T09:24:21.408Z] [INFO] Connecting MySQL... | {"host":"s5.thehost.com.ua","database":"airsoft_db"}
+[2026-04-06T09:24:21.533Z] [INFO] MySQL OK
+[2026-04-06T09:24:21.578Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM players","rows":1,"ms":44}
+[2026-04-06T09:24:21.614Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM teams","rows":1,"ms":36}
+[2026-04-06T09:24:21.654Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM games","rows":1,"ms":40}
+[2026-04-06T09:24:21.654Z] [INFO] DB | {"players":72,"teams":1,"games":3}
+[2026-04-06T09:24:21.673Z] [INFO] Keep-warm started | {"healthUrl":"https://airsoft-app.onrender.com/api/health","intervalMs":300000}
+[2026-04-06T09:24:21.689Z] [INFO] Bot running!
+[2026-04-06T09:24:21.690Z] [ERROR] UncaughtEx | {"msg":"listen EADDRINUSE: address already in use :::1488"}
+[2026-04-06T09:24:36.519Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-06T09:24:45.906Z] [INFO] =============================
+[2026-04-06T09:24:45.907Z] [INFO]   AIRSOFT CLUB BOT + APP v2  
+[2026-04-06T09:24:45.908Z] [INFO] =============================
+[2026-04-06T09:24:45.909Z] [INFO] Connecting MySQL... | {"host":"s5.thehost.com.ua","database":"airsoft_db"}
+[2026-04-06T09:24:46.041Z] [INFO] MySQL OK
+[2026-04-06T09:24:46.082Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM players","rows":1,"ms":41}
+[2026-04-06T09:24:46.124Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM teams","rows":1,"ms":40}
+[2026-04-06T09:24:46.163Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM games","rows":1,"ms":39}
+[2026-04-06T09:24:46.164Z] [INFO] DB | {"players":72,"teams":1,"games":3}
+[2026-04-06T09:24:46.181Z] [INFO] Keep-warm started | {"healthUrl":"https://airsoft-app.onrender.com/api/health","intervalMs":300000}
+[2026-04-06T09:24:46.202Z] [INFO] Bot running!
+[2026-04-06T09:24:46.203Z] [INFO] Express server on port 1488
+[2026-04-06T09:24:46.203Z] [INFO] Mini App URL: http://localhost:1488
+[2026-04-06T09:24:46.213Z] [INFO] =============================
+[2026-04-06T09:24:46.214Z] [INFO]   AIRSOFT CLUB BOT + APP v2  
+[2026-04-06T09:24:46.215Z] [INFO] =============================
+[2026-04-06T09:24:46.216Z] [INFO] Connecting MySQL... | {"host":"s5.thehost.com.ua","database":"airsoft_db"}
+[2026-04-06T09:24:46.342Z] [INFO] MySQL OK
+[2026-04-06T09:24:46.380Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM players","rows":1,"ms":36}
+[2026-04-06T09:24:46.417Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM teams","rows":1,"ms":37}
+[2026-04-06T09:24:46.456Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM games","rows":1,"ms":38}
+[2026-04-06T09:24:46.457Z] [INFO] DB | {"players":72,"teams":1,"games":3}
+[2026-04-06T09:24:46.476Z] [INFO] Keep-warm started | {"healthUrl":"https://airsoft-app.onrender.com/api/health","intervalMs":300000}
+[2026-04-06T09:24:46.494Z] [INFO] Bot running!
+[2026-04-06T09:24:46.495Z] [ERROR] UncaughtEx | {"msg":"listen EADDRINUSE: address already in use :::1488"}
+[2026-04-06T09:24:53.404Z] [INFO] =============================
+[2026-04-06T09:24:53.405Z] [INFO]   AIRSOFT CLUB BOT + APP v2  
+[2026-04-06T09:24:53.406Z] [INFO] =============================
+[2026-04-06T09:24:53.409Z] [INFO] Connecting MySQL... | {"host":"s5.thehost.com.ua","database":"airsoft_db"}
+[2026-04-06T09:24:53.558Z] [INFO] MySQL OK
+[2026-04-06T09:24:53.604Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM players","rows":1,"ms":45}
+[2026-04-06T09:24:53.642Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM teams","rows":1,"ms":37}
+[2026-04-06T09:24:53.684Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM games","rows":1,"ms":40}
+[2026-04-06T09:24:53.685Z] [INFO] DB | {"players":72,"teams":1,"games":3}
+[2026-04-06T09:24:53.711Z] [INFO] Keep-warm started | {"healthUrl":"https://airsoft-app.onrender.com/api/health","intervalMs":300000}
+[2026-04-06T09:24:53.724Z] [INFO] =============================
+[2026-04-06T09:24:53.726Z] [INFO]   AIRSOFT CLUB BOT + APP v2  
+[2026-04-06T09:24:53.728Z] [INFO] =============================
+[2026-04-06T09:24:53.729Z] [INFO] Connecting MySQL... | {"host":"s5.thehost.com.ua","database":"airsoft_db"}
+[2026-04-06T09:24:53.737Z] [INFO] Bot running!
+[2026-04-06T09:24:53.738Z] [INFO] Express server on port 1488
+[2026-04-06T09:24:53.739Z] [INFO] Mini App URL: http://localhost:1488
+[2026-04-06T09:24:53.862Z] [INFO] MySQL OK
+[2026-04-06T09:24:53.898Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM players","rows":1,"ms":35}
+[2026-04-06T09:24:53.933Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM teams","rows":1,"ms":34}
+[2026-04-06T09:24:53.970Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM games","rows":1,"ms":35}
+[2026-04-06T09:24:53.971Z] [INFO] DB | {"players":72,"teams":1,"games":3}
+[2026-04-06T09:24:53.986Z] [INFO] Keep-warm started | {"healthUrl":"https://airsoft-app.onrender.com/api/health","intervalMs":300000}
+[2026-04-06T09:24:54.010Z] [INFO] Bot running!
+[2026-04-06T09:24:54.012Z] [ERROR] UncaughtEx | {"msg":"listen EADDRINUSE: address already in use :::1488"}
+[2026-04-06T09:25:09.066Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-06T09:25:59.110Z] [INFO] =============================
+[2026-04-06T09:25:59.110Z] [INFO] =============================
+[2026-04-06T09:25:59.112Z] [INFO]   AIRSOFT CLUB BOT + APP v2  
+[2026-04-06T09:25:59.111Z] [INFO]   AIRSOFT CLUB BOT + APP v2  
+[2026-04-06T09:25:59.112Z] [INFO] =============================
+[2026-04-06T09:25:59.112Z] [INFO] =============================
+[2026-04-06T09:25:59.114Z] [INFO] Connecting MySQL... | {"host":"s5.thehost.com.ua","database":"airsoft_db"}
+[2026-04-06T09:25:59.114Z] [INFO] Connecting MySQL... | {"host":"s5.thehost.com.ua","database":"airsoft_db"}
+[2026-04-06T09:25:59.578Z] [INFO] MySQL OK
+[2026-04-06T09:25:59.579Z] [INFO] MySQL OK
+[2026-04-06T09:25:59.620Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM players","rows":1,"ms":40}
+[2026-04-06T09:25:59.621Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM players","rows":1,"ms":41}
+[2026-04-06T09:25:59.659Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM teams","rows":1,"ms":37}
+[2026-04-06T09:25:59.661Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM teams","rows":1,"ms":38}
+[2026-04-06T09:25:59.697Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM games","rows":1,"ms":38}
+[2026-04-06T09:25:59.698Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM games","rows":1,"ms":37}
+[2026-04-06T09:25:59.698Z] [INFO] DB | {"players":72,"teams":1,"games":3}
+[2026-04-06T09:25:59.700Z] [INFO] DB | {"players":72,"teams":1,"games":3}
+[2026-04-06T09:25:59.859Z] [INFO] Keep-warm started | {"healthUrl":"https://airsoft-app.onrender.com/api/health","intervalMs":300000}
+[2026-04-06T09:25:59.861Z] [INFO] Keep-warm started | {"healthUrl":"https://airsoft-app.onrender.com/api/health","intervalMs":300000}
+[2026-04-06T09:25:59.877Z] [INFO] Bot running!
+[2026-04-06T09:25:59.878Z] [ERROR] UncaughtEx | {"msg":"listen EADDRINUSE: address already in use :::1488"}
+[2026-04-06T09:25:59.890Z] [INFO] Bot running!
+[2026-04-06T09:25:59.892Z] [INFO] Express server on port 1488
+[2026-04-06T09:25:59.893Z] [INFO] Mini App URL: http://localhost:1488
+[2026-04-06T09:26:15.448Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-06T09:30:12.715Z] [INFO] =============================
+[2026-04-06T09:30:12.715Z] [INFO]   AIRSOFT CLUB BOT + APP v2  
+[2026-04-06T09:30:12.716Z] [INFO] =============================
+[2026-04-06T09:30:12.717Z] [INFO] Connecting MySQL... | {"host":"s5.thehost.com.ua","database":"airsoft_db"}
+[2026-04-06T09:30:12.840Z] [INFO] MySQL OK
+[2026-04-06T09:30:12.874Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM players","rows":1,"ms":33}
+[2026-04-06T09:30:12.907Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM teams","rows":1,"ms":32}
+[2026-04-06T09:30:12.940Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM games","rows":1,"ms":33}
+[2026-04-06T09:30:12.941Z] [INFO] DB | {"players":72,"teams":1,"games":3}
+[2026-04-06T09:30:12.959Z] [INFO] Keep-warm started | {"healthUrl":"https://airsoft-app.onrender.com/api/health","intervalMs":300000}
+[2026-04-06T09:30:12.982Z] [INFO] Bot running!
+[2026-04-06T09:30:12.983Z] [INFO] Express server on port 1488
+[2026-04-06T09:30:12.984Z] [INFO] Mini App URL: http://localhost:1488
+[2026-04-06T09:30:13.236Z] [INFO] =============================
+[2026-04-06T09:30:13.237Z] [INFO]   AIRSOFT CLUB BOT + APP v2  
+[2026-04-06T09:30:13.238Z] [INFO] =============================
+[2026-04-06T09:30:13.239Z] [INFO] Connecting MySQL... | {"host":"s5.thehost.com.ua","database":"airsoft_db"}
+[2026-04-06T09:30:13.375Z] [INFO] MySQL OK
+[2026-04-06T09:30:13.421Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM players","rows":1,"ms":46}
+[2026-04-06T09:30:13.476Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM teams","rows":1,"ms":54}
+[2026-04-06T09:30:13.515Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM games","rows":1,"ms":39}
+[2026-04-06T09:30:13.516Z] [INFO] DB | {"players":72,"teams":1,"games":3}
+[2026-04-06T09:30:13.535Z] [INFO] Keep-warm started | {"healthUrl":"https://airsoft-app.onrender.com/api/health","intervalMs":300000}
+[2026-04-06T09:30:13.557Z] [INFO] Bot running!
+[2026-04-06T09:30:13.558Z] [ERROR] UncaughtEx | {"msg":"listen EADDRINUSE: address already in use :::1488"}
+[2026-04-06T09:30:16.686Z] [INFO] =============================
+[2026-04-06T09:30:16.687Z] [INFO]   AIRSOFT CLUB BOT + APP v2  
+[2026-04-06T09:30:16.688Z] [INFO] =============================
+[2026-04-06T09:30:16.690Z] [INFO] Connecting MySQL... | {"host":"s5.thehost.com.ua","database":"airsoft_db"}
+[2026-04-06T09:30:16.831Z] [INFO] MySQL OK
+[2026-04-06T09:30:16.869Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM players","rows":1,"ms":36}
+[2026-04-06T09:30:16.907Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM teams","rows":1,"ms":37}
+[2026-04-06T09:30:16.944Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM games","rows":1,"ms":37}
+[2026-04-06T09:30:16.945Z] [INFO] DB | {"players":72,"teams":1,"games":3}
+[2026-04-06T09:30:16.966Z] [INFO] Keep-warm started | {"healthUrl":"https://airsoft-app.onrender.com/api/health","intervalMs":300000}
+[2026-04-06T09:30:16.989Z] [INFO] Bot running!
+[2026-04-06T09:30:16.990Z] [INFO] Express server on port 1488
+[2026-04-06T09:30:16.990Z] [INFO] Mini App URL: http://localhost:1488
+[2026-04-06T09:30:17.151Z] [INFO] =============================
+[2026-04-06T09:30:17.151Z] [INFO]   AIRSOFT CLUB BOT + APP v2  
+[2026-04-06T09:30:17.152Z] [INFO] =============================
+[2026-04-06T09:30:17.153Z] [INFO] Connecting MySQL... | {"host":"s5.thehost.com.ua","database":"airsoft_db"}
+[2026-04-06T09:30:17.286Z] [INFO] MySQL OK
+[2026-04-06T09:30:17.324Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM players","rows":1,"ms":37}
+[2026-04-06T09:30:17.361Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM teams","rows":1,"ms":37}
+[2026-04-06T09:30:17.399Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM games","rows":1,"ms":38}
+[2026-04-06T09:30:17.400Z] [INFO] DB | {"players":72,"teams":1,"games":3}
+[2026-04-06T09:30:17.415Z] [INFO] Keep-warm started | {"healthUrl":"https://airsoft-app.onrender.com/api/health","intervalMs":300000}
+[2026-04-06T09:30:17.426Z] [INFO] =============================
+[2026-04-06T09:30:17.427Z] [INFO]   AIRSOFT CLUB BOT + APP v2  
+[2026-04-06T09:30:17.428Z] [INFO] =============================
+[2026-04-06T09:30:17.429Z] [INFO] Connecting MySQL... | {"host":"s5.thehost.com.ua","database":"airsoft_db"}
+[2026-04-06T09:30:17.436Z] [INFO] Bot running!
+[2026-04-06T09:30:17.437Z] [INFO] Express server on port 1488
+[2026-04-06T09:30:17.438Z] [INFO] Mini App URL: http://localhost:1488
+[2026-04-06T09:30:17.557Z] [INFO] MySQL OK
+[2026-04-06T09:30:17.598Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM players","rows":1,"ms":39}
+[2026-04-06T09:30:17.636Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM teams","rows":1,"ms":37}
+[2026-04-06T09:30:17.685Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM games","rows":1,"ms":48}
+[2026-04-06T09:30:17.686Z] [INFO] DB | {"players":72,"teams":1,"games":3}
+[2026-04-06T09:30:17.702Z] [INFO] Keep-warm started | {"healthUrl":"https://airsoft-app.onrender.com/api/health","intervalMs":300000}
+[2026-04-06T09:30:17.721Z] [INFO] Bot running!
+[2026-04-06T09:30:17.722Z] [ERROR] UncaughtEx | {"msg":"listen EADDRINUSE: address already in use :::1488"}
+[2026-04-06T09:30:33.138Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-06T09:30:48.267Z] [INFO] =============================
+[2026-04-06T09:30:48.268Z] [INFO]   AIRSOFT CLUB BOT + APP v2  
+[2026-04-06T09:30:48.270Z] [INFO] =============================
+[2026-04-06T09:30:48.271Z] [INFO] Connecting MySQL... | {"host":"s5.thehost.com.ua","database":"airsoft_db"}
+[2026-04-06T09:30:48.317Z] [INFO] =============================
+[2026-04-06T09:30:48.319Z] [INFO]   AIRSOFT CLUB BOT + APP v2  
+[2026-04-06T09:30:48.319Z] [INFO] =============================
+[2026-04-06T09:30:48.320Z] [INFO] Connecting MySQL... | {"host":"s5.thehost.com.ua","database":"airsoft_db"}
+[2026-04-06T09:30:48.398Z] [INFO] MySQL OK
+[2026-04-06T09:30:48.431Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM players","rows":1,"ms":32}
+[2026-04-06T09:30:48.438Z] [INFO] MySQL OK
+[2026-04-06T09:30:48.463Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM teams","rows":1,"ms":32}
+[2026-04-06T09:30:48.471Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM players","rows":1,"ms":31}
+[2026-04-06T09:30:48.495Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM games","rows":1,"ms":31}
+[2026-04-06T09:30:48.496Z] [INFO] DB | {"players":72,"teams":1,"games":3}
+[2026-04-06T09:30:48.505Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM teams","rows":1,"ms":34}
+[2026-04-06T09:30:48.514Z] [INFO] Keep-warm started | {"healthUrl":"https://airsoft-app.onrender.com/api/health","intervalMs":300000}
+[2026-04-06T09:30:48.533Z] [INFO] Bot running!
+[2026-04-06T09:30:48.534Z] [INFO] Express server on port 1488
+[2026-04-06T09:30:48.535Z] [INFO] Mini App URL: http://localhost:1488
+[2026-04-06T09:30:48.538Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM games","rows":1,"ms":32}
+[2026-04-06T09:30:48.539Z] [INFO] DB | {"players":72,"teams":1,"games":3}
+[2026-04-06T09:30:48.554Z] [INFO] Keep-warm started | {"healthUrl":"https://airsoft-app.onrender.com/api/health","intervalMs":300000}
+[2026-04-06T09:30:48.573Z] [INFO] Bot running!
+[2026-04-06T09:30:48.575Z] [ERROR] UncaughtEx | {"msg":"listen EADDRINUSE: address already in use :::1488"}
+[2026-04-06T09:31:03.859Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-06T09:32:46.004Z] [INFO] =============================
+[2026-04-06T09:32:46.005Z] [INFO]   AIRSOFT CLUB BOT + APP v2  
+[2026-04-06T09:32:46.006Z] [INFO] =============================
+[2026-04-06T09:32:46.007Z] [INFO] Connecting MySQL... | {"host":"s5.thehost.com.ua","database":"airsoft_db"}
+[2026-04-06T09:32:46.175Z] [INFO] MySQL OK
+[2026-04-06T09:32:46.215Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM players","rows":1,"ms":38}
+[2026-04-06T09:32:46.253Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM teams","rows":1,"ms":37}
+[2026-04-06T09:32:46.291Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM games","rows":1,"ms":37}
+[2026-04-06T09:32:46.291Z] [INFO] DB | {"players":72,"teams":1,"games":3}
+[2026-04-06T09:32:46.308Z] [INFO] Keep-warm started | {"healthUrl":"https://airsoft-app.onrender.com/api/health","intervalMs":300000}
+[2026-04-06T09:32:46.332Z] [INFO] Bot running!
+[2026-04-06T09:32:46.333Z] [INFO] Express server on port 1488
+[2026-04-06T09:32:46.334Z] [INFO] Mini App URL: http://localhost:1488
+[2026-04-06T09:32:46.480Z] [INFO] =============================
+[2026-04-06T09:32:46.481Z] [INFO]   AIRSOFT CLUB BOT + APP v2  
+[2026-04-06T09:32:46.481Z] [INFO] =============================
+[2026-04-06T09:32:46.482Z] [INFO] Connecting MySQL... | {"host":"s5.thehost.com.ua","database":"airsoft_db"}
+[2026-04-06T09:32:46.605Z] [INFO] MySQL OK
+[2026-04-06T09:32:46.643Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM players","rows":1,"ms":38}
+[2026-04-06T09:32:46.682Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM teams","rows":1,"ms":38}
+[2026-04-06T09:32:46.718Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM games","rows":1,"ms":36}
+[2026-04-06T09:32:46.719Z] [INFO] DB | {"players":72,"teams":1,"games":3}
+[2026-04-06T09:32:46.734Z] [INFO] Keep-warm started | {"healthUrl":"https://airsoft-app.onrender.com/api/health","intervalMs":300000}
+[2026-04-06T09:32:46.751Z] [INFO] Bot running!
+[2026-04-06T09:32:46.752Z] [ERROR] UncaughtEx | {"msg":"listen EADDRINUSE: address already in use :::1488"}
+[2026-04-06T09:32:47.540Z] [INFO] =============================
+[2026-04-06T09:32:47.541Z] [INFO]   AIRSOFT CLUB BOT + APP v2  
+[2026-04-06T09:32:47.542Z] [INFO] =============================
+[2026-04-06T09:32:47.543Z] [INFO] Connecting MySQL... | {"host":"s5.thehost.com.ua","database":"airsoft_db"}
+[2026-04-06T09:32:47.706Z] [INFO] MySQL OK
+[2026-04-06T09:32:47.752Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM players","rows":1,"ms":45}
+[2026-04-06T09:32:47.790Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM teams","rows":1,"ms":35}
+[2026-04-06T09:32:47.824Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM games","rows":1,"ms":33}
+[2026-04-06T09:32:47.825Z] [INFO] DB | {"players":72,"teams":1,"games":3}
+[2026-04-06T09:32:47.845Z] [INFO] Keep-warm started | {"healthUrl":"https://airsoft-app.onrender.com/api/health","intervalMs":300000}
+[2026-04-06T09:32:47.868Z] [INFO] Bot running!
+[2026-04-06T09:32:47.869Z] [INFO] Express server on port 1488
+[2026-04-06T09:32:47.869Z] [INFO] Mini App URL: http://localhost:1488
+[2026-04-06T09:32:48.041Z] [INFO] =============================
+[2026-04-06T09:32:48.042Z] [INFO]   AIRSOFT CLUB BOT + APP v2  
+[2026-04-06T09:32:48.043Z] [INFO] =============================
+[2026-04-06T09:32:48.044Z] [INFO] Connecting MySQL... | {"host":"s5.thehost.com.ua","database":"airsoft_db"}
+[2026-04-06T09:32:48.174Z] [INFO] MySQL OK
+[2026-04-06T09:32:48.214Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM players","rows":1,"ms":39}
+[2026-04-06T09:32:48.251Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM teams","rows":1,"ms":37}
+[2026-04-06T09:32:48.298Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM games","rows":1,"ms":46}
+[2026-04-06T09:32:48.299Z] [INFO] DB | {"players":72,"teams":1,"games":3}
+[2026-04-06T09:32:48.314Z] [INFO] Keep-warm started | {"healthUrl":"https://airsoft-app.onrender.com/api/health","intervalMs":300000}
+[2026-04-06T09:32:48.334Z] [INFO] Bot running!
+[2026-04-06T09:32:48.335Z] [ERROR] UncaughtEx | {"msg":"listen EADDRINUSE: address already in use :::1488"}
+[2026-04-06T09:32:49.477Z] [INFO] =============================
+[2026-04-06T09:32:49.478Z] [INFO]   AIRSOFT CLUB BOT + APP v2  
+[2026-04-06T09:32:49.479Z] [INFO] =============================
+[2026-04-06T09:32:49.480Z] [INFO] Connecting MySQL... | {"host":"s5.thehost.com.ua","database":"airsoft_db"}
+[2026-04-06T09:32:49.581Z] [INFO] =============================
+[2026-04-06T09:32:49.583Z] [INFO]   AIRSOFT CLUB BOT + APP v2  
+[2026-04-06T09:32:49.584Z] [INFO] =============================
+[2026-04-06T09:32:49.586Z] [INFO] Connecting MySQL... | {"host":"s5.thehost.com.ua","database":"airsoft_db"}
+[2026-04-06T09:32:49.620Z] [INFO] MySQL OK
+[2026-04-06T09:32:49.658Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM players","rows":1,"ms":37}
+[2026-04-06T09:32:49.703Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM teams","rows":1,"ms":37}
+[2026-04-06T09:32:49.724Z] [INFO] MySQL OK
+[2026-04-06T09:32:49.741Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM games","rows":1,"ms":37}
+[2026-04-06T09:32:49.742Z] [INFO] DB | {"players":72,"teams":1,"games":3}
+[2026-04-06T09:32:49.760Z] [INFO] Keep-warm started | {"healthUrl":"https://airsoft-app.onrender.com/api/health","intervalMs":300000}
+[2026-04-06T09:32:49.779Z] [INFO] Bot running!
+[2026-04-06T09:32:49.780Z] [INFO] Express server on port 1488
+[2026-04-06T09:32:49.781Z] [INFO] Mini App URL: http://localhost:1488
+[2026-04-06T09:32:49.786Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM players","rows":1,"ms":61}
+[2026-04-06T09:32:49.823Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM teams","rows":1,"ms":36}
+[2026-04-06T09:32:49.862Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM games","rows":1,"ms":38}
+[2026-04-06T09:32:49.862Z] [INFO] DB | {"players":72,"teams":1,"games":3}
+[2026-04-06T09:32:49.885Z] [INFO] Keep-warm started | {"healthUrl":"https://airsoft-app.onrender.com/api/health","intervalMs":300000}
+[2026-04-06T09:32:49.907Z] [INFO] Bot running!
+[2026-04-06T09:32:49.909Z] [ERROR] UncaughtEx | {"msg":"listen EADDRINUSE: address already in use :::1488"}
+[2026-04-06T09:32:54.243Z] [INFO] =============================
+[2026-04-06T09:32:54.244Z] [INFO]   AIRSOFT CLUB BOT + APP v2  
+[2026-04-06T09:32:54.245Z] [INFO] =============================
+[2026-04-06T09:32:54.246Z] [INFO] Connecting MySQL... | {"host":"s5.thehost.com.ua","database":"airsoft_db"}
+[2026-04-06T09:32:54.395Z] [INFO] MySQL OK
+[2026-04-06T09:32:54.435Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM players","rows":1,"ms":39}
+[2026-04-06T09:32:54.474Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM teams","rows":1,"ms":38}
+[2026-04-06T09:32:54.515Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM games","rows":1,"ms":40}
+[2026-04-06T09:32:54.516Z] [INFO] DB | {"players":72,"teams":1,"games":3}
+[2026-04-06T09:32:54.656Z] [INFO] =============================
+[2026-04-06T09:32:54.656Z] [INFO]   AIRSOFT CLUB BOT + APP v2  
+[2026-04-06T09:32:54.657Z] [INFO] =============================
+[2026-04-06T09:32:54.658Z] [INFO] Connecting MySQL... | {"host":"s5.thehost.com.ua","database":"airsoft_db"}
+[2026-04-06T09:32:54.821Z] [INFO] =============================
+[2026-04-06T09:32:54.822Z] [INFO]   AIRSOFT CLUB BOT + APP v2  
+[2026-04-06T09:32:54.822Z] [INFO] =============================
+[2026-04-06T09:32:54.823Z] [INFO] Connecting MySQL... | {"host":"s5.thehost.com.ua","database":"airsoft_db"}
+[2026-04-06T09:32:54.845Z] [INFO] MySQL OK
+[2026-04-06T09:32:54.882Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM players","rows":1,"ms":37}
+[2026-04-06T09:32:54.923Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM teams","rows":1,"ms":39}
+[2026-04-06T09:32:54.960Z] [INFO] MySQL OK
+[2026-04-06T09:32:54.963Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM games","rows":1,"ms":40}
+[2026-04-06T09:32:54.965Z] [INFO] DB | {"players":72,"teams":1,"games":3}
+[2026-04-06T09:32:54.983Z] [INFO] Keep-warm started | {"healthUrl":"https://airsoft-app.onrender.com/api/health","intervalMs":300000}
+[2026-04-06T09:32:54.999Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM players","rows":1,"ms":39}
+[2026-04-06T09:32:55.004Z] [INFO] Bot running!
+[2026-04-06T09:32:55.005Z] [INFO] Express server on port 1488
+[2026-04-06T09:32:55.005Z] [INFO] Mini App URL: http://localhost:1488
+[2026-04-06T09:32:55.037Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM teams","rows":1,"ms":36}
+[2026-04-06T09:32:55.074Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM games","rows":1,"ms":37}
+[2026-04-06T09:32:55.075Z] [INFO] DB | {"players":72,"teams":1,"games":3}
+[2026-04-06T09:32:55.096Z] [INFO] Keep-warm started | {"healthUrl":"https://airsoft-app.onrender.com/api/health","intervalMs":300000}
+[2026-04-06T09:32:55.119Z] [INFO] Bot running!
+[2026-04-06T09:32:55.120Z] [ERROR] UncaughtEx | {"msg":"listen EADDRINUSE: address already in use :::1488"}
+[2026-04-06T09:33:10.458Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-06T09:33:15.686Z] [INFO] =============================
+[2026-04-06T09:33:15.688Z] [INFO]   AIRSOFT CLUB BOT + APP v2  
+[2026-04-06T09:33:15.689Z] [INFO] =============================
+[2026-04-06T09:33:15.691Z] [INFO] Connecting MySQL... | {"host":"s5.thehost.com.ua","database":"airsoft_db"}
+[2026-04-06T09:33:15.860Z] [INFO] MySQL OK
+[2026-04-06T09:33:15.911Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM players","rows":1,"ms":50}
+[2026-04-06T09:33:15.985Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM teams","rows":1,"ms":52}
+[2026-04-06T09:33:16.024Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM games","rows":1,"ms":37}
+[2026-04-06T09:33:16.028Z] [INFO] DB | {"players":72,"teams":1,"games":3}
+[2026-04-06T09:33:16.049Z] [INFO] Keep-warm started | {"healthUrl":"https://airsoft-app.onrender.com/api/health","intervalMs":300000}
+[2026-04-06T09:33:16.076Z] [INFO] Bot running!
+[2026-04-06T09:33:16.077Z] [ERROR] UncaughtEx | {"msg":"listen EADDRINUSE: address already in use :::1488"}
+[2026-04-06T09:33:41.354Z] [DEBUG] API GET /profile | {"body":{}}
+[2026-04-06T09:33:41.356Z] [WARN] DEV AUTH BYPASS | {"userId":412606522}
+[2026-04-06T09:33:41.398Z] [DB] Q | {"sql":"SELECT * FROM players WHERE telegram_id=?","rows":1,"ms":40}
+[2026-04-06T09:33:41.438Z] [DB] INS | {"sql":"UPDATE players SET telegram_username=? WHERE id=?","id":0,"ms":37}
+[2026-04-06T09:33:41.439Z] [INFO] telegram_username synced from Telegram | {"playerId":1,"telegram_username":"dev_user"}
+[2026-04-06T09:33:41.480Z] [DB] Q | {"sql":"SELECT p.*, t.name AS team_name\n       FROM players p LEFT JOIN teams t ON p.team_id = t.id\n       W","rows":1,"ms":39}
+[2026-04-06T09:33:41.523Z] [DB] Q | {"sql":"SELECT badge_name, badge_emoji FROM player_badges WHERE player_id = ?","rows":5,"ms":41}
+[2026-04-06T09:33:41.564Z] [DB] Q | {"sql":"SELECT g.id, g.date, g.time, g.game_mode, g.status, gp.result, gp.kills_total, gp.deaths_total\n     ","rows":3,"ms":40}
+[2026-04-06T09:33:41.606Z] [DB] Q | {"sql":"SELECT COUNT(*) AS c\n       FROM round_players rp\n       JOIN rounds r ON r.id = rp.round_id\n       ","rows":1,"ms":41}
+[2026-04-06T09:33:41.652Z] [DB] Q | {"sql":"SELECT COUNT(*) AS c\n       FROM round_players rp\n       JOIN rounds r ON r.id = rp.round_id\n       ","rows":1,"ms":45}
+[2026-04-06T09:33:41.691Z] [DB] Q | {"sql":"SELECT p.id, p.nickname, p.rating\n       FROM friends f\n       JOIN players p ON p.id = f.friend_id\n","rows":2,"ms":37}
+[2026-04-06T09:33:41.692Z] [INFO] Profile API | {"tgId":412606522,"isAdmin":true,"admins":[412606522]}
+[2026-04-06T09:33:41.845Z] [DEBUG] API GET /friends | {"body":{}}
+[2026-04-06T09:33:41.846Z] [WARN] DEV AUTH BYPASS | {"userId":412606522}
+[2026-04-06T09:33:41.848Z] [DEBUG] API GET /loot/state | {"body":{}}
+[2026-04-06T09:33:41.849Z] [WARN] DEV AUTH BYPASS | {"userId":412606522}
+[2026-04-06T09:33:41.865Z] [DB] Q | {"sql":"SELECT * FROM players WHERE telegram_id=?","rows":1,"ms":18}
+[2026-04-06T09:33:41.903Z] [DB] Q | {"sql":"SELECT id FROM players WHERE telegram_id = ?","rows":1,"ms":36}
+[2026-04-06T09:33:41.922Z] [DB] Q | {"sql":"SELECT p.id, p.nickname, p.rating\n       FROM friends f\n       JOIN players p ON p.id = f.friend_id\n","rows":2,"ms":18}
+[2026-04-06T09:33:41.931Z] [DB] Q | {"sql":"SELECT * FROM players WHERE telegram_id=?","rows":1,"ms":82}
+[2026-04-06T09:33:41.949Z] [DB] Q | {"sql":"SELECT * FROM players WHERE telegram_id=?","rows":1,"ms":16}
+[2026-04-06T09:33:41.961Z] [DB] Q | {"sql":"SELECT f.id, p.nickname, p.rating\n       FROM friends f\n       JOIN players p ON p.id = f.player_id\n","rows":0,"ms":38}
+[2026-04-06T09:33:41.983Z] [DB] Q | {"sql":"SELECT rating FROM players WHERE id=?","rows":1,"ms":33}
+[2026-04-06T09:33:42.018Z] [DB] Q | {"sql":"SELECT * FROM player_spins WHERE player_id=?","rows":1,"ms":34}
+[2026-04-06T09:33:42.059Z] [DB] Q | {"sql":"SELECT id, reward_key, rarity, image_url, status, source, created_at FROM player_loot_rewards WHERE ","rows":2,"ms":40}
+[2026-04-06T09:34:01.035Z] [DEBUG] API GET /games | {"body":{}}
+[2026-04-06T09:34:01.036Z] [WARN] DEV AUTH BYPASS | {"userId":412606522}
+[2026-04-06T09:34:01.060Z] [DB] Q | {"sql":"SELECT * FROM players WHERE telegram_id=?","rows":1,"ms":22}
+[2026-04-06T09:34:01.097Z] [DB] Q | {"sql":"SELECT * FROM games ORDER BY created_at DESC LIMIT 50","rows":3,"ms":36}
+[2026-04-06T09:34:01.134Z] [DB] Q | {"sql":"SELECT game_id, COUNT(*) as c\n         FROM game_players\n         WHERE game_id IN (?,?,?)\n         ","rows":3,"ms":35}
+[2026-04-06T09:34:01.168Z] [DB] Q | {"sql":"SELECT id FROM players WHERE telegram_id = ?","rows":1,"ms":33}
+[2026-04-06T09:34:01.204Z] [DB] Q | {"sql":"SELECT friend_id FROM friends WHERE player_id=? AND status='accepted'","rows":2,"ms":33}
+[2026-04-06T09:34:01.238Z] [DB] Q | {"sql":"SELECT gp.game_id, p.nickname\n             FROM game_players gp\n             JOIN players p ON p.id ","rows":3,"ms":33}
+[2026-04-06T09:37:55.277Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-06T09:38:13.381Z] [DEBUG] API GET /games/3 | {"body":{}}
+[2026-04-06T09:38:13.382Z] [WARN] DEV AUTH BYPASS | {"userId":412606522}
+[2026-04-06T09:38:13.384Z] [DEBUG] API GET /games/3/rides | {"body":{}}
+[2026-04-06T09:38:13.386Z] [WARN] DEV AUTH BYPASS | {"userId":412606522}
+[2026-04-06T09:38:13.409Z] [DB] Q | {"sql":"SELECT * FROM players WHERE telegram_id=?","rows":1,"ms":26}
+[2026-04-06T09:38:13.413Z] [DB] Q | {"sql":"SELECT * FROM players WHERE telegram_id=?","rows":1,"ms":26}
+[2026-04-06T09:38:13.452Z] [DB] Q | {"sql":"SELECT * FROM games WHERE id = ?","rows":1,"ms":41}
+[2026-04-06T09:38:13.455Z] [DB] Q | {"sql":"SELECT id FROM players WHERE telegram_id=?","rows":1,"ms":41}
+[2026-04-06T09:38:13.506Z] [DB] Q | {"sql":"SELECT gp.*, p.nickname, p.rating, t.name as team_name\n       FROM game_players gp\n       JOIN playe","rows":11,"ms":51}
+[2026-04-06T09:38:13.510Z] [DB] Q | {"sql":"SELECT r.*,\n              p.nickname AS owner_nickname\n       FROM game_rides r\n       JOIN players ","rows":1,"ms":54}
+[2026-04-06T09:38:13.565Z] [DB] Q | {"sql":"SELECT * FROM rounds WHERE game_id = ? ORDER BY round_number","rows":6,"ms":56}
+[2026-04-06T09:38:13.568Z] [DB] Q | {"sql":"SELECT ride_id, COALESCE(SUM(seats_requested),0) AS s\n           FROM game_ride_requests\n           ","rows":0,"ms":56}
+[2026-04-06T09:38:13.594Z] [DB] Q | {"sql":"SELECT id FROM players WHERE telegram_id = ?","rows":1,"ms":27}
+[2026-04-06T09:38:13.616Z] [ERROR] Q fail | {"sql":"SELECT item_key, total_qty, is_disabled, notes, updated_at FROM game_equipment_stock WHERE game_id=?","error":"Table 'airsoft_db.game_equipment_stock' doesn't exist"}
+[2026-04-06T09:38:13.617Z] [ERROR] Game equipment state fallback (missing tables?) | {"gid":3,"error":"Table 'airsoft_db.game_equipment_stock' doesn't exist"}
+[2026-04-06T09:38:13.620Z] [DB] Q | {"sql":"SELECT ride_id, status, seats_requested\n         FROM game_ride_requests\n         WHERE requester_pl","rows":0,"ms":51}
+[2026-04-06T09:38:13.639Z] [ERROR] Q fail | {"sql":"SELECT item_key, quantity, unit_price, total_price\n           FROM game_player_equipment\n           ","error":"Table 'airsoft_db.game_player_equipment' doesn't exist"}
+[2026-04-06T09:38:13.640Z] [ERROR] Load my equipment failed (ignored) | {"gid":3,"playerId":1,"error":"Table 'airsoft_db.game_player_equipment' doesn't exist"}
+[2026-04-06T09:38:13.661Z] [DB] Q | {"sql":"SELECT rr.id AS request_id,\n                rr.ride_id,\n                rr.seats_requested,\n        ","rows":0,"ms":40}
+[2026-04-06T09:38:13.696Z] [DEBUG] API GET /admin/games/3/equipment-stock | {"body":{}}
+[2026-04-06T09:38:13.698Z] [WARN] DEV AUTH BYPASS | {"userId":412606522}
+[2026-04-06T09:38:13.700Z] [DB] Q | {"sql":"SELECT rr.id AS request_id,\n                rr.ride_id,\n                rr.seats_requested,\n        ","rows":0,"ms":37}
+[2026-04-06T09:38:13.718Z] [DB] Q | {"sql":"SELECT * FROM players WHERE telegram_id=?","rows":1,"ms":20}
+[2026-04-06T09:38:13.736Z] [ERROR] Q fail | {"sql":"SELECT item_key, total_qty, is_disabled, notes, updated_at FROM game_equipment_stock WHERE game_id=?","error":"Table 'airsoft_db.game_equipment_stock' doesn't exist"}
+[2026-04-06T09:38:23.888Z] [DEBUG] API GET /games | {"body":{}}
+[2026-04-06T09:38:23.889Z] [WARN] DEV AUTH BYPASS | {"userId":412606522}
+[2026-04-06T09:38:23.907Z] [DB] Q | {"sql":"SELECT * FROM players WHERE telegram_id=?","rows":1,"ms":17}
+[2026-04-06T09:38:23.925Z] [DB] Q | {"sql":"SELECT * FROM games ORDER BY created_at DESC LIMIT 50","rows":3,"ms":17}
+[2026-04-06T09:38:23.943Z] [DB] Q | {"sql":"SELECT game_id, COUNT(*) as c\n         FROM game_players\n         WHERE game_id IN (?,?,?)\n         ","rows":3,"ms":17}
+[2026-04-06T09:38:23.961Z] [DB] Q | {"sql":"SELECT id FROM players WHERE telegram_id = ?","rows":1,"ms":16}
+[2026-04-06T09:38:23.979Z] [DB] Q | {"sql":"SELECT friend_id FROM friends WHERE player_id=? AND status='accepted'","rows":2,"ms":17}
+[2026-04-06T09:38:23.997Z] [DB] Q | {"sql":"SELECT gp.game_id, p.nickname\n             FROM game_players gp\n             JOIN players p ON p.id ","rows":3,"ms":16}
+[2026-04-06T09:42:55.535Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-06T09:47:55.317Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-06T09:52:55.485Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-06T09:57:55.435Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-06T10:02:55.500Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-06T10:40:09.740Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-06T10:45:09.289Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-06T10:50:09.734Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-06T10:55:09.741Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-06T11:00:09.437Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-06T11:05:09.325Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-06T11:10:09.355Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-06T11:15:09.354Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-06T11:20:09.416Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-06T11:25:09.373Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-06T11:30:09.410Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-06T11:35:09.380Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-06T11:44:35.441Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-06T11:49:34.664Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-06T11:54:34.691Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-06T13:54:46.486Z] [WARN] Keep-warm ping failed | {"healthUrl":"https://airsoft-app.onrender.com/api/health","error":"getaddrinfo ENOTFOUND airsoft-app.onrender.com"}

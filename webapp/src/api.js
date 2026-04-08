@@ -46,8 +46,8 @@ export const respondFriendRequest = (requestId, action) =>
 export const getGames = (status) =>
   api(`/games${status ? `?status=${status}` : ""}`);
 export const getGameDetail = (id) => api(`/games/${id}`);
-export const joinGame = (id) =>
-  api(`/games/${id}/join`, { method: "POST" });
+export const joinGame = (id, payload = {}) =>
+  api(`/games/${id}/join`, { method: "POST", body: payload });
 export const cancelJoinGame = (id) =>
   api(`/games/${id}/cancel`, { method: "POST" });
 export const checkinGame = (id) =>
@@ -129,6 +129,10 @@ export const adminGetLootRequests = () =>
   api("/admin/loot/requests");
 export const adminDeactivateLoot = (rewardId) =>
   api(`/admin/loot/${rewardId}/deactivate`, { method: "POST" });
+export const adminGetGameEquipmentStock = (gameId) =>
+  api(`/admin/games/${gameId}/equipment-stock`);
+export const adminUpdateGameEquipmentStock = (gameId, payload) =>
+  api(`/admin/games/${gameId}/equipment-stock`, { method: "POST", body: payload });
 
 // ---- Admin ----
 export const adminCreateGame = (data) =>

@@ -47,6 +47,8 @@ function createServer() {
   // Static gifts for loot wheel
   const giftsDir = path.join(__dirname, "..", "constants", "gifts");
   app.use("/gifts", express.static(giftsDir));
+  const equipmentDir = path.join(__dirname, "..", "constants", "equipment");
+  app.use("/equipment", express.static(equipmentDir));
   app.get("*", (req, res) => {
     res.sendFile(path.join(webappDist, "index.html"));
   });

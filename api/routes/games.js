@@ -1,14 +1,100 @@
 const { Router } = require("express");
 const { q, q1, ins } = require("../../database/helpers");
+const { getDB } = require("../../database/connection");
 const log = require("../../utils/logger");
 const config = require("../../config");
 const bot = require("../bot")
+const { EQUIPMENT_CATALOG, EQUIPMENT_BY_KEY } = require("../../constants/equipmentCatalog");
 
 const router = Router();
 
 function gameDeepLink(gid) {
   if (!config.BOT_USERNAME) return null;
   return `https://t.me/${config.BOT_USERNAME}?startapp=game_${gid}`;
+}
+
+function normalizeRequestedEquipment(rawItems) {
+  if (!Array.isArray(rawItems)) return [];
+  const map = new Map();
+  for (const it of rawItems) {
+    const key = String(it?.item_key || "").trim();
+    const qty = Number.parseInt(it?.quantity, 10);
+    if (!key || !Number.isInteger(qty) || qty <= 0) continue;
+    map.set(key, (map.get(key) || 0) + qty);
+  }
+  return Array.from(map.entries()).map(([item_key, quantity]) => ({ item_key, quantity }));
+}
+
+async function getGameEquipmentState(gid, playerId = null) {
+  let stockByKey = new Map();
+  let reservedByKey = new Map();
+  let mySelectedByKey = new Map();
+  try {
+    const stockRows = await q(
+      "SELECT item_key, total_qty, is_disabled, notes, updated_at FROM game_equipment_stock WHERE game_id=?",
+      [gid],
+    );
+    stockByKey = new Map(stockRows.map((r) => [r.item_key, r]));
+
+    const reservedRows = await q(
+      `SELECT gpe.item_key, COALESCE(SUM(gpe.quantity),0) AS reserved_qty
+       FROM game_player_equipment gpe
+       JOIN game_players gp ON gp.id = gpe.registration_id
+       WHERE gpe.game_id=?
+       GROUP BY gpe.item_key`,
+      [gid],
+    );
+    reservedByKey = new Map(
+      reservedRows.map((r) => [r.item_key, Number(r.reserved_qty) || 0]),
+    );
+
+    if (playerId) {
+      const selectedRows = await q(
+        `SELECT item_key, quantity
+         FROM game_player_equipment
+         WHERE game_id=? AND player_id=?
+         ORDER BY created_at ASC`,
+        [gid, playerId],
+      );
+      mySelectedByKey = new Map(
+        selectedRows.map((r) => [r.item_key, Number(r.quantity) || 0]),
+      );
+    }
+  } catch (e) {
+    log.error("Game equipment state fallback (missing tables?)", { gid, error: e.message });
+  }
+
+  const items = EQUIPMENT_CATALOG.map((item) => {
+    const stock = stockByKey.get(item.key) || null;
+    const totalQty =
+      stock && stock.total_qty !== null && stock.total_qty !== undefined
+        ? Number(stock.total_qty)
+        : item.defaultStock;
+    const reservedQty = reservedByKey.get(item.key) || 0;
+    const remainingQty =
+      totalQty === null || totalQty === undefined
+        ? null
+        : Math.max(0, totalQty - reservedQty);
+
+    return {
+      item_key: item.key,
+      title: item.title,
+      category: item.category,
+      description: item.description || "",
+      image_url: item.imageUrl || "",
+      unit_price: item.price,
+      max_per_player: item.maxPerPlayer || null,
+      total_qty: totalQty,
+      reserved_qty: reservedQty,
+      remaining_qty: remainingQty,
+      is_disabled: stock ? !!stock.is_disabled : false,
+      stock_notes: stock?.notes || "",
+      stock_updated_at: stock?.updated_at || null,
+      my_quantity: mySelectedByKey.get(item.key) || 0,
+    };
+  });
+
+  return { items };
 }
 
 async function ensureRegisteredForGame(gid, playerId) {
@@ -132,7 +218,43 @@ router.get("/:id", async (req, res) => {
       }
     }
 
-    res.json({ game, players, rounds, myRegistration, myWaitlist });
+    const equipmentState = await getGameEquipmentState(gid, me?.id || null);
+    let myEquipment = [];
+    let myEquipmentTotal = 0;
+    if (me && myRegistration) {
+      try {
+        myEquipment = await q(
+          `SELECT item_key, quantity, unit_price, total_price
+           FROM game_player_equipment
+           WHERE game_id=? AND player_id=?
+           ORDER BY created_at ASC`,
+          [gid, me.id],
+        );
+        myEquipmentTotal = myEquipment.reduce(
+          (sum, r) => sum + (Number(r.total_price) || 0),
+          0,
+        );
+      } catch (e) {
+        log.error("Load my equipment failed (ignored)", { gid, playerId: me.id, error: e.message });
+      }
+    }
+
+    const myTotalCost =
+      myRegistration && typeof game.payment === "number"
+        ? game.payment + myEquipmentTotal
+        : null;
+
+    res.json({
+      game,
+      players,
+      rounds,
+      myRegistration,
+      myWaitlist,
+      equipmentState,
+      myEquipment,
+      myEquipmentTotal,
+      myTotalCost,
+    });
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
@@ -763,6 +885,7 @@ router.post("/:id/join", async (req, res) => {
   try {
     const gid = parseInt(req.params.id);
     const tgId = req.tgUser.id;
+    const requestedEquipment = normalizeRequestedEquipment(req.body?.equipment);
 
     const player = await q1(
       "SELECT id, team_id FROM players WHERE telegram_id = ?",
@@ -800,6 +923,50 @@ router.post("/:id/join", async (req, res) => {
       [gid],
     );
     if (!game) return res.status(404).json({ error: "Game not found" });
+
+    // Equipment validation & pricing preview
+    const requestedPrimary = requestedEquipment.filter((x) => {
+      const def = EQUIPMENT_BY_KEY[x.item_key];
+      return def?.category === "primary_weapon" || def?.category === "premium_weapon";
+    });
+    if (requestedPrimary.length > 1) {
+      return res.status(400).json({
+        error: "Можна обрати тільки один основний привід.",
+      });
+    }
+
+    const equipmentState = await getGameEquipmentState(gid, null);
+    const stateByKey = new Map(
+      (equipmentState.items || []).map((it) => [it.item_key, it]),
+    );
+
+    let equipmentTotal = 0;
+    for (const row of requestedEquipment) {
+      const def = EQUIPMENT_BY_KEY[row.item_key];
+      const st = stateByKey.get(row.item_key);
+      if (!def || !st) {
+        return res.status(400).json({ error: `Невідомий елемент спорядження: ${row.item_key}` });
+      }
+      if (st.is_disabled) {
+        return res.status(400).json({ error: `${st.title} тимчасово недоступний` });
+      }
+      if (st.unit_price === null || st.unit_price === undefined) {
+        return res.status(400).json({
+          error: `${st.title}: ціна поки не визначена, звернись до адміна.`,
+        });
+      }
+      if (st.max_per_player && row.quantity > st.max_per_player) {
+        return res.status(400).json({
+          error: `${st.title}: максимум ${st.max_per_player} шт. на гравця.`,
+        });
+      }
+      if (st.remaining_qty !== null && row.quantity > st.remaining_qty) {
+        return res.status(400).json({
+          error: `${st.title}: доступно лише ${st.remaining_qty} шт.`,
+        });
+      }
+      equipmentTotal += Number(st.unit_price) * row.quantity;
+    }
 
     // current count
     const cnt = await q1(
@@ -859,15 +1026,42 @@ ${info}`,
       }
     }
 
-    // join player
-    await ins(
-      "INSERT INTO game_players (game_id, player_id, team_id) VALUES (?,?,?)",
-      [gid, player.id, player.team_id],
-    );
+    // join player + selected equipment (single transaction)
+    const db = getDB();
+    const conn = await db.getConnection();
+    let regId = null;
+    try {
+      await conn.beginTransaction();
+      const [insGp] = await conn.execute(
+        "INSERT INTO game_players (game_id, player_id, team_id) VALUES (?,?,?)",
+        [gid, player.id, player.team_id],
+      );
+      regId = insGp.insertId;
+
+      for (const row of requestedEquipment) {
+        const st = stateByKey.get(row.item_key);
+        const unitPrice = Number(st.unit_price) || 0;
+        const totalPrice = unitPrice * row.quantity;
+        await conn.execute(
+          `INSERT INTO game_player_equipment
+             (registration_id, game_id, player_id, item_key, quantity, unit_price, total_price)
+           VALUES (?,?,?,?,?,?,?)`,
+          [regId, gid, player.id, row.item_key, row.quantity, unitPrice, totalPrice],
+        );
+      }
+
+      await conn.commit();
+    } catch (txErr) {
+      await conn.rollback();
+      throw txErr;
+    } finally {
+      conn.release();
+    }
 
     const newCount = cnt.c + 1;
     const remaining = game.max_players ? game.max_players - newCount : null;
     const payment = game.payment;
+    const totalCost = (Number(payment) || 0) + equipmentTotal;
 
     log.info("API join game", {
       gid,
@@ -888,7 +1082,9 @@ ${info}`,
 ⏰ Час: ${game.time || "—"}
 📍 Локація: ${game.location}
 ⏱ Тривалість: <b>${game.duration || "—"}</b>
-🪙 Вартість участі: <b>${payment} грн</b>`;
+🪙 База: <b>${payment} грн</b>
+➕ Додатково: <b>${equipmentTotal} грн</b>
+💳 Разом: <b>${totalCost} грн</b>`;
 
         if (remaining === 30 || remaining === 20) {
           const msg = `ℹ️ <b>Оновлення по місцях</b>
@@ -1006,7 +1202,12 @@ router.post("/:id/checkin", async (req, res) => {
     );
 
     log.info("API checkin pending", { gid, nickname: player.nickname });
-    res.json({ success: true });
+    res.json({
+      success: true,
+      equipment_total: equipmentTotal,
+      total_cost: totalCost,
+      registration_id: regId,
+    });
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
