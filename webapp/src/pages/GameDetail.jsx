@@ -898,7 +898,7 @@ export default function GameDetail({ gameId, onBack, isAdmin }) {
             className="absolute inset-0 bg-black/60 backdrop-blur-sm"
             onClick={() => setShowJoinEquipmentModal(false)}
           />
-          <div className="relative w-full max-w-2xl max-h-[88vh] overflow-y-auto bg-slate-900/95 border border-emerald-500/30 rounded-3xl p-4">
+          <div className="relative w-full max-w-2xl max-h-[88vh] overflow-y-auto bg-slate-900/95 border border-emerald-500/30 rounded-3xl p-4 pb-28">
             <div className="flex items-start justify-between gap-3 mb-3">
               <div>
                 <div className="text-[11px] text-gray-400">Запис на гру #{g.id}</div>
@@ -1002,26 +1002,29 @@ export default function GameDetail({ gameId, onBack, isAdmin }) {
               })}
             </div>
 
-            <button
-              onClick={() =>
-                doAction(async () => {
-                  const equipment = Object.entries(joinEquipmentMap)
-                    .map(([item_key, quantity]) => ({ item_key, quantity: Number(quantity) || 0 }))
-                    .filter((x) => x.quantity > 0);
-                  const res = await joinGame(gameId, { equipment });
-                  if (res.waitlisted) {
-                    showAlert("🕒 Гра заповнена. Тебе додано до листа очікування.");
-                  } else {
-                    showAlert(`✅ Записано. Орієнтовна сума: ${res.total_cost ?? g.payment} грн`);
-                  }
-                  setShowJoinEquipmentModal(false);
-                })
-              }
-              disabled={actionLoading}
-              className="mt-3 w-full bg-gradient-to-r from-emerald-600 to-teal-600 py-3 rounded-2xl font-bold text-[14px] active:scale-[0.98] disabled:opacity-50"
-            >
-              {actionLoading ? <Spinner /> : "Підтвердити запис"}
-            </button>
+            <div className="sticky bottom-0 pt-3 bg-gradient-to-t from-slate-900 via-slate-900/95 to-transparent">
+              <button
+                onClick={() =>
+                  doAction(async () => {
+                    const equipment = Object.entries(joinEquipmentMap)
+                      .map(([item_key, quantity]) => ({ item_key, quantity: Number(quantity) || 0 }))
+                      .filter((x) => x.quantity > 0);
+                    const res = await joinGame(gameId, { equipment });
+                    if (res.waitlisted) {
+                      showAlert("🕒 Гра заповнена. Тебе додано до листа очікування.");
+                    } else {
+                      showAlert(`✅ Записано. Орієнтовна сума: ${res.total_cost ?? g.payment} грн`);
+                    }
+                    setShowJoinEquipmentModal(false);
+                  })
+                }
+                disabled={actionLoading}
+                className="w-full bg-gradient-to-r from-emerald-600 to-teal-600 py-3 rounded-2xl font-bold text-[14px] active:scale-[0.98] disabled:opacity-50"
+              >
+                {actionLoading ? <Spinner /> : "Підтвердити запис"}
+              </button>
+              <div className="h-6" />
+            </div>
           </div>
         </div>
       )}
