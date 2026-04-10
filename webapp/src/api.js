@@ -29,6 +29,8 @@ async function api(path, options = {}) {
 
 // ---- Player ----
 export const getProfile = () => api("/profile");
+export const setCallsign = (callsign) =>
+  api("/profile/callsign", { method: "POST", body: { callsign } });
 export const registerPlayer = (nickname, team_id) =>
   api("/register", { method: "POST", body: { nickname, team_id } });
 export const getTeamsList = () => api("/teams/list");

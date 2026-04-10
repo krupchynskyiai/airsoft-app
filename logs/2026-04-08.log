@@ -1380,3 +1380,37 @@
 [2026-04-08T10:56:57.850Z] [DEBUG] Keep-warm ping OK | {"status":200}
 [2026-04-08T10:57:17.189Z] [ERROR] UnhandledRej | {"r":"GrammyError: Call to 'getUpdates' failed! (409: Conflict: terminated by other getUpdates request; make sure that only one bot instance is running)"}
 [2026-04-08T11:01:57.788Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-08T11:06:57.911Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-08T11:11:58.248Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-08T11:16:58.482Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-08T11:21:57.901Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-08T11:26:58.448Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-08T11:31:58.287Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-08T11:36:57.867Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-08T11:54:58.079Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-08T11:59:57.926Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-08T12:04:57.641Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-08T12:09:57.537Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-08T12:14:57.669Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-08T12:19:57.514Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-08T12:24:58.133Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-08T12:29:57.646Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-08T12:34:57.605Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-08T12:39:57.602Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-08T12:44:57.603Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-08T12:49:58.005Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-08T12:54:57.765Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-08T12:59:57.987Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-08T13:04:58.076Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-08T13:09:57.617Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-08T13:14:57.668Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-08T13:19:57.670Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-08T13:24:58.082Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-08T13:29:57.724Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-08T13:34:58.123Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-08T13:39:57.912Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-08T13:44:58.149Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-08T13:49:57.774Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-08T13:54:58.236Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-08T13:59:57.882Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-08T14:22:44.840Z] [WARN] Keep-warm ping failed | {"healthUrl":"https://airsoft-app.onrender.com/api/health","error":"getaddrinfo ENOTFOUND airsoft-app.onrender.com"}

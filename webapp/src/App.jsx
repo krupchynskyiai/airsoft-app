@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useTelegram } from "./hooks/useTelegram";
-import { getProfile } from "./api";
+import { getProfile, setCallsign } from "./api";
 import Profile from "./pages/Profile";
 import Games from "./pages/Games";
 import GameDetail from "./pages/GameDetail";
@@ -28,6 +28,11 @@ export default function App() {
   const [selectedGameId, setSelectedGameId] = useState(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [slideDir, setSlideDir] = useState("right");
+  const [showCallsignModal, setShowCallsignModal] = useState(false);
+  const [callsignDraft, setCallsignDraft] = useState("");
+  const [callsignStep, setCallsignStep] = useState("input"); // input | confirm
+  const [callsignSaving, setCallsignSaving] = useState(false);
+  const [callsignError, setCallsignError] = useState("");
 
   const contentRef = useRef(null);
 
@@ -61,6 +66,20 @@ export default function App() {
   useEffect(() => {
     loadProfile();
   }, []);
+
+  useEffect(() => {
+    const needsCallsign =
+      profile?.registered &&
+      profile?.player &&
+      (!profile.player.callsign || String(profile.player.callsign).trim() === "");
+    if (needsCallsign) {
+      setShowCallsignModal(true);
+      setCallsignStep("input");
+      setCallsignError("");
+    } else {
+      setShowCallsignModal(false);
+    }
+  }, [profile]);
 
   async function loadProfile() {
     try {
@@ -119,6 +138,31 @@ export default function App() {
     setTab("game_detail");
 
     setTimeout(() => setPrevTab(null), 300);
+  }
+
+  async function submitCallsign() {
+    const value = callsignDraft.trim();
+    if (!value) {
+      setCallsignError("Введи позивний");
+      return;
+    }
+    if (value.length > 24) {
+      setCallsignError("Максимум 24 символи");
+      return;
+    }
+    try {
+      setCallsignSaving(true);
+      setCallsignError("");
+      await setCallsign(value);
+      await loadProfile();
+      setShowCallsignModal(false);
+      setCallsignDraft("");
+      setCallsignStep("input");
+    } catch (e) {
+      setCallsignError(e.message || "Не вдалося зберегти позивний");
+    } finally {
+      setCallsignSaving(false);
+    }
   }
 
   // -------------------------------
@@ -300,6 +344,89 @@ export default function App() {
 
         * { -webkit-tap-highlight-color: transparent; }
       `}</style>
+
+      {showCallsignModal && (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center px-4">
+          <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
+          <div className="relative z-10 w-full max-w-sm rounded-3xl border border-emerald-500/40 bg-slate-900/95 p-5">
+            <div className="text-center mb-3">
+              <div className="text-3xl mb-1">📛</div>
+              <h3 className="text-sm font-black text-emerald-300 uppercase tracking-[0.15em]">
+                Позивний
+              </h3>
+            </div>
+
+            {callsignStep === "input" ? (
+              <>
+                <p className="text-xs text-gray-400 mb-2">
+                  Вкажи свій позивний (до 24 символів). Змінити потім можна лише через адміна.
+                </p>
+                <input
+                  type="text"
+                  value={callsignDraft}
+                  maxLength={24}
+                  onChange={(e) => {
+                    setCallsignDraft(e.target.value);
+                    if (callsignError) setCallsignError("");
+                  }}
+                  placeholder="Наприклад: GhostFox"
+                  className="w-full bg-slate-800/70 border border-slate-700/60 rounded-2xl px-3 py-2 text-sm focus:outline-none focus:border-emerald-500/50"
+                />
+                <div className="mt-1 text-[10px] text-gray-500 text-right">
+                  {callsignDraft.trim().length}/24
+                </div>
+                {callsignError && (
+                  <div className="mt-2 text-[11px] text-red-400">{callsignError}</div>
+                )}
+                <button
+                  type="button"
+                  onClick={() => {
+                    const v = callsignDraft.trim();
+                    if (!v) return setCallsignError("Введи позивний");
+                    if (v.length > 24) return setCallsignError("Максимум 24 символи");
+                    setCallsignStep("confirm");
+                  }}
+                  className="mt-3 w-full py-2.5 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 text-sm font-bold active:scale-[0.98]"
+                >
+                  Продовжити
+                </button>
+              </>
+            ) : (
+              <>
+                <p className="text-xs text-gray-400 mb-2">
+                  Перевір, чи немає помилки. Після підтвердження зміну робить тільки адмін.
+                </p>
+                <div className="mb-3 rounded-2xl border border-emerald-500/30 bg-emerald-900/20 px-3 py-2 text-center">
+                  <span className="text-base font-black text-emerald-200">
+                    {callsignDraft.trim()}
+                  </span>
+                </div>
+                {callsignError && (
+                  <div className="mb-2 text-[11px] text-red-400">{callsignError}</div>
+                )}
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setCallsignStep("input")}
+                    disabled={callsignSaving}
+                    className="py-2.5 rounded-2xl bg-slate-800 border border-slate-700 text-xs font-semibold disabled:opacity-50"
+                  >
+                    Назад
+                  </button>
+                  <button
+                    type="button"
+                    onClick={submitCallsign}
+                    disabled={callsignSaving}
+                    className="py-2.5 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 text-black text-xs font-black disabled:opacity-50"
+                  >
+                    {callsignSaving ? "Збереження..." : "Підтвердити"}
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

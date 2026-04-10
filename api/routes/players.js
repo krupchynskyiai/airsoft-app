@@ -106,6 +106,7 @@ router.get("/profile", async (req, res) => {
       player: {
         id: player.id,
         nickname: player.nickname,
+        callsign: player.callsign || null,
         team: player.team_name,
         games_played: player.games_played,
         wins: player.wins,
@@ -129,6 +130,43 @@ router.get("/profile", async (req, res) => {
   } catch (e) {
     log.error("API /profile error", { error: e.message });
     res.status(500).json({ error: e.message });
+  }
+});
+
+// POST /api/profile/callsign — set player callsign (self-service once)
+router.post("/profile/callsign", async (req, res) => {
+  try {
+    const tgId = req.tgUser.id;
+    const raw = req.body?.callsign;
+    const callsign = String(raw || "").trim();
+
+    if (!callsign) {
+      return res.status(400).json({ error: "Позивний обов'язковий" });
+    }
+    if (callsign.length > 24) {
+      return res.status(400).json({ error: "Максимум 24 символи" });
+    }
+
+    const me = await q1("SELECT id, callsign FROM players WHERE telegram_id = ?", [tgId]);
+    if (!me) return res.status(400).json({ error: "Not registered" });
+
+    // Allow setting only when empty; further changes should be admin-only.
+    if (me.callsign && String(me.callsign).trim() !== "") {
+      return res.status(400).json({ error: "Позивний вже встановлено. Для зміни звернись до адміна." });
+    }
+
+    const dup = await q1(
+      "SELECT id FROM players WHERE callsign = ? AND id <> ? LIMIT 1",
+      [callsign, me.id],
+    );
+    if (dup) {
+      return res.status(400).json({ error: "Такий позивний уже зайнятий" });
+    }
+
+    await ins("UPDATE players SET callsign=? WHERE id=?", [callsign, me.id]);
+    return res.json({ success: true, callsign });
+  } catch (e) {
+    return res.status(500).json({ error: e.message });
   }
 });
 

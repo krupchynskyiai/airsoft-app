@@ -1082,9 +1082,7 @@ ${info}`,
 ⏰ Час: ${game.time || "—"}
 📍 Локація: ${game.location}
 ⏱ Тривалість: <b>${game.duration || "—"}</b>
-🪙 База: <b>${payment} грн</b>
-➕ Додатково: <b>${equipmentTotal} грн</b>
-💳 Разом: <b>${totalCost} грн</b>`;
+🪙 Вартість участі: <b>${payment} грн</b>`;
 
         if (remaining === 30 || remaining === 20) {
           const msg = `ℹ️ <b>Оновлення по місцях</b>
