@@ -550,7 +550,7 @@ export default function Profile({ profile, onReload }) {
               </div>
             </div>
             <div className="flex-1 min-w-0">
-              <h1 className="text-[22px] font-extrabold tracking-tight truncate">{p.nickname}</h1>
+              <h1 className="text-[22px] font-extrabold tracking-tight truncate">{p.callsign || p.nickname}</h1>
               <p className="text-emerald-100/80 text-sm">#{String(p.id).padStart(3, "0")} • {p.team || "Соло Гравець"}</p>
             </div>
           </div>
@@ -1087,7 +1087,7 @@ export default function Profile({ profile, onReload }) {
               >
                 <div className="flex items-center gap-2">
                   <span className="text-sm">🪖</span>
-                  <span className="text-xs font-medium">{f.nickname}</span>
+                  <span className="text-xs font-medium">{f.callsign || f.nickname}</span>
                 </div>
                 <span className="text-[10px] text-gray-500">
                   ⭐{f.rating}
@@ -1126,7 +1126,7 @@ export default function Profile({ profile, onReload }) {
                   <div className="flex items-center gap-2">
                     <span className="text-sm">📩</span>
                     <span className="text-xs font-medium">
-                      {r.from_nickname || r.nickname}
+                      {r.callsign || r.from_nickname || r.nickname}
                     </span>
                   </div>
                   <div className="flex items-center gap-1.5">

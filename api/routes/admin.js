@@ -1,5 +1,6 @@
 const { Router } = require("express");
 const { q, q1, ins } = require("../../database/helpers");
+const { getDB } = require("../../database/connection");
 const { adminMiddleware } = require("../middleware/auth");
 const log = require("../../utils/logger");
 const config = require("../../config");
@@ -9,6 +10,14 @@ const { EQUIPMENT_CATALOG, EQUIPMENT_BY_KEY } = require("../../constants/equipme
 
 const router = Router();
 router.use(adminMiddleware);
+
+function normalizeWinnerTeam(winnerTeamRaw) {
+  let winnerTeam = winnerTeamRaw;
+  if (winnerTeam === "" || winnerTeam === undefined) winnerTeam = null;
+  if (["draw", "X", "tie", "нічия"].includes(winnerTeam)) winnerTeam = null;
+  if (winnerTeam !== null && !["A", "B"].includes(winnerTeam)) return { valid: false };
+  return { valid: true, value: winnerTeam };
+}
 
 router.post("/games", async (req, res) => {
   try {
@@ -439,6 +448,155 @@ ${info}`,
     res.json({ success: true, roundFinished: game.current_round });
   } catch (e) {
     res.status(500).json({ error: e.message });
+  }
+});
+
+// POST /api/admin/games/:id/end-round-batch
+// Applies selected kills + round winner atomically in one request.
+router.post("/games/:id/end-round-batch", async (req, res) => {
+  const gid = parseInt(req.params.id, 10);
+  const body = req.body || {};
+  const normalized = normalizeWinnerTeam(body.winner_team);
+
+  if (!normalized.valid) {
+    return res.status(400).json({
+      error: "winner_team must be A, B, or null (draw)",
+    });
+  }
+
+  let killedPlayerIds = Array.isArray(body.killed_player_ids)
+    ? body.killed_player_ids
+    : [];
+  killedPlayerIds = [...new Set(
+    killedPlayerIds
+      .map((x) => Number(x))
+      .filter((x) => Number.isInteger(x) && x > 0),
+  )];
+
+  const conn = await getDB().getConnection();
+  let game = null;
+  let appliedKills = [];
+
+  try {
+    await conn.beginTransaction();
+
+    const [gameRows] = await conn.execute("SELECT * FROM games WHERE id=? FOR UPDATE", [gid]);
+    game = gameRows[0];
+    if (!game) {
+      await conn.rollback();
+      return res.status(404).json({ error: "Game not found" });
+    }
+
+    const [roundRows] = await conn.execute(
+      "SELECT id FROM rounds WHERE game_id=? AND round_number=? AND status='active' FOR UPDATE",
+      [gid, game.current_round],
+    );
+    const round = roundRows[0];
+    if (!round) {
+      await conn.rollback();
+      return res.status(400).json({ error: "No active round" });
+    }
+
+    if (killedPlayerIds.length > 0) {
+      const placeholders = killedPlayerIds.map(() => "?").join(",");
+      const [aliveRows] = await conn.execute(
+        `SELECT player_id
+         FROM round_players
+         WHERE round_id=? AND is_alive=1 AND player_id IN (${placeholders})`,
+        [round.id, ...killedPlayerIds],
+      );
+      appliedKills = aliveRows.map((r) => r.player_id);
+
+      if (appliedKills.length > 0) {
+        for (const playerId of appliedKills) {
+          await conn.execute(
+            "INSERT INTO round_kills (round_id,game_id,killed_player_id,reported_by) VALUES (?,?,?,'admin')",
+            [round.id, gid, playerId],
+          );
+        }
+
+        const killPlaceholders = appliedKills.map(() => "?").join(",");
+        await conn.execute(
+          `UPDATE round_players
+           SET is_alive=0
+           WHERE round_id=? AND player_id IN (${killPlaceholders})`,
+          [round.id, ...appliedKills],
+        );
+      }
+    }
+
+    await conn.execute(
+      "UPDATE rounds SET winner_game_team=?, status='finished', ended_at=NOW() WHERE id=?",
+      [normalized.value, round.id],
+    );
+
+    await conn.execute("UPDATE games SET total_rounds=? WHERE id=?", [
+      game.current_round,
+      gid,
+    ]);
+
+    await conn.commit();
+
+    if (config.CHANNEL_ID) {
+      try {
+        const deepLink = `https://t.me/${config.BOT_USERNAME}?startapp=game_${gid}`;
+        const winner =
+          normalized.value === "A"
+            ? "🟡 Команда A"
+            : normalized.value === "B"
+              ? "🔵 Команда B"
+              : "⚖ Нічия";
+
+        const info = `📅 Дата: ${game.date}
+⏰ Час: ${game.time || "—"}
+📍 Локація: ${game.location}
+⏱ Тривалість: <b>${game.duration || "—"}</b>
+🪙 Вартість участі: <b>${game.payment || 0} грн</b>`;
+
+        await bot.api.sendMessage(
+          config.CHANNEL_ID,
+          `🏁 <b>Раунд завершено</b>
+
+🎮 Гра #${gid}
+🔄 Раунд: ${game.current_round}
+
+🏆 Переможець: <b>${winner}</b>
+
+${info}`,
+          {
+            parse_mode: "HTML",
+            reply_markup: {
+              inline_keyboard: [[{ text: "📊 Дивитися гру", url: deepLink }]],
+            },
+          },
+        );
+      } catch (e) {
+        log.error("Round end notify error", { e: e.message });
+      }
+    }
+
+    log.info("Round ended by batch endpoint", {
+      gid,
+      round: game.current_round,
+      winner: normalized.value,
+      killsApplied: appliedKills.length,
+    });
+
+    res.json({
+      success: true,
+      roundFinished: game.current_round,
+      killsApplied: appliedKills.length,
+      ignoredKills: killedPlayerIds.length - appliedKills.length,
+    });
+  } catch (e) {
+    try {
+      await conn.rollback();
+    } catch {
+      // ignore rollback errors
+    }
+    res.status(500).json({ error: e.message });
+  } finally {
+    conn.release();
   }
 });
 

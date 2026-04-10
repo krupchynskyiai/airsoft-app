@@ -150,6 +150,10 @@ export default function App() {
       setCallsignError("Максимум 24 символи");
       return;
     }
+    if (!/^[А-ЩЬЮЯЄІЇҐа-щьюяєіїґ]+$/u.test(value)) {
+      setCallsignError("Дозволені тільки кириличні літери");
+      return;
+    }
     try {
       setCallsignSaving(true);
       setCallsignError("");
@@ -361,6 +365,9 @@ export default function App() {
                 <p className="text-xs text-gray-400 mb-2">
                   Вкажи свій позивний (до 24 символів). Змінити потім можна лише через адміна.
                 </p>
+                <p className="text-[11px] text-amber-300/90 mb-2">
+                  Рекомендація: обирай короткий позивний, який легко гукнути під час гри.
+                </p>
                 <input
                   type="text"
                   value={callsignDraft}
@@ -384,6 +391,9 @@ export default function App() {
                     const v = callsignDraft.trim();
                     if (!v) return setCallsignError("Введи позивний");
                     if (v.length > 24) return setCallsignError("Максимум 24 символи");
+                    if (!/^[А-ЩЬЮЯЄІЇҐа-щьюяєіїґ]+$/u.test(v)) {
+                      return setCallsignError("Дозволені тільки кириличні літери");
+                    }
                     setCallsignStep("confirm");
                   }}
                   className="mt-3 w-full py-2.5 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 text-sm font-bold active:scale-[0.98]"

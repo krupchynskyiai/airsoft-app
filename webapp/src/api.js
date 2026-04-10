@@ -145,6 +145,8 @@ export const adminKillPlayer = (gameId, playerId) =>
   api(`/admin/games/${gameId}/kill`, { method: "POST", body: { player_id: playerId } });
 export const adminEndRound = (gameId, winnerTeam) =>
   api(`/admin/games/${gameId}/end-round`, { method: "POST", body: { winner_team: winnerTeam } });
+export const adminEndRoundBatch = (gameId, payload) =>
+  api(`/admin/games/${gameId}/end-round-batch`, { method: "POST", body: payload });
 export const adminCreateTeam = (name) =>
   api("/admin/teams", { method: "POST", body: { name } });
 export const adminAddPoints = (nickname, amount) =>

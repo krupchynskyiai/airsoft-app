@@ -151,7 +151,7 @@ router.get("/", async (req, res) => {
         const friendIds = friendRows.map((r) => r.friend_id);
         if (friendIds.length > 0) {
           const rows = await q(
-            `SELECT gp.game_id, p.nickname
+          `SELECT gp.game_id, COALESCE(p.callsign, p.nickname) AS nickname
              FROM game_players gp
              JOIN players p ON p.id = gp.player_id
              WHERE gp.game_id IN (${gameIds.map(() => "?").join(",")})
@@ -184,7 +184,7 @@ router.get("/:id", async (req, res) => {
     if (!game) return res.status(404).json({ error: "Not found" });
 
     const players = await q(
-      `SELECT gp.*, p.nickname, p.rating, t.name as team_name
+      `SELECT gp.*, COALESCE(p.callsign, p.nickname) AS nickname, p.rating, t.name as team_name
        FROM game_players gp
        JOIN players p ON gp.player_id = p.id
        LEFT JOIN teams t ON gp.team_id = t.id
@@ -294,7 +294,7 @@ router.get("/:id/rides", async (req, res) => {
 
     const rides = await q(
       `SELECT r.*,
-              p.nickname AS owner_nickname
+              COALESCE(p.callsign, p.nickname) AS owner_nickname
        FROM game_rides r
        JOIN players p ON p.id = r.owner_player_id
        WHERE r.game_id=? AND r.status='active'
@@ -340,7 +340,7 @@ router.get("/:id/rides", async (req, res) => {
                 rr.seats_requested,
                 rr.created_at,
                 p.id AS requester_player_id,
-                p.nickname AS requester_nickname
+                COALESCE(p.callsign, p.nickname) AS requester_nickname
          FROM game_ride_requests rr
          JOIN game_rides r ON r.id = rr.ride_id
          JOIN players p ON p.id = rr.requester_player_id
@@ -369,7 +369,7 @@ router.get("/:id/rides", async (req, res) => {
                 rr.seats_requested,
                 rr.created_at,
                 p.id AS requester_player_id,
-                p.nickname AS requester_nickname
+                COALESCE(p.callsign, p.nickname) AS requester_nickname
          FROM game_ride_requests rr
          JOIN game_rides r ON r.id = rr.ride_id
          JOIN players p ON p.id = rr.requester_player_id
@@ -639,7 +639,7 @@ router.post("/:id/rides/:rideId/request", async (req, res) => {
     }
 
     const ride = await q1(
-      `SELECT r.*, p.telegram_id AS owner_telegram_id, p.nickname AS owner_nickname
+      `SELECT r.*, p.telegram_id AS owner_telegram_id, COALESCE(p.callsign, p.nickname) AS owner_nickname
        FROM game_rides r
        JOIN players p ON p.id=r.owner_player_id
        WHERE r.id=? AND r.game_id=? AND r.status='active'`,
@@ -677,7 +677,7 @@ router.post("/:id/rides/:rideId/request", async (req, res) => {
     try {
       if (ride.owner_telegram_id) {
         const requester = await q1(
-          "SELECT nickname FROM players WHERE id=?",
+          "SELECT COALESCE(callsign, nickname) AS nickname FROM players WHERE id=?",
           [meId],
         );
         const g = await q1(
@@ -740,7 +740,7 @@ router.post("/:id/rides/:rideId/respond", async (req, res) => {
     }
 
     const reqRow = await q1(
-      `SELECT rr.*, p.telegram_id AS requester_telegram_id, p.nickname AS requester_nickname
+      `SELECT rr.*, p.telegram_id AS requester_telegram_id, COALESCE(p.callsign, p.nickname) AS requester_nickname
        FROM game_ride_requests rr
        JOIN players p ON p.id = rr.requester_player_id
        WHERE rr.id=? AND rr.ride_id=? AND rr.status='pending'`,
@@ -1321,7 +1321,7 @@ router.post("/:id/cancel", async (req, res) => {
     // If there is a waitlist, auto-add first waiting player (best-effort)
     try {
       const waitCandidate = await q1(
-        `SELECT w.player_id, p.team_id, p.telegram_id, p.nickname
+        `SELECT w.player_id, p.team_id, p.telegram_id, COALESCE(p.callsign, p.nickname) AS nickname
          FROM game_waitlist w
          JOIN players p ON p.id = w.player_id
          LEFT JOIN player_blacklist b ON b.player_id = w.player_id AND b.active=1
@@ -1517,7 +1517,7 @@ router.get("/:id/round", async (req, res) => {
     if (!round) return res.json({ active: false, game });
 
     const players = await q(
-      "SELECT rp.*, p.nickname FROM round_players rp JOIN players p ON rp.player_id=p.id WHERE rp.round_id=? ORDER BY rp.game_team, rp.is_alive DESC",
+      "SELECT rp.*, COALESCE(p.callsign, p.nickname) AS nickname FROM round_players rp JOIN players p ON rp.player_id=p.id WHERE rp.round_id=? ORDER BY rp.game_team, rp.is_alive DESC",
       [round.id],
     );
 
@@ -1567,7 +1567,7 @@ router.get("/:id/mvp-state", async (req, res) => {
 
     // candidates: all players from winning team in that round
     const candidates = await q(
-      `SELECT rp.player_id, p.nickname, 
+      `SELECT rp.player_id, COALESCE(p.callsign, p.nickname) AS nickname, 
          COALESCE(v.votes,0) AS mvp_votes
        FROM round_players rp
        JOIN players p ON rp.player_id = p.id

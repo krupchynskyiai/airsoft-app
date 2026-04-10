@@ -87,7 +87,7 @@ router.get("/profile", async (req, res) => {
 
     // Friends list (accepted)
     const friends = await q(
-      `SELECT p.id, p.nickname, p.rating
+      `SELECT p.id, p.nickname, p.callsign, p.rating
        FROM friends f
        JOIN players p ON p.id = f.friend_id
        WHERE f.player_id = ? AND f.status = 'accepted'
@@ -145,6 +145,9 @@ router.post("/profile/callsign", async (req, res) => {
     }
     if (callsign.length > 24) {
       return res.status(400).json({ error: "Максимум 24 символи" });
+    }
+    if (!/^[А-ЩЬЮЯЄІЇҐа-щьюяєіїґ]+$/u.test(callsign)) {
+      return res.status(400).json({ error: "Позивний має містити тільки кириличні літери" });
     }
 
     const me = await q1("SELECT id, callsign FROM players WHERE telegram_id = ?", [tgId]);
@@ -372,7 +375,7 @@ router.get("/friends", async (req, res) => {
     if (!me) return res.json({ friends: [], incoming: [] });
 
     const friends = await q(
-      `SELECT p.id, p.nickname, p.rating
+      `SELECT p.id, p.nickname, p.callsign, p.rating
        FROM friends f
        JOIN players p ON p.id = f.friend_id
        WHERE f.player_id = ? AND f.status = 'accepted'
@@ -381,7 +384,7 @@ router.get("/friends", async (req, res) => {
     );
 
     const incoming = await q(
-      `SELECT f.id, p.nickname, p.rating
+      `SELECT f.id, p.nickname, p.callsign, p.rating
        FROM friends f
        JOIN players p ON p.id = f.player_id
        WHERE f.friend_id = ? AND f.status = 'pending'

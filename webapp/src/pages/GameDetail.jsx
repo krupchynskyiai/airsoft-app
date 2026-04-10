@@ -7,8 +7,7 @@ import {
   reportDead,
   getRoundStatus,
   getMvpState,
-  adminKillPlayer,
-  adminEndRound,
+  adminEndRoundBatch,
   adminSetGameStatus,
   adminReviewCheckin,
   adminKickFromGame,
@@ -36,7 +35,7 @@ const TEAM_COLORS = {
 function formatNick(n) {
   const s = String(n || "").trim();
   if (!s) return "—";
-  return s.startsWith("@") ? s : `@${s}`;
+  return s;
 }
 
 function formatUpdatedAt(v) {
@@ -50,6 +49,27 @@ function formatUpdatedAt(v) {
     hour: "2-digit",
     minute: "2-digit",
   });
+}
+
+const ROUND_SUBMIT_QUEUE_KEY = "airsoft.roundOutcomeQueue.v1";
+
+function readRoundSubmitQueue() {
+  try {
+    const raw = localStorage.getItem(ROUND_SUBMIT_QUEUE_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+function writeRoundSubmitQueue(items) {
+  try {
+    localStorage.setItem(ROUND_SUBMIT_QUEUE_KEY, JSON.stringify(items));
+  } catch {
+    // ignore quota/storage errors; user still can retry manually
+  }
 }
 
 // ---- Round Timer Hook ----
@@ -102,6 +122,7 @@ export default function GameDetail({ gameId, onBack, isAdmin }) {
   const [joinEquipmentMap, setJoinEquipmentMap] = useState({});
   const [adminEquipmentItems, setAdminEquipmentItems] = useState([]);
   const [adminEqLoading, setAdminEqLoading] = useState(false);
+  const [roundPendingKilledIds, setRoundPendingKilledIds] = useState([]);
 
   const isLoadingRef = useRef(false);
 
@@ -248,6 +269,78 @@ export default function GameDetail({ gameId, onBack, isAdmin }) {
     }
   }
 
+  function toggleRoundPendingDead(playerId, isAliveOnServer) {
+    if (!isAdmin || !isAliveOnServer || actionLoading) return;
+    setRoundPendingKilledIds((prev) =>
+      prev.includes(playerId)
+        ? prev.filter((id) => id !== playerId)
+        : [...prev, playerId],
+    );
+  }
+
+  async function flushRoundSubmitQueue() {
+    const queue = readRoundSubmitQueue();
+    if (!queue.length) return;
+
+    const remaining = [];
+    let changed = false;
+    for (const item of queue) {
+      try {
+        await adminEndRoundBatch(item.gameId, {
+          winner_team: item.winnerTeam,
+          killed_player_ids: item.killedPlayerIds || [],
+        });
+        changed = true;
+      } catch (e) {
+        // Round was likely already closed by a previous successful request.
+        if (String(e?.message || "").includes("No active round")) {
+          changed = true;
+          continue;
+        }
+        remaining.push(item);
+      }
+    }
+
+    if (changed) {
+      writeRoundSubmitQueue(remaining);
+      await load();
+      await loadRides();
+    }
+  }
+
+  async function submitRoundOutcome(winnerTeam) {
+    const picked = roundPendingKilledIds;
+    setActionLoading(true);
+    try {
+      await adminEndRoundBatch(gameId, {
+        winner_team: winnerTeam,
+        killed_player_ids: picked,
+      });
+      setRoundPendingKilledIds([]);
+      haptic("success");
+      await load();
+      await loadRides();
+      await flushRoundSubmitQueue();
+    } catch (e) {
+      const pending = readRoundSubmitQueue();
+      writeRoundSubmitQueue([
+        ...pending,
+        {
+          id: `${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+          gameId,
+          winnerTeam,
+          killedPlayerIds: picked,
+          createdAt: new Date().toISOString(),
+        },
+      ]);
+      setRoundPendingKilledIds([]);
+      haptic("warning");
+      showAlert("⚠️ Бекенд недоступний. Результат збережено локально і буде відправлено повторно.");
+    } finally {
+      setActionLoading(false);
+    }
+  }
+
   // Round timer
   const timerValue = useRoundTimer(
     round?.round?.started_at_ts || round?.round?.started_at,
@@ -258,6 +351,30 @@ export default function GameDetail({ gameId, onBack, isAdmin }) {
   const isActiveGame = data?.game?.status === "active";
   const hasActiveRound = round?.active || false;
   const isBetweenRounds = isActiveGame && !hasActiveRound;
+
+  useEffect(() => {
+    if (!hasActiveRound) {
+      setRoundPendingKilledIds([]);
+      return;
+    }
+    const aliveIds = new Set(
+      (round?.players || [])
+        .filter((p) => p.is_alive)
+        .map((p) => p.player_id),
+    );
+    setRoundPendingKilledIds((prev) => prev.filter((id) => aliveIds.has(id)));
+  }, [hasActiveRound, round?.round?.id, round?.players]);
+
+  useEffect(() => {
+    flushRoundSubmitQueue();
+    function onOnline() {
+      flushRoundSubmitQueue();
+    }
+    window.addEventListener("online", onOnline);
+    return () => {
+      window.removeEventListener("online", onOnline);
+    };
+  }, [gameId, data?.game?.status]);
 
   // Адміну потрібно обрати MVP для щойно завершеного раунду,
   // перш ніж він зможе почати наступний.
@@ -348,6 +465,7 @@ export default function GameDetail({ gameId, onBack, isAdmin }) {
     return sum + n * Number(it.unit_price || 0);
   }, 0);
   const joinTotalCost = (Number(g.payment) || 0) + joinAdditionalCost;
+  const pendingDeadSet = new Set(roundPendingKilledIds);
 
   return (
     <div className="pb-6">
@@ -1395,10 +1513,10 @@ export default function GameDetail({ gameId, onBack, isAdmin }) {
                 Оновити
               </button>
             </div>
-            <div className="space-y-1.5 max-h-56 overflow-y-auto pr-1">
+            <div className="space-y-1.5 max-h-56 overflow-y-auto overflow-x-hidden pr-1">
               {(adminEquipmentItems || []).map((it) => (
                 <div key={it.item_key} className="rounded-xl border border-slate-700/40 bg-slate-800/60 p-2">
-                  <div className="flex items-center justify-between gap-2">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
                     <div className="min-w-0">
                       <div className="text-xs font-semibold text-gray-200 truncate">{it.title}</div>
                       <div className="text-[10px] text-gray-500">
@@ -1422,7 +1540,7 @@ export default function GameDetail({ gameId, onBack, isAdmin }) {
                       />
                     </label>
                   </div>
-                  <div className="mt-2 flex items-center gap-2">
+                  <div className="mt-2 flex flex-wrap items-center gap-2">
                     <input
                       type="number"
                       min={0}
@@ -1441,7 +1559,7 @@ export default function GameDetail({ gameId, onBack, isAdmin }) {
                         )
                       }
                       placeholder="∞"
-                      className="w-20 bg-slate-900/70 border border-slate-700/40 rounded-lg px-2 py-1 text-xs"
+                      className="w-20 shrink-0 bg-slate-900/70 border border-slate-700/40 rounded-lg px-2 py-1 text-xs"
                     />
                     <input
                       type="text"
@@ -1454,13 +1572,13 @@ export default function GameDetail({ gameId, onBack, isAdmin }) {
                         )
                       }
                       placeholder="Примітка (напр. в ремонті)"
-                      className="flex-1 bg-slate-900/70 border border-slate-700/40 rounded-lg px-2 py-1 text-xs"
+                      className="min-w-0 flex-1 basis-[140px] bg-slate-900/70 border border-slate-700/40 rounded-lg px-2 py-1 text-xs"
                     />
                     <button
                       type="button"
                       onClick={() => saveAdminEquipmentItem(it)}
                       disabled={adminEqLoading}
-                      className="px-2 py-1 rounded-lg bg-emerald-600/70 text-[10px] font-bold text-black disabled:opacity-50"
+                      className="w-full sm:w-auto px-2 py-1 rounded-lg bg-emerald-600/70 text-[10px] font-bold text-black disabled:opacity-50"
                     >
                       Зберегти
                     </button>
@@ -1625,7 +1743,7 @@ export default function GameDetail({ gameId, onBack, isAdmin }) {
 
             return Object.entries(teams).map(([team, tPlayers]) => {
               const tc = TEAM_COLORS[team] || { bg: "bg-slate-700/20", border: "border-slate-600/30", text: "text-gray-300", label: `Team ${team}`, dot: "bg-gray-400" };
-              const alive = tPlayers.filter((p) => p.is_alive).length;
+              const alive = tPlayers.filter((p) => p.is_alive && !pendingDeadSet.has(p.player_id)).length;
 
               return (
                 <div key={team} className="mb-4 last:mb-0">
@@ -1639,39 +1757,42 @@ export default function GameDetail({ gameId, onBack, isAdmin }) {
                     </div>
                   )}
                   <div className="space-y-1">
-                    {tPlayers.map((p) => (
-                      <div
-                        key={p.player_id}
-                        className={`flex items-center justify-between p-2.5 rounded-xl transition-all ${
-                          p.is_alive ? `${tc.bg} border ${tc.border}` : "bg-slate-800/30 border border-slate-800/30 opacity-50"
-                        }`}
-                      >
-                        <div className="flex items-center gap-2.5">
-                          <span className="text-lg">{p.is_alive ? "💚" : "💀"}</span>
-                          <span className={`text-sm font-semibold ${p.is_alive ? "" : "line-through text-gray-500"}`}>
-                            {formatNick(p.nickname)}
-                          </span>
+                    {tPlayers.map((p) => {
+                      const markedDead = !p.is_alive || pendingDeadSet.has(p.player_id);
+                      const canToggleDead = isAdmin && p.is_alive;
+                      return (
+                        <div
+                          key={p.player_id}
+                          className={`flex items-center justify-between p-2.5 rounded-xl transition-all ${
+                            markedDead ? "bg-slate-800/30 border border-slate-800/30 opacity-50" : `${tc.bg} border ${tc.border}`
+                          }`}
+                        >
+                          <div className="flex items-center gap-2.5">
+                            <span className="text-lg">{markedDead ? "💀" : "💚"}</span>
+                            <span className={`text-sm font-semibold ${markedDead ? "line-through text-gray-500" : ""}`}>
+                              {formatNick(p.nickname)}
+                            </span>
+                            {pendingDeadSet.has(p.player_id) && p.is_alive && (
+                              <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-700/40 text-amber-200">
+                                pending
+                              </span>
+                            )}
+                          </div>
+                          {canToggleDead && (
+                            <button
+                              onClick={() => toggleRoundPendingDead(p.player_id, p.is_alive)}
+                              className={`text-xs px-3 py-1.5 rounded-lg font-semibold active:scale-95 transition-all ${
+                                pendingDeadSet.has(p.player_id)
+                                  ? "bg-slate-700/70 border border-slate-600/50 text-gray-200"
+                                  : "bg-red-800/60 hover:bg-red-700/60"
+                              }`}
+                            >
+                              {pendingDeadSet.has(p.player_id) ? "↩️ Відмінити" : "💀 Вбитий"}
+                            </button>
+                          )}
                         </div>
-                        {isAdmin && p.is_alive && (
-                          <button
-                            onClick={async () => {
-                              const ok = await showConfirm(
-                                `Kill для ${formatNick(p.nickname)}?`,
-                              );
-                              if (!ok) return;
-                              doAction(
-                                () => adminKillPlayer(gameId, p.player_id),
-                                null,
-                                "round",
-                              );
-                            }}
-                            className="text-xs bg-red-800/60 hover:bg-red-700/60 px-3 py-1.5 rounded-lg font-semibold active:scale-95 transition-all"
-                          >
-                            💀 Kill
-                          </button>
-                        )}
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
               );
@@ -1684,50 +1805,46 @@ export default function GameDetail({ gameId, onBack, isAdmin }) {
               {g.game_mode !== "ffa" ? (
                 <>
                   <p className="text-xs text-gray-500 mb-2 font-medium">Завершити раунд — хто виграв?</p>
+                  <p className="text-[11px] text-amber-200/80 mb-2">
+                    Позначено вбитими: <span className="font-bold">{roundPendingKilledIds.length}</span>
+                  </p>
                   <div className="flex gap-2">
                     <button
-                      onClick={async () => {
-                        const ok = await showConfirm("Завершити раунд — перемогла команда A?");
-                        if (!ok) return;
-                        doAction(() => adminEndRound(gameId, "A"), null, "full");
-                      }}
+                      onClick={() => submitRoundOutcome("A")}
+                      disabled={actionLoading}
                       className="flex-1 bg-amber-700/35 border border-amber-600/35 py-2.5 rounded-xl text-sm font-bold text-amber-200 active:scale-95 transition-transform"
                     >
                       🟡 Team A
                     </button>
                     <button
-                      onClick={async () => {
-                        const ok = await showConfirm("Завершити раунд — перемогла команда B?");
-                        if (!ok) return;
-                        doAction(() => adminEndRound(gameId, "B"), null, "full");
-                      }}
+                      onClick={() => submitRoundOutcome("B")}
+                      disabled={actionLoading}
                       className="flex-1 bg-blue-700/40 border border-blue-600/30 py-2.5 rounded-xl text-sm font-bold text-blue-300 active:scale-95 transition-transform"
                     >
                       🔵 Team B
                     </button>
                   </div>
                   <button
-                    onClick={async () => {
-                      const ok = await showConfirm("Завершити раунд як нічию (без переможця)?");
-                      if (!ok) return;
-                      doAction(() => adminEndRound(gameId, null), null, "full");
-                    }}
+                    onClick={() => submitRoundOutcome(null)}
+                    disabled={actionLoading}
                     className="mt-2 w-full bg-slate-700/50 border border-slate-500/30 py-2.5 rounded-xl text-sm font-bold text-gray-300 active:scale-95 transition-transform"
                   >
                     ⚖ Нічия
                   </button>
                 </>
               ) : (
-                <button
-                  onClick={async () => {
-                    const ok = await showConfirm("Завершити поточний раунд?");
-                    if (!ok) return;
-                    doAction(() => adminEndRound(gameId, null), null, "full");
-                  }}
-                  className="w-full bg-slate-700/60 border border-slate-600/30 py-2.5 rounded-xl text-sm font-bold text-gray-300 active:scale-95 transition-transform"
-                >
-                  ⏹ Завершити раунд
-                </button>
+                <>
+                  <p className="text-[11px] text-amber-200/80 mb-2">
+                    Позначено вбитими: <span className="font-bold">{roundPendingKilledIds.length}</span>
+                  </p>
+                  <button
+                    onClick={() => submitRoundOutcome(null)}
+                    disabled={actionLoading}
+                    className="w-full bg-slate-700/60 border border-slate-600/30 py-2.5 rounded-xl text-sm font-bold text-gray-300 active:scale-95 transition-transform"
+                  >
+                    ⏹ Завершити раунд
+                  </button>
+                </>
               )}
             </div>
           )}
