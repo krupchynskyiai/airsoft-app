@@ -87,7 +87,8 @@ export const kickRidePassenger = (gameId, rideId, requestId) =>
   });
 
 // ---- Leaderboard ----
-export const getLeaderboard = () => api("/leaderboard");
+export const getLeaderboard = ({ limit = 20, offset = 0 } = {}) =>
+  api(`/leaderboard?limit=${encodeURIComponent(limit)}&offset=${encodeURIComponent(offset)}`);
 export const getTeamsLeaderboard = () => api("/leaderboard/teams");
 export const getSeasonStats = () => api("/leaderboard/season");
 

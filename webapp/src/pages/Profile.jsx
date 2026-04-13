@@ -1168,14 +1168,18 @@ export default function Profile({ profile, onReload }) {
           <div className="space-y-2">
             {profile.recentGames.map((g) => {
               const isFinished = g.status === "finished";
-              const isWin = isFinished && g.result === "win";
-              const isLoss = isFinished && g.result === "loss";
+              const resolvedResult = g.resolved_result || g.result;
+              const isWin = isFinished && resolvedResult === "win";
+              const isLoss = isFinished && resolvedResult === "loss";
+              const isDraw = isFinished && resolvedResult === "draw";
 
               const badgeBg = isFinished
                 ? isWin
                   ? "bg-emerald-600/20 text-emerald-400"
                   : isLoss
                   ? "bg-red-600/20 text-red-400"
+                  : isDraw
+                  ? "bg-amber-600/20 text-amber-300"
                   : "bg-slate-600/40 text-gray-300"
                 : "bg-slate-600/40 text-gray-300";
 
@@ -1184,12 +1188,20 @@ export default function Profile({ profile, onReload }) {
                   ? "bg-emerald-950/30 border-emerald-800/30"
                   : isLoss
                   ? "bg-red-950/20 border-red-900/20"
+                  : isDraw
+                  ? "bg-amber-950/20 border-amber-900/30"
                   : "bg-slate-900/40 border-slate-800/40"
                 : "bg-slate-900/40 border-slate-800/40";
 
               let labelText = "В ПРОЦЕСІ";
               if (isFinished) {
-                labelText = isWin ? "ПЕРЕМОГА" : isLoss ? "ПОРАЗКА" : "ЗАВЕРШЕНО";
+                labelText = isWin
+                  ? "ПЕРЕМОГА"
+                  : isLoss
+                  ? "ПОРАЗКА"
+                  : isDraw
+                  ? "НІЧИЯ"
+                  : "ЗАВЕРШЕНО";
               } else if (g.status === "checkin") {
                 labelText = "CHECK-IN";
               } else if (g.status === "upcoming") {
@@ -1204,7 +1216,7 @@ export default function Profile({ profile, onReload }) {
                   <div
                     className={`w-10 h-10 rounded-xl flex items-center justify-center text-sm font-black ${badgeBg}`}
                   >
-                    {isFinished ? (isWin ? "W" : isLoss ? "L" : "—") : "•"}
+                    {isFinished ? (isWin ? "W" : isLoss ? "L" : isDraw ? "D" : "—") : "•"}
                   </div>
 
                   <div className="flex-1 min-w-0">

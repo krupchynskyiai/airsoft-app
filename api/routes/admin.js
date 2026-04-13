@@ -1579,7 +1579,8 @@ async function calculateGameScores(gid) {
 
     // Під час swap’ів команди змінюються, тому “виграв/програв матч”
     // визначаємо за тим, чи більше раундів у нього виграли та програли його команди (по `rp.game_team`).
-    const isWinner = winnerTeam !== null && winRoundsAll > loseRoundsAll;
+    const isDraw = winnerTeam === null;
+    const isWinner = !isDraw && winRoundsAll > loseRoundsAll;
     const rawDeaths = deathMap[gp.player_id] || 0;
     const playerDeaths = outcomeOnly ? 0 : rawDeaths;
     const myRating = gp.rating || 0;
@@ -1606,7 +1607,8 @@ async function calculateGameScores(gid) {
     const basePts = Math.round(5 * multiplier);
 
     // Результативна частина
-    const rawWinBonus = isWinner ? 10 * multiplier : 0;
+    // Draw gets midpoint bonus between win and loss.
+    const rawWinBonus = isWinner ? 10 * multiplier : isDraw ? 5 * multiplier : 0;
     const rawSurvivalPts = 3 * multiplier * roundsSurvived;
     const rawAliveWinBonus = 2 * multiplier * roundsAliveAndWon;
     const rawAliveLoseBonus = 1 * multiplier * roundsAliveLost;
@@ -1636,6 +1638,7 @@ async function calculateGameScores(gid) {
       avgOpponentRating: Math.round(avgOpponentRating),
       ratingDiff: Math.round(ratingDiff),
       difficultyFactor: difficultyFactor.toFixed(2),
+      isDraw,
       isWinner,
       outcomeOnly,
       deaths: playerDeaths,

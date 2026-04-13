@@ -67,6 +67,31 @@ router.get("/profile", async (req, res) => {
       [player.id],
     );
 
+    // Resolve draw status for game history (based on finished rounds scoreline).
+    for (const game of recentGames) {
+      game.resolved_result = game.result;
+      if (game.status !== "finished") continue;
+
+      const roundWins = await q(
+        `SELECT winner_game_team, COUNT(*) AS wins
+         FROM rounds
+         WHERE game_id=? AND status='finished' AND winner_game_team IN ('A','B')
+         GROUP BY winner_game_team`,
+        [game.id],
+      );
+
+      if (!roundWins.length) {
+        game.resolved_result = "draw";
+        continue;
+      }
+
+      const topWins = Math.max(...roundWins.map((r) => r.wins || 0));
+      const leaders = roundWins.filter((r) => (r.wins || 0) === topWins);
+      if (leaders.length !== 1) {
+        game.resolved_result = "draw";
+      }
+    }
+
     // Survival stats by actual rounds (finished only)
     const roundsPlayedRow = await q1(
       `SELECT COUNT(*) AS c

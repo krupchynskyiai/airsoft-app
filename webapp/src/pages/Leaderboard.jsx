@@ -1,23 +1,41 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { getLeaderboard, getTeamsLeaderboard, getSeasonStats } from "../api";
 import { useTelegram } from "../hooks/useTelegram";
+import { getAvatarForLevel, getPlayerLevelState } from "../utils/playerLevel";
 
 const MEDALS = ["🥇", "🥈", "🥉"];
+const displayName = (p) => p?.callsign || p?.nickname || "—";
+const getPlayerAvatar = (rating) =>
+  getAvatarForLevel(getPlayerLevelState(Number(rating) || 0).level);
 
 export default function Leaderboard() {
+  const PAGE_SIZE = 20;
   const [tab, setTab] = useState("players");
   const [players, setPlayers] = useState([]);
+  const [playersHasMore, setPlayersHasMore] = useState(true);
+  const [playersLoadingMore, setPlayersLoadingMore] = useState(false);
   const [teams, setTeams] = useState([]);
   const [season, setSeason] = useState(null);
   const [loading, setLoading] = useState(true);
   const { haptic } = useTelegram();
+  const loadMoreRef = useRef(null);
 
-  useEffect(() => { load(); }, [tab]);
+  const loadPlayersPage = useCallback(async (offset, append) => {
+    const res = await getLeaderboard({ limit: PAGE_SIZE, offset });
+    const items = Array.isArray(res) ? res : res.items || [];
+    const hasMore = Array.isArray(res) ? items.length >= PAGE_SIZE : !!res.hasMore;
+    setPlayers((prev) => (append ? [...prev, ...items] : items));
+    setPlayersHasMore(hasMore);
+  }, []);
+
+  useEffect(() => { load(); }, [tab, loadPlayersPage]);
 
   async function load() {
     setLoading(true);
     try {
-      if (tab === "players") setPlayers(await getLeaderboard());
+      if (tab === "players") {
+        await loadPlayersPage(0, false);
+      }
       if (tab === "teams") setTeams(await getTeamsLeaderboard());
       if (tab === "season") setSeason(await getSeasonStats());
     } catch (e) {
@@ -26,6 +44,34 @@ export default function Leaderboard() {
       setLoading(false);
     }
   }
+
+  const loadMorePlayers = useCallback(async () => {
+    if (tab !== "players" || loading || playersLoadingMore || !playersHasMore) return;
+    setPlayersLoadingMore(true);
+    try {
+      await loadPlayersPage(players.length, true);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setPlayersLoadingMore(false);
+    }
+  }, [tab, loading, playersLoadingMore, playersHasMore, players.length, loadPlayersPage]);
+
+  useEffect(() => {
+    if (tab !== "players") return undefined;
+    if (!loadMoreRef.current) return undefined;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const first = entries[0];
+        if (first?.isIntersecting) {
+          loadMorePlayers();
+        }
+      },
+      { root: null, rootMargin: "120px", threshold: 0.01 },
+    );
+    observer.observe(loadMoreRef.current);
+    return () => observer.disconnect();
+  }, [tab, loadMorePlayers, players.length, playersHasMore, playersLoadingMore, loading]);
 
   const tabs = [
     { id: "players", label: "Гравці", icon: "👤" },
@@ -91,6 +137,7 @@ export default function Leaderboard() {
               <div className="space-y-2">
                 {players.slice(players.length >= 3 ? 3 : 0).map((p, i) => {
                   const rank = (players.length >= 3 ? 3 : 0) + i;
+                  const avatar = getPlayerAvatar(p.rating);
                   return (
                     <div
                       key={p.id}
@@ -99,11 +146,14 @@ export default function Leaderboard() {
                       <div className="w-8 text-center">
                         <span className="text-sm font-bold text-gray-500">{rank + 1}</span>
                       </div>
-                      <div className="w-10 h-10 rounded-xl bg-slate-700/60 flex items-center justify-center text-lg">
-                        🪖
+                      <div
+                        className={`w-10 h-10 rounded-xl bg-gradient-to-br ${avatar.bg} border border-white/10 flex items-center justify-center text-lg`}
+                        style={{ boxShadow: `0 0 0 1px ${avatar.ring}55` }}
+                      >
+                        {avatar.emoji}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="font-bold text-sm truncate">{p.nickname}</div>
+                        <div className="font-bold text-sm truncate">{displayName(p)}</div>
                         <div className="text-[11px] text-gray-500 flex items-center gap-2">
                           <span>{p.wins} перемог</span>
                           <span className="text-gray-700">•</span>
@@ -120,6 +170,10 @@ export default function Leaderboard() {
                   );
                 })}
               </div>
+              <div ref={loadMoreRef} className="h-8" />
+              {playersLoadingMore && (
+                <div className="text-center text-xs text-gray-500 py-2">Завантаження...</div>
+              )}
 
               {!players.length && <EmptyState emoji="🏆" text="Поки що порожньо" />}
             </div>
@@ -175,30 +229,39 @@ export default function Leaderboard() {
 
                   {/* Season leaderboard */}
                   <div className="space-y-2">
-                    {season.players.map((p, i) => (
-                      <div
-                        key={i}
-                        className={`flex items-center gap-3 p-3 rounded-2xl border ${
-                          i < 3
-                            ? "bg-gradient-to-r from-slate-800/80 to-slate-700/40 border-slate-600/40"
-                            : "bg-slate-800/40 border-slate-700/30"
-                        }`}
-                      >
-                        <div className="w-9 text-center text-lg">
-                          {i < 3 ? MEDALS[i] : <span className="text-sm text-gray-500">{i + 1}</span>}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="font-bold text-sm truncate">{p.nickname}</div>
-                          <div className="text-[11px] text-gray-500">
-                            {p.season_wins}W • {p.season_deaths || 0}D • {p.season_games}G
+                    {season.players.map((p, i) => {
+                      const avatar = getPlayerAvatar(p.season_rating);
+                      return (
+                        <div
+                          key={i}
+                          className={`flex items-center gap-3 p-3 rounded-2xl border ${
+                            i < 3
+                              ? "bg-gradient-to-r from-slate-800/80 to-slate-700/40 border-slate-600/40"
+                              : "bg-slate-800/40 border-slate-700/30"
+                          }`}
+                        >
+                          <div className="w-9 text-center text-lg">
+                            {i < 3 ? MEDALS[i] : <span className="text-sm text-gray-500">{i + 1}</span>}
+                          </div>
+                          <div
+                            className={`w-9 h-9 rounded-xl bg-gradient-to-br ${avatar.bg} border border-white/10 flex items-center justify-center text-base`}
+                            style={{ boxShadow: `0 0 0 1px ${avatar.ring}55` }}
+                          >
+                            {avatar.emoji}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="font-bold text-sm truncate">{displayName(p)}</div>
+                            <div className="text-[11px] text-gray-500">
+                              {p.season_wins}W • {p.season_deaths || 0}D • {p.season_games}G
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <div className="font-black text-emerald-400">{p.season_rating}</div>
+                            <div className="text-[10px] text-gray-600">очок</div>
                           </div>
                         </div>
-                        <div className="text-right">
-                          <div className="font-black text-emerald-400">{p.season_rating}</div>
-                          <div className="text-[10px] text-gray-600">очок</div>
-                        </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
 
                   {!season.players.length && <EmptyState emoji="📅" text="Сезон тільки почався" />}
@@ -216,6 +279,7 @@ export default function Leaderboard() {
 
 // ---- Podium card for top 3 ----
 function PodiumCard({ player, place }) {
+  const avatar = getPlayerAvatar(player?.rating);
   const heights = { 1: "h-32", 2: "h-24", 3: "h-20" };
   const sizes = { 1: "w-16 h-16 text-2xl", 2: "w-13 h-13 text-xl", 3: "w-13 h-13 text-xl" };
   const borders = { 1: "border-amber-500/40 ring-2 ring-amber-500/20", 2: "border-slate-400/40", 3: "border-orange-700/40" };
@@ -228,15 +292,18 @@ function PodiumCard({ player, place }) {
   return (
     <div className={`flex flex-col items-center ${place === 1 ? "order-2" : place === 2 ? "order-1" : "order-3"}`}>
       {/* Avatar */}
-      <div className={`rounded-2xl bg-slate-700/60 flex items-center justify-center mb-2 border-2 ${sizes[place]} ${borders[place]}`}>
-        🪖
+      <div
+        className={`rounded-2xl bg-gradient-to-br ${avatar.bg} flex items-center justify-center mb-2 border-2 ${sizes[place]} ${borders[place]}`}
+        style={{ boxShadow: `0 0 0 1px ${avatar.ring}66` }}
+      >
+        {avatar.emoji}
       </div>
 
       {/* Medal */}
       <div className="text-xl mb-1">{MEDALS[place - 1]}</div>
 
       {/* Name */}
-      <div className="text-xs font-bold text-center truncate max-w-[80px]">{player.nickname}</div>
+      <div className="text-xs font-bold text-center truncate max-w-[80px]">{displayName(player)}</div>
 
       {/* Rating bar */}
       <div className={`${heights[place]} w-20 mt-2 rounded-t-xl bg-gradient-to-t ${bgGradients[place]} border flex items-start justify-center pt-2`}>
