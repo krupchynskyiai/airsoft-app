@@ -7,6 +7,7 @@ import {
   adminRemoveFromBlacklist,
   adminGetLootRequests,
   adminDeactivateLoot,
+  adminGetSurveyResponses,
 } from "../api";
 import { useTelegram } from "../hooks/useTelegram";
 import PlayerSearch from "../components/PlayerSearch";
@@ -47,6 +48,14 @@ export default function Admin() {
       desc: "Підтвердження використання бонусів гравцями",
       color: "from-sky-600/20 to-indigo-700/10",
       border: "border-sky-700/40",
+    },
+    {
+      id: "survey",
+      icon: "📝",
+      label: "Опитування",
+      desc: "Відповіді гравців по досвіду",
+      color: "from-fuchsia-600/20 to-violet-700/10",
+      border: "border-fuchsia-700/40",
     },
   ];
 
@@ -141,6 +150,9 @@ export default function Admin() {
           )}
           {section === "loot" && (
             <LootRequestsForm onDone={() => setSection(null)} />
+          )}
+          {section === "survey" && (
+            <SurveyResponsesForm onDone={() => setSection(null)} />
           )}
         </div>
       )}
@@ -817,6 +829,125 @@ function LootRequestsForm({ onDone }) {
               OK
             </button>
           </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function SurveyResponsesForm({ onDone }) {
+  const [items, setItems] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const { showAlert } = useTelegram();
+
+  const overallLabel = {
+    great: "🔥 Дуже кайф",
+    ok: "👍 Норм",
+    meh: "😐 Так собі",
+    bad: "👎 Не зайшло",
+  };
+  const appLabel = {
+    helps_a_lot: "Дуже допомагає",
+    rather_yes: "Скоріше так",
+    rather_no: "Скоріше ні",
+    not_needed: "Взагалі не потрібен",
+  };
+  const likesLabel = {
+    atmosphere: "Атмосфера",
+    community: "Люди / комʼюніті",
+    organization: "Організація",
+    formats: "Формати ігор",
+    location: "Локація",
+    gameplay: "Динаміка / геймплей",
+    other: "Інше",
+  };
+  const improvementLabel = {
+    team_balance: "Баланс команд",
+    rules_clarity: "Чіткість правил",
+    refereeing: "Суддівство / контроль",
+    pace: "Темп гри",
+    respawns_mechanics: "Респавни / механіки",
+    other: "Інше",
+  };
+
+  async function load() {
+    try {
+      setLoading(true);
+      const res = await adminGetSurveyResponses(200, 0);
+      setItems(res.items || []);
+    } catch (e) {
+      showAlert(e.message || "Не вдалося завантажити відповіді");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    load();
+  }, []);
+
+  function fmtDate(v) {
+    if (!v) return "—";
+    const d = new Date(String(v).replace(" ", "T"));
+    if (Number.isNaN(d.getTime())) return String(v);
+    return d.toLocaleString("uk-UA");
+  }
+
+  return (
+    <div>
+      <div className="flex items-center gap-3 mb-4">
+        <div className="w-12 h-12 rounded-2xl bg-fuchsia-600/20 flex items-center justify-center text-2xl">
+          📝
+        </div>
+        <div className="flex-1">
+          <h3 className="text-lg font-black">Відповіді опитування</h3>
+          <p className="text-xs text-gray-500">Доступно тільки адміну</p>
+        </div>
+      </div>
+
+      <div className="flex items-center gap-2 mb-3">
+        <button
+          onClick={load}
+          disabled={loading}
+          className="px-3 py-2 rounded-xl bg-slate-800/70 border border-slate-700/50 text-xs font-semibold disabled:opacity-50"
+        >
+          {loading ? "Оновлення..." : "Оновити"}
+        </button>
+        <button
+          onClick={onDone}
+          className="px-3 py-2 rounded-xl bg-slate-800/70 border border-slate-700/50 text-xs font-semibold"
+        >
+          Закрити
+        </button>
+      </div>
+
+      {loading ? (
+        <div className="text-sm text-gray-400">Завантаження...</div>
+      ) : items.length === 0 ? (
+        <div className="bg-slate-800/40 border border-slate-700/30 rounded-2xl p-4 text-sm text-gray-400">
+          Відповідей ще немає.
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {items.map((it) => (
+            <div key={it.id} className="bg-slate-800/60 border border-slate-700/40 rounded-2xl p-3">
+              <div className="flex items-center justify-between gap-2">
+                <div className="text-sm font-bold">{it.player_name}</div>
+                <div className="text-[10px] text-gray-500">{fmtDate(it.created_at)}</div>
+              </div>
+              <div className="text-[11px] text-gray-500 mb-2">
+                @{it.telegram_username || "—"} • {it.survey_key}
+              </div>
+              <div className="space-y-1 text-xs text-gray-200">
+                <div><span className="text-gray-500">Досвід:</span> {overallLabel[it.overall_experience] || it.overall_experience}</div>
+                <div><span className="text-gray-500">Подобається:</span> {(it.likes || []).map((x) => likesLabel[x] || x).join(", ") || "—"}</div>
+                <div><span className="text-gray-500">Болить:</span> {it.pain_points || "—"}</div>
+                <div><span className="text-gray-500">Покращити:</span> {(it.improvements || []).map((x) => improvementLabel[x] || x).join(", ") || "—"}</div>
+                <div><span className="text-gray-500">Про додаток:</span> {appLabel[it.app_helpfulness] || it.app_helpfulness}</div>
+                <div><span className="text-gray-500">Чого бракує:</span> {it.missing_feature || "—"}</div>
+              </div>
+            </div>
+          ))}
         </div>
       )}
     </div>

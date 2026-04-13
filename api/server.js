@@ -37,6 +37,7 @@ function createServer() {
   app.use("/api/games", require("./routes/games"));
   app.use("/api/teams", require("./routes/teams"));
   app.use("/api/leaderboard", require("./routes/leaderboard"));
+  app.use("/api/survey", require("./routes/survey"));
   app.use("/api/loot", require("./routes/loot"));
   app.use("/api/admin", require("./routes/admin"));
 

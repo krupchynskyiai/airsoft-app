@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useTelegram } from "./hooks/useTelegram";
-import { getProfile, setCallsign } from "./api";
+import { getProfile, setCallsign, getSurveyStatus, submitSurvey } from "./api";
 import Profile from "./pages/Profile";
 import Games from "./pages/Games";
 import GameDetail from "./pages/GameDetail";
@@ -18,8 +18,11 @@ const TABS = [
   { id: "admin", icon: "⚙️", activeIcon: "⚙️", label: "Адмін" },
 ];
 
+const SURVEY_KEY = "game-experience-2026-v1";
+const SURVEY_PROMPT_KEY_PREFIX = `survey_prompt_seen_${SURVEY_KEY}_`;
+
 export default function App() {
-  const { user, haptic } = useTelegram();
+  const { user, haptic, showAlert } = useTelegram();
 
   const [tab, setTab] = useState("profile");
   const [prevTab, setPrevTab] = useState(null);
@@ -33,6 +36,11 @@ export default function App() {
   const [callsignStep, setCallsignStep] = useState("input"); // input | confirm
   const [callsignSaving, setCallsignSaving] = useState(false);
   const [callsignError, setCallsignError] = useState("");
+  const [surveyStatus, setSurveyStatus] = useState(null);
+  const [showSurveyPromptModal, setShowSurveyPromptModal] = useState(false);
+  const [showSurveyFormModal, setShowSurveyFormModal] = useState(false);
+  const [surveySubmitting, setSurveySubmitting] = useState(false);
+  const [surveyError, setSurveyError] = useState("");
 
   const contentRef = useRef(null);
 
@@ -80,6 +88,31 @@ export default function App() {
       setShowCallsignModal(false);
     }
   }, [profile]);
+
+  useEffect(() => {
+    async function checkSurveyPrompt() {
+      const playerId = profile?.player?.id;
+      if (!profile?.registered || !playerId) return;
+
+      try {
+        const status = await getSurveyStatus();
+        setSurveyStatus(status);
+        if (status?.submitted) {
+          setShowSurveyPromptModal(false);
+          return;
+        }
+
+        const today = new Date().toISOString().slice(0, 10);
+        const seenKey = `${SURVEY_PROMPT_KEY_PREFIX}${playerId}`;
+        const lastSeenDay = window.localStorage.getItem(seenKey);
+        if (lastSeenDay === today) return;
+        setShowSurveyPromptModal(true);
+      } catch (e) {
+        // ignore silently to avoid interrupting app flow
+      }
+    }
+    checkSurveyPrompt();
+  }, [profile?.registered, profile?.player?.id]);
 
   async function loadProfile() {
     try {
@@ -166,6 +199,31 @@ export default function App() {
       setCallsignError(e.message || "Не вдалося зберегти позивний");
     } finally {
       setCallsignSaving(false);
+    }
+  }
+
+  function postponeSurveyForToday() {
+    const playerId = profile?.player?.id;
+    if (!playerId) return;
+    const today = new Date().toISOString().slice(0, 10);
+    const seenKey = `${SURVEY_PROMPT_KEY_PREFIX}${playerId}`;
+    window.localStorage.setItem(seenKey, today);
+    setShowSurveyPromptModal(false);
+  }
+
+  async function submitSurveyAnswers(payload) {
+    try {
+      setSurveySubmitting(true);
+      setSurveyError("");
+      await submitSurvey(payload);
+      setSurveyStatus({ submitted: true, submitted_at: new Date().toISOString() });
+      setShowSurveyFormModal(false);
+      setShowSurveyPromptModal(false);
+      showAlert("Дякуємо за фідбек! 💚");
+    } catch (e) {
+      setSurveyError(e.message || "Не вдалося зберегти відповіді");
+    } finally {
+      setSurveySubmitting(false);
     }
   }
 
@@ -437,6 +495,251 @@ export default function App() {
           </div>
         </div>
       )}
+
+      {showSurveyPromptModal && !showSurveyFormModal && !surveyStatus?.submitted && (
+        <div className="fixed inset-0 z-[68] flex items-center justify-center px-4">
+          <div className="absolute inset-0 bg-black/65 backdrop-blur-sm" />
+          <div className="relative z-10 w-full max-w-sm rounded-3xl border border-slate-700/60 bg-slate-900/95 p-5">
+            <div className="text-center mb-2">
+              <div className="text-3xl mb-1">📝</div>
+              <h3 className="text-sm font-black text-emerald-300 uppercase tracking-[0.15em]">
+                Опитування
+              </h3>
+            </div>
+            <p className="text-sm text-gray-300 text-center">
+              Допоможи покращити ігри та додаток. Це займе 1-2 хвилини.
+            </p>
+            <div className="grid grid-cols-2 gap-2 mt-4">
+              <button
+                type="button"
+                onClick={postponeSurveyForToday}
+                className="py-2.5 rounded-2xl bg-slate-800 border border-slate-700 text-xs font-semibold"
+              >
+                Пізніше
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowSurveyPromptModal(false);
+                  setShowSurveyFormModal(true);
+                }}
+                className="py-2.5 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 text-black text-xs font-black"
+              >
+                Пройти
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showSurveyFormModal && (
+        <SurveyFormModal
+          submitting={surveySubmitting}
+          error={surveyError}
+          onClose={() => {
+            setShowSurveyFormModal(false);
+            postponeSurveyForToday();
+          }}
+          onSubmit={submitSurveyAnswers}
+        />
+      )}
+    </div>
+  );
+}
+
+function SurveyFormModal({ submitting, error, onClose, onSubmit }) {
+  const [overall, setOverall] = useState("");
+  const [likes, setLikes] = useState([]);
+  const [painPoints, setPainPoints] = useState("");
+  const [improvements, setImprovements] = useState([]);
+  const [appHelpfulness, setAppHelpfulness] = useState("");
+  const [missingFeature, setMissingFeature] = useState("");
+  const [localError, setLocalError] = useState("");
+
+  function toggleMulti(value, setFn) {
+    setFn((prev) =>
+      prev.includes(value) ? prev.filter((x) => x !== value) : [...prev, value],
+    );
+  }
+
+  async function submit() {
+    if (!overall) return setLocalError("Оберіть загальний досвід");
+    if (!appHelpfulness) return setLocalError("Оберіть оцінку по додатку");
+    setLocalError("");
+    await onSubmit({
+      overall_experience: overall,
+      likes,
+      pain_points: painPoints,
+      improvements,
+      app_helpfulness: appHelpfulness,
+      missing_feature: missingFeature,
+    });
+  }
+
+  const likesOptions = [
+    ["atmosphere", "Атмосфера"],
+    ["community", "Люди / комʼюніті"],
+    ["organization", "Організація"],
+    ["formats", "Формати ігор"],
+    ["location", "Локація"],
+    ["gameplay", "Динаміка / геймплей"],
+    ["other", "Інше"],
+  ];
+
+  const improvementsOptions = [
+    ["team_balance", "Баланс команд"],
+    ["rules_clarity", "Чіткість правил"],
+    ["refereeing", "Суддівство / контроль"],
+    ["pace", "Темп гри"],
+    ["respawns_mechanics", "Респавни / механіки"],
+    ["other", "Інше"],
+  ];
+
+  return (
+    <div className="fixed inset-0 z-[80] flex items-center justify-center px-3 py-4">
+      <div className="absolute inset-0 bg-black/75 backdrop-blur-sm" />
+      <div className="relative z-10 w-full max-w-xl max-h-[92vh] overflow-y-auto rounded-3xl border border-slate-700/50 bg-slate-900/95 p-4">
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-sm font-black text-emerald-300 uppercase tracking-[0.15em]">
+            Опитування
+          </h3>
+          <button
+            type="button"
+            onClick={onClose}
+            disabled={submitting}
+            className="px-2 py-1 rounded-lg bg-slate-800 border border-slate-700 text-xs"
+          >
+            Закрити
+          </button>
+        </div>
+
+        <div className="space-y-4">
+          <div>
+            <p className="text-xs text-gray-400 mb-2">1. Як тобі останні ігри в цілому?</p>
+            <div className="grid grid-cols-2 gap-2">
+              {[
+                ["great", "🔥 Дуже кайф"],
+                ["ok", "👍 Норм"],
+                ["meh", "😐 Так собі"],
+                ["bad", "👎 Не зайшло"],
+              ].map(([id, label]) => (
+                <button
+                  key={id}
+                  type="button"
+                  onClick={() => setOverall(id)}
+                  className={`py-2 rounded-xl border text-xs ${
+                    overall === id
+                      ? "bg-emerald-600/20 border-emerald-500/50 text-emerald-200"
+                      : "bg-slate-800/50 border-slate-700/50 text-gray-300"
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <p className="text-xs text-gray-400 mb-2">2. Що тобі найбільше подобається? (мультивибір)</p>
+            <div className="grid grid-cols-2 gap-2">
+              {likesOptions.map(([id, label]) => (
+                <button
+                  key={id}
+                  type="button"
+                  onClick={() => toggleMulti(id, setLikes)}
+                  className={`py-2 rounded-xl border text-xs ${
+                    likes.includes(id)
+                      ? "bg-emerald-600/20 border-emerald-500/50 text-emerald-200"
+                      : "bg-slate-800/50 border-slate-700/50 text-gray-300"
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <p className="text-xs text-gray-400 mb-2">3. Що найбільше бісить або не подобається?</p>
+            <textarea
+              value={painPoints}
+              onChange={(e) => setPainPoints(e.target.value)}
+              rows={3}
+              className="w-full bg-slate-800/60 border border-slate-700/50 rounded-2xl p-2.5 text-sm"
+              placeholder="Тут можна написати вільно"
+            />
+          </div>
+
+          <div>
+            <p className="text-xs text-gray-400 mb-2">4. Що б ти хотів(ла) покращити в самій грі? (мультивибір)</p>
+            <div className="grid grid-cols-2 gap-2">
+              {improvementsOptions.map(([id, label]) => (
+                <button
+                  key={id}
+                  type="button"
+                  onClick={() => toggleMulti(id, setImprovements)}
+                  className={`py-2 rounded-xl border text-xs ${
+                    improvements.includes(id)
+                      ? "bg-emerald-600/20 border-emerald-500/50 text-emerald-200"
+                      : "bg-slate-800/50 border-slate-700/50 text-gray-300"
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <p className="text-xs text-gray-400 mb-2">5. Чи допомагає додаток у грі?</p>
+            <div className="grid grid-cols-2 gap-2">
+              {[
+                ["helps_a_lot", "Дуже допомагає"],
+                ["rather_yes", "Скоріше так"],
+                ["rather_no", "Скоріше ні"],
+                ["not_needed", "Взагалі не потрібен"],
+              ].map(([id, label]) => (
+                <button
+                  key={id}
+                  type="button"
+                  onClick={() => setAppHelpfulness(id)}
+                  className={`py-2 rounded-xl border text-xs ${
+                    appHelpfulness === id
+                      ? "bg-emerald-600/20 border-emerald-500/50 text-emerald-200"
+                      : "bg-slate-800/50 border-slate-700/50 text-gray-300"
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <p className="text-xs text-gray-400 mb-2">6. Якої функції тобі не вистачає в додатку?</p>
+            <textarea
+              value={missingFeature}
+              onChange={(e) => setMissingFeature(e.target.value)}
+              rows={3}
+              className="w-full bg-slate-800/60 border border-slate-700/50 rounded-2xl p-2.5 text-sm"
+              placeholder="Напиши ідею"
+            />
+          </div>
+
+          {(localError || error) && (
+            <div className="text-[11px] text-red-400">{localError || error}</div>
+          )}
+
+          <button
+            type="button"
+            onClick={submit}
+            disabled={submitting}
+            className="w-full py-3 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 text-black text-sm font-black disabled:opacity-50"
+          >
+            {submitting ? "Надсилання..." : "Відправити опитування"}
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

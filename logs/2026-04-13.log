@@ -1,0 +1,6 @@
+[2026-04-13T06:41:47.327Z] [INFO] Connecting MySQL... | {"host":"s5.thehost.com.ua","database":"airsoft_db"}
+[2026-04-13T06:41:47.623Z] [INFO] MySQL OK
+[2026-04-13T06:44:16.928Z] [INFO] Connecting MySQL... | {"host":"s5.thehost.com.ua","database":"airsoft_db"}
+[2026-04-13T06:44:17.053Z] [INFO] MySQL OK
+[2026-04-13T07:07:41.895Z] [INFO] Connecting MySQL... | {"host":"s5.thehost.com.ua","database":"airsoft_db"}
+[2026-04-13T07:07:42.004Z] [INFO] MySQL OK

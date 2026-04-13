@@ -91,6 +91,9 @@ export const getLeaderboard = ({ limit = 20, offset = 0 } = {}) =>
   api(`/leaderboard?limit=${encodeURIComponent(limit)}&offset=${encodeURIComponent(offset)}`);
 export const getTeamsLeaderboard = () => api("/leaderboard/teams");
 export const getSeasonStats = () => api("/leaderboard/season");
+export const getSurveyStatus = () => api("/survey/status");
+export const submitSurvey = (payload) =>
+  api("/survey/submit", { method: "POST", body: payload });
 
 // ---- Teams ----
 export const createTeam = (name) =>
@@ -191,3 +194,5 @@ export const adminRemoveFromBlacklist = (playerId) =>
     method: "POST",
     body: { player_id: playerId },
   });
+export const adminGetSurveyResponses = (limit = 100, offset = 0) =>
+  api(`/admin/survey/responses?limit=${encodeURIComponent(limit)}&offset=${encodeURIComponent(offset)}`);

@@ -1248,6 +1248,72 @@ router.post("/blacklist/remove", async (req, res) => {
   }
 });
 
+// GET /api/admin/survey/responses — list survey answers (admin only)
+router.get("/survey/responses", async (req, res) => {
+  try {
+    const limitRaw = Number(req.query.limit);
+    const offsetRaw = Number(req.query.offset);
+    const limit = Number.isInteger(limitRaw)
+      ? Math.min(Math.max(limitRaw, 1), 200)
+      : 100;
+    const offset = Number.isInteger(offsetRaw)
+      ? Math.max(offsetRaw, 0)
+      : 0;
+
+    const rows = await q(
+      `SELECT
+          s.id,
+          s.survey_key,
+          s.overall_experience,
+          s.likes_json,
+          s.pain_points,
+          s.improvements_json,
+          s.app_helpfulness,
+          s.missing_feature,
+          s.created_at,
+          s.updated_at,
+          p.id AS player_id,
+          COALESCE(p.callsign, p.nickname) AS player_name,
+          p.telegram_username
+       FROM player_feedback_surveys s
+       JOIN players p ON p.id = s.player_id
+       ORDER BY s.created_at DESC
+       LIMIT ? OFFSET ?`,
+      [limit, offset],
+    );
+
+    const items = rows.map((r) => {
+      let likes = [];
+      let improvements = [];
+      try {
+        likes = JSON.parse(r.likes_json || "[]");
+      } catch {}
+      try {
+        improvements = JSON.parse(r.improvements_json || "[]");
+      } catch {}
+      return {
+        id: r.id,
+        survey_key: r.survey_key,
+        player_id: r.player_id,
+        player_name: r.player_name,
+        telegram_username: r.telegram_username,
+        overall_experience: r.overall_experience,
+        likes,
+        pain_points: r.pain_points || "",
+        improvements,
+        app_helpfulness: r.app_helpfulness,
+        missing_feature: r.missing_feature || "",
+        created_at: r.created_at,
+        updated_at: r.updated_at,
+      };
+    });
+
+    res.json({ items, limit, offset });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 // GET /api/admin/games/:id/equipment-stock
 router.get("/games/:id/equipment-stock", async (req, res) => {
   try {
@@ -1468,19 +1534,6 @@ async function calculateGameScores(gid) {
 
   const g = await q1("SELECT * FROM games WHERE id=?", [gid]);
 
-  const playerCountRow = await q1(
-    "SELECT COUNT(*) as c FROM game_players WHERE game_id=? AND attendance='checked_in'",
-    [gid],
-  );
-  const playerCount = playerCountRow?.c || 1;
-
-  const multiplier = Math.max(1, Math.log(playerCount) / Math.log(6));
-
-  log.info("Score multiplier", {
-    playerCount,
-    multiplier: multiplier.toFixed(2),
-  });
-
   const roundWins = await q(
     "SELECT winner_game_team, COUNT(*) as wins FROM rounds WHERE game_id=? AND status='finished' AND winner_game_team IN ('A','B') GROUP BY winner_game_team ORDER BY wins DESC",
     [gid],
@@ -1504,14 +1557,71 @@ async function calculateGameScores(gid) {
     deathMap[d.killed_player_id] = d.deaths;
   });
 
-  // Беремо рейтинг гравця прямо тут
-  const gps = await q(
+  // Беремо поточних checked-in гравців.
+  // Важливо: кікнутий під час активної гри гравець може вже бути видалений із game_players,
+  // але він є у round_players. Такі гравці теж мають отримати очки за зіграні раунди.
+  const gpsCheckedIn = await q(
     `SELECT gp.*, p.rating
      FROM game_players gp
      JOIN players p ON p.id = gp.player_id
      WHERE gp.game_id=? AND gp.attendance='checked_in'`,
     [gid],
   );
+
+  const roundParticipantIds = roundOutcomeStats.map((s) => s.player_id);
+  const checkedInIds = new Set(gpsCheckedIn.map((p) => p.player_id));
+  const missingRoundParticipantIds = roundParticipantIds.filter(
+    (pid) => !checkedInIds.has(pid),
+  );
+
+  let missingParticipants = [];
+  if (missingRoundParticipantIds.length) {
+    const placeholders = missingRoundParticipantIds.map(() => "?").join(",");
+    const missingRatings = await q(
+      `SELECT id AS player_id, rating
+       FROM players
+       WHERE id IN (${placeholders})`,
+      missingRoundParticipantIds,
+    );
+
+    const latestTeams = await q(
+      `SELECT rp.player_id, rp.game_team
+       FROM round_players rp
+       JOIN rounds r ON r.id = rp.round_id
+       JOIN (
+         SELECT rp2.player_id, MAX(r2.round_number) AS max_round_number
+         FROM round_players rp2
+         JOIN rounds r2 ON r2.id = rp2.round_id
+         WHERE r2.game_id=? AND r2.status='finished'
+         GROUP BY rp2.player_id
+       ) last_by_player
+         ON last_by_player.player_id = rp.player_id
+        AND last_by_player.max_round_number = r.round_number
+       WHERE r.game_id=? AND r.status='finished'`,
+      [gid, gid],
+    );
+    const latestTeamMap = new Map(
+      latestTeams.map((row) => [row.player_id, row.game_team || null]),
+    );
+
+    missingParticipants = missingRatings.map((p) => ({
+      player_id: p.player_id,
+      rating: p.rating || 0,
+      game_team: latestTeamMap.get(p.player_id) || null,
+    }));
+  }
+
+  const gps = [...gpsCheckedIn, ...missingParticipants];
+
+  const playerCount = gps.length || 1;
+  const multiplier = Math.max(1, Math.log(playerCount) / Math.log(6));
+
+  log.info("Score multiplier", {
+    playerCount,
+    multiplier: multiplier.toFixed(2),
+    checkedInCount: gpsCheckedIn.length,
+    missingRoundParticipants: missingParticipants.length,
+  });
 
   // Підрахунки по раундах мають брати `round_players.game_team`, а не фінальний `game_players.game_team`,
   // бо команди можуть оновлюватись під час гри.
