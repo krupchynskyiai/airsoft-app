@@ -1,5 +1,6 @@
 const { Router } = require("express");
-const { q1, ins } = require("../../database/helpers");
+const { q1 } = require("../../database/helpers");
+const { getDB } = require("../../database/connection");
 
 const router = Router();
 
@@ -65,9 +66,12 @@ router.get("/status", async (req, res) => {
 });
 
 router.post("/submit", async (req, res) => {
+  const conn = await getDB().getConnection();
   try {
     const playerId = req.player?.id;
-    if (!playerId) return res.status(400).json({ error: "Not registered" });
+    if (!playerId) {
+      return res.status(400).json({ error: "Not registered" });
+    }
 
     const body = req.body || {};
     const overall = String(body.overall_experience || "").trim();
@@ -84,33 +88,110 @@ router.post("/submit", async (req, res) => {
       return res.status(400).json({ error: "Invalid app_helpfulness value" });
     }
 
-    await ins(
-      `INSERT INTO player_feedback_surveys
-        (player_id, survey_key, overall_experience, likes_json, pain_points, improvements_json, app_helpfulness, missing_feature)
-       VALUES (?,?,?,?,?,?,?,?)
-       ON DUPLICATE KEY UPDATE
-         overall_experience=VALUES(overall_experience),
-         likes_json=VALUES(likes_json),
-         pain_points=VALUES(pain_points),
-         improvements_json=VALUES(improvements_json),
-         app_helpfulness=VALUES(app_helpfulness),
-         missing_feature=VALUES(missing_feature),
-         updated_at=NOW()`,
-      [
-        playerId,
-        SURVEY_KEY,
-        overall,
-        JSON.stringify(likes),
-        painPoints,
-        JSON.stringify(improvements),
-        appHelp,
-        missingFeature,
-      ],
-    );
+    await conn.beginTransaction();
 
-    res.json({ success: true });
+    const [existingRows] = await conn.execute(
+      `SELECT id
+       FROM player_feedback_surveys
+       WHERE player_id=? AND survey_key=?
+       FOR UPDATE`,
+      [playerId, SURVEY_KEY],
+    );
+    const hadSubmission = !!existingRows[0];
+
+    if (!hadSubmission) {
+      await conn.execute(
+        `INSERT INTO player_feedback_surveys
+          (player_id, survey_key, overall_experience, likes_json, pain_points, improvements_json, app_helpfulness, missing_feature)
+         VALUES (?,?,?,?,?,?,?,?)`,
+        [
+          playerId,
+          SURVEY_KEY,
+          overall,
+          JSON.stringify(likes),
+          painPoints,
+          JSON.stringify(improvements),
+          appHelp,
+          missingFeature,
+        ],
+      );
+    } else {
+      await conn.execute(
+        `UPDATE player_feedback_surveys
+         SET overall_experience=?,
+             likes_json=?,
+             pain_points=?,
+             improvements_json=?,
+             app_helpfulness=?,
+             missing_feature=?,
+             updated_at=NOW()
+         WHERE player_id=? AND survey_key=?`,
+        [
+          overall,
+          JSON.stringify(likes),
+          painPoints,
+          JSON.stringify(improvements),
+          appHelp,
+          missingFeature,
+          playerId,
+          SURVEY_KEY,
+        ],
+      );
+    }
+
+    let bonusSpinGranted = false;
+    if (!hadSubmission) {
+      const [playerRows] = await conn.execute(
+        "SELECT rating FROM players WHERE id=? FOR UPDATE",
+        [playerId],
+      );
+      const rating = Number(playerRows[0]?.rating || 0);
+      const formulaSpins = Math.floor(rating / 50);
+
+      const [spinRows] = await conn.execute(
+        "SELECT total_spins_earned, spins_used, free_spin_granted FROM player_spins WHERE player_id=? FOR UPDATE",
+        [playerId],
+      );
+      const ps = spinRows[0];
+
+      if (!ps) {
+        await conn.execute(
+          `INSERT INTO player_spins
+            (player_id, total_spins_earned, spins_used, free_spin_granted)
+           VALUES (?,?,0,1)`,
+          [playerId, formulaSpins + 2], // formula + base free + survey bonus
+        );
+      } else {
+        const hadFree = !!ps.free_spin_granted;
+        const baseline = formulaSpins + (hadFree ? 1 : 0);
+        const normalizedCurrent = Math.max(
+          Number(ps.total_spins_earned || 0),
+          hadFree ? baseline : formulaSpins + 1,
+        );
+        const newTotal = normalizedCurrent + 1; // one-time survey bonus spin
+
+        await conn.execute(
+          `UPDATE player_spins
+           SET total_spins_earned=?,
+               free_spin_granted=1
+           WHERE player_id=?`,
+          [newTotal, playerId],
+        );
+      }
+      bonusSpinGranted = true;
+    }
+
+    await conn.commit();
+    res.json({ success: true, bonus_spin_granted: bonusSpinGranted });
   } catch (e) {
+    try {
+      await conn.rollback();
+    } catch {
+      // ignore rollback errors
+    }
     res.status(500).json({ error: e.message });
+  } finally {
+    conn.release();
   }
 });
 
