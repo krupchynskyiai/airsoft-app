@@ -26,7 +26,7 @@ router.get("/profile", async (req, res) => {
     }
 
     if (!base) {
-      return res.json({ registered: false, is_admin: false });
+      return res.json({ registered: false, is_admin: false, is_organizer: false });
     }
 
     const player = await q1(
@@ -37,7 +37,7 @@ router.get("/profile", async (req, res) => {
     );
 
     if (!player) {
-      return res.json({ registered: false, is_admin: false });
+      return res.json({ registered: false, is_admin: false, is_organizer: false });
     }
 
     const badges = await q(
@@ -122,12 +122,14 @@ router.get("/profile", async (req, res) => {
 
     const config = require("../../config");
     const isAdmin = config.ADMINS.includes(tgId);
+    const isOrganizer = (config.ORGANIZERS || []).includes(tgId);
 
     log.info("Profile API", { tgId, isAdmin, admins: config.ADMINS });
 
     res.json({
       registered: true,
       is_admin: isAdmin,
+      is_organizer: isOrganizer,
       player: {
         id: player.id,
         nickname: player.nickname,

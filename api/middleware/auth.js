@@ -234,9 +234,24 @@ function adminMiddleware(req, res, next) {
   next();
 }
 
+function adminOrOrganizerMiddleware(req, res, next) {
+  if (process.env.DEV_MODE === "true") {
+    return next();
+  }
+
+  const uid = req.tgUser?.id;
+  const isAdmin = config.ADMINS.includes(uid);
+  const isOrganizer = config.ORGANIZERS.includes(uid);
+  if (!isAdmin && !isOrganizer) {
+    return res.status(403).json({ error: "Admin or organizer only" });
+  }
+  next();
+}
+
 module.exports = {
   authMiddleware,
   adminMiddleware,
+  adminOrOrganizerMiddleware,
   validateInitData,
   loadPlayerByTelegram,
 };

@@ -30,6 +30,7 @@ export default function App() {
   const [loading, setLoading] = useState(true);
   const [selectedGameId, setSelectedGameId] = useState(null);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isOrganizer, setIsOrganizer] = useState(false);
   const [slideDir, setSlideDir] = useState("right");
   const [showCallsignModal, setShowCallsignModal] = useState(false);
   const [callsignDraft, setCallsignDraft] = useState("");
@@ -130,10 +131,12 @@ export default function App() {
       if (!data) throw lastError || new Error("Profile load failed");
       setProfile(data);
       setIsAdmin(data.is_admin === true);
+      setIsOrganizer(data.is_organizer === true);
     } catch (e) {
       console.error("Profile load error:", e);
       setProfile({ registered: false, profileLoadFailed: true });
       setIsAdmin(false);
+      setIsOrganizer(false);
     } finally {
       setLoading(false);
     }
@@ -306,6 +309,7 @@ export default function App() {
             <GameDetail
               gameId={selectedGameId}
               isAdmin={isAdmin}
+              isOrganizer={isOrganizer}
               onBack={() => {
                 setSlideDir("left");
                 setPrevTab(tab);

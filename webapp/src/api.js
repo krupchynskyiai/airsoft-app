@@ -27,6 +27,35 @@ async function api(path, options = {}) {
   return data;
 }
 
+async function apiDownload(path, options = {}) {
+  const { method = "GET", body } = options;
+  const headers = {
+    "Content-Type": "application/json",
+    "x-telegram-init-data": getInitData(),
+  };
+
+  const res = await fetch(`${API_BASE}${path}`, {
+    method,
+    headers,
+    body: body ? JSON.stringify(body) : undefined,
+  });
+
+  if (!res.ok) {
+    let errMsg = "API error";
+    try {
+      const data = await res.json();
+      errMsg = data.error || errMsg;
+    } catch {}
+    throw new Error(errMsg);
+  }
+
+  const blob = await res.blob();
+  const dispo = res.headers.get("content-disposition") || "";
+  const match = dispo.match(/filename="?([^"]+)"?/i);
+  const filename = match?.[1] || "download.xlsx";
+  return { blob, filename };
+}
+
 // ---- Player ----
 export const getProfile = () => api("/profile");
 export const setCallsign = (callsign) =>
@@ -57,6 +86,11 @@ export const checkinGame = (id) =>
 export const reportDead = (id) =>
   api(`/games/${id}/imdead`, { method: "POST" });
 export const getRoundStatus = (id) => api(`/games/${id}/round`);
+export const getGameBilling = (id) => api(`/games/${id}/billing`);
+export const updateGameBilling = (id, playerId, payload) =>
+  api(`/games/${id}/billing/${playerId}`, { method: "POST", body: payload });
+export const downloadGameBillingExport = (id, view = "admin") =>
+  apiDownload(`/games/${id}/billing/export?view=${encodeURIComponent(view)}`);
 export const getMvpState = (id) => api(`/games/${id}/mvp-state`);
 export const voteMvp = (id, roundId, targetPlayerId) =>
   api(`/games/${id}/mvp-vote`, {

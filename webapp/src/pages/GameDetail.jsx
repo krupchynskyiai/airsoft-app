@@ -6,6 +6,9 @@ import {
   checkinGame,
   reportDead,
   getRoundStatus,
+  getGameBilling,
+  updateGameBilling,
+  downloadGameBillingExport,
   getMvpState,
   adminEndRoundBatch,
   adminSetGameStatus,
@@ -31,6 +34,14 @@ const TEAM_COLORS = {
   A: { bg: "bg-amber-500/15", border: "border-amber-500/35", text: "text-amber-300", label: "🟡 Team A", dot: "bg-amber-400" },
   B: { bg: "bg-blue-500/15", border: "border-blue-500/30", text: "text-blue-400", label: "🔵 Team B", dot: "bg-blue-400" },
 };
+const BILLING_FIELDS = [
+  { key: "extra_weapon", label: "Доп зброя та спорядження" },
+  { key: "bb", label: "Кулі" },
+  { key: "grenade", label: "Гранати" },
+  { key: "smoke", label: "Дим" },
+  { key: "mini_bar", label: "Міні-бар" },
+  { key: "repair", label: "Ремонт" },
+];
 
 function formatNick(n) {
   const s = String(n || "").trim();
@@ -94,7 +105,7 @@ function useRoundTimer(startedAt, isActive) {
   return `${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
 }
 
-export default function GameDetail({ gameId, onBack, isAdmin }) {
+export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = false }) {
   const [data, setData] = useState(null);
   const [round, setRound] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -123,6 +134,14 @@ export default function GameDetail({ gameId, onBack, isAdmin }) {
   const [adminEquipmentItems, setAdminEquipmentItems] = useState([]);
   const [adminEqLoading, setAdminEqLoading] = useState(false);
   const [roundPendingKilledIds, setRoundPendingKilledIds] = useState([]);
+  const [billingData, setBillingData] = useState(null);
+  const [billingLoading, setBillingLoading] = useState(false);
+  const [billingModalPlayer, setBillingModalPlayer] = useState(null);
+  const [billingForm, setBillingForm] = useState({});
+  const [billingSaving, setBillingSaving] = useState(false);
+  const [billingPreviewBasePrice, setBillingPreviewBasePrice] = useState(
+    isAdmin ? 700 : 500,
+  );
 
   const isLoadingRef = useRef(false);
 
@@ -204,6 +223,16 @@ export default function GameDetail({ gameId, onBack, isAdmin }) {
   }, [isAdmin, data?.game?.id]);
 
   useEffect(() => {
+    if (!isAdmin && !isOrganizer) return;
+    if (!gameId) return;
+    loadBillingData();
+  }, [isAdmin, isOrganizer, gameId]);
+
+  useEffect(() => {
+    setBillingPreviewBasePrice(isAdmin ? 700 : 500);
+  }, [isAdmin]);
+
+  useEffect(() => {
     if (!showJoinEquipmentModal) return undefined;
     const prevOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
@@ -243,6 +272,63 @@ export default function GameDetail({ gameId, onBack, isAdmin }) {
       showAlert(e.message || "Не вдалося оновити спорядження");
     } finally {
       setAdminEqLoading(false);
+    }
+  }
+
+  async function loadBillingData() {
+    if (!isAdmin && !isOrganizer) return;
+    try {
+      setBillingLoading(true);
+      const d = await getGameBilling(gameId);
+      setBillingData(d);
+    } catch {
+      setBillingData(null);
+    } finally {
+      setBillingLoading(false);
+    }
+  }
+
+  function openBillingEditor(player) {
+    setBillingModalPlayer(player);
+    setBillingForm({
+      ...player.billing,
+    });
+  }
+
+  function setBillingField(key, value) {
+    setBillingForm((prev) => ({ ...prev, [key]: value }));
+  }
+
+  async function saveBillingForPlayer() {
+    if (!billingModalPlayer) return;
+    try {
+      setBillingSaving(true);
+      await updateGameBilling(gameId, billingModalPlayer.player_id, billingForm);
+      await loadBillingData();
+      setBillingModalPlayer(null);
+      showAlert("✅ Розрахунок збережено");
+    } catch (e) {
+      showAlert(e.message || "Не вдалося зберегти розрахунок");
+      haptic("error");
+    } finally {
+      setBillingSaving(false);
+    }
+  }
+
+  async function downloadBilling(view) {
+    try {
+      const { blob, filename } = await downloadGameBillingExport(gameId, view);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } catch (e) {
+      showAlert(e.message || "Не вдалося сформувати XLSX");
+      haptic("error");
     }
   }
 
@@ -455,6 +541,7 @@ export default function GameDetail({ gameId, onBack, isAdmin }) {
     typeof g.max_players === "number"
       ? Math.max(0, g.max_players - players.length)
       : null;
+  const canManageBilling = isAdmin || isOrganizer;
   const equipmentItems = equipmentState?.items || [];
 
   const joinAdditionalCost = Object.entries(joinEquipmentMap).reduce((sum, [itemKey, qty]) => {
@@ -466,6 +553,24 @@ export default function GameDetail({ gameId, onBack, isAdmin }) {
   }, 0);
   const joinTotalCost = (Number(g.payment) || 0) + joinAdditionalCost;
   const pendingDeadSet = new Set(roundPendingKilledIds);
+  const billingPreviewRows = (billingData?.players || []).map((p, idx) => {
+    const c = p?.computed?.categories || {};
+    const extras = Number(p?.computed?.extras_total || 0);
+    const total = Number(billingPreviewBasePrice || 0) + extras;
+    return {
+      idx: idx + 1,
+      name: p.player_name,
+      total,
+      base: Number(billingPreviewBasePrice || 0),
+      extra_weapon: Number(c.extra_weapon || 0),
+      bb: Number(c.bb || 0),
+      grenade: Number(c.grenade || 0),
+      smoke: Number(c.smoke || 0),
+      mini_bar: Number(c.mini_bar || 0),
+      repair: Number(c.repair || 0),
+    };
+  });
+  const billingPreviewGrandTotal = billingPreviewRows.reduce((sum, r) => sum + r.total, 0);
 
   return (
     <div className="pb-6">
@@ -1590,6 +1695,163 @@ export default function GameDetail({ gameId, onBack, isAdmin }) {
         </div>
       )}
 
+      {/* ---- Organizer/Admin billing (game child module) ---- */}
+      {canManageBilling && g.status !== "cancelled" && (
+        <div className="bg-fuchsia-950/15 border border-fuchsia-800/30 rounded-2xl p-4 mb-5">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <span className="text-base">🧾</span>
+              <h3 className="text-sm font-bold text-fuchsia-300 uppercase tracking-wider">
+                Розрахунок по грі
+              </h3>
+            </div>
+            <button
+              type="button"
+              onClick={loadBillingData}
+              className="px-2 py-1 rounded-lg bg-slate-800/70 border border-slate-700/40 text-[10px] font-bold text-gray-300"
+            >
+              Оновити
+            </button>
+          </div>
+
+          <div className="text-[11px] text-gray-400 mb-3">
+            Редагування доступне для гравців з підтвердженим check-in.
+          </div>
+
+          <div className="grid grid-cols-2 gap-2 mb-3">
+            <button
+              type="button"
+              onClick={() => downloadBilling("admin")}
+              className="py-2 rounded-xl bg-emerald-700/40 border border-emerald-600/40 text-xs font-bold text-emerald-200"
+            >
+              XLSX Admin (700)
+            </button>
+            <button
+              type="button"
+              onClick={() => downloadBilling("organizer")}
+              className="py-2 rounded-xl bg-sky-700/40 border border-sky-600/40 text-xs font-bold text-sky-200"
+            >
+              XLSX Organizer (500)
+            </button>
+          </div>
+
+          {billingLoading ? (
+            <div className="text-xs text-gray-500">Завантаження...</div>
+          ) : (
+            <>
+              <div className="space-y-1.5 max-h-64 overflow-y-auto pr-1">
+                {(billingData?.players || []).map((p) => (
+                  <div
+                    key={`bill-${p.player_id}`}
+                    className="flex items-center justify-between py-1.5 px-2 rounded-xl bg-slate-800/60 border border-slate-700/30"
+                  >
+                    <div className="min-w-0">
+                      <div className="text-xs font-semibold text-gray-200 truncate">
+                        {formatNick(p.player_name)}
+                      </div>
+                      <div className="text-[10px] text-gray-500">
+                        Допи: {p?.computed?.extras_total || 0} грн
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => openBillingEditor(p)}
+                      className="px-2 py-1 rounded-lg bg-fuchsia-700/40 border border-fuchsia-600/40 text-[10px] font-bold text-fuchsia-200"
+                    >
+                      Редагувати
+                    </button>
+                  </div>
+                ))}
+                {!(billingData?.players || []).length && (
+                  <div className="text-xs text-gray-500">Немає гравців з check-in.</div>
+                )}
+              </div>
+
+              {!!billingPreviewRows.length && (
+                <div className="mt-3 rounded-2xl border border-slate-700/40 bg-slate-900/40 p-2">
+                  <div className="flex items-center justify-between gap-2 mb-2">
+                    <p className="text-[11px] font-semibold uppercase tracking-wider text-gray-300">
+                      Preview таблиці
+                    </p>
+                    <div className="flex items-center gap-1">
+                      <button
+                        type="button"
+                        onClick={() => setBillingPreviewBasePrice(700)}
+                        className={`px-2 py-1 rounded-lg text-[10px] font-bold border ${
+                          billingPreviewBasePrice === 700
+                            ? "bg-emerald-600/30 border-emerald-500/50 text-emerald-200"
+                            : "bg-slate-800/70 border-slate-700/40 text-gray-300"
+                        }`}
+                      >
+                        700
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setBillingPreviewBasePrice(500)}
+                        className={`px-2 py-1 rounded-lg text-[10px] font-bold border ${
+                          billingPreviewBasePrice === 500
+                            ? "bg-sky-600/30 border-sky-500/50 text-sky-200"
+                            : "bg-slate-800/70 border-slate-700/40 text-gray-300"
+                        }`}
+                      >
+                        500
+                      </button>
+                    </div>
+                  </div>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-[10px]">
+                      <thead>
+                        <tr className="text-gray-400 border-b border-slate-700/40">
+                          <th className="py-1 pr-2 text-left">№</th>
+                          <th className="py-1 pr-2 text-left">Позивний</th>
+                          <th className="py-1 pr-2 text-right">Загальна</th>
+                          <th className="py-1 pr-2 text-right">Ціна</th>
+                          <th className="py-1 pr-2 text-right">Доп зброя</th>
+                          <th className="py-1 pr-2 text-right">Кулі</th>
+                          <th className="py-1 pr-2 text-right">Гранати</th>
+                          <th className="py-1 pr-2 text-right">Дим</th>
+                          <th className="py-1 pr-2 text-right">Міні-бар</th>
+                          <th className="py-1 text-right">Ремонт</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {billingPreviewRows.map((r) => (
+                          <tr key={`prev-${r.idx}-${r.name}`} className="border-b border-slate-800/50">
+                            <td className="py-1 pr-2">{r.idx}</td>
+                            <td className="py-1 pr-2 whitespace-nowrap">{formatNick(r.name)}</td>
+                            <td className="py-1 pr-2 text-right font-bold text-emerald-300">{r.total}</td>
+                            <td className="py-1 pr-2 text-right">{r.base}</td>
+                            <td className="py-1 pr-2 text-right">{r.extra_weapon}</td>
+                            <td className="py-1 pr-2 text-right">{r.bb}</td>
+                            <td className="py-1 pr-2 text-right">{r.grenade}</td>
+                            <td className="py-1 pr-2 text-right">{r.smoke}</td>
+                            <td className="py-1 pr-2 text-right">{r.mini_bar}</td>
+                            <td className="py-1 text-right">{r.repair}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                  <div className="mt-2 text-right text-xs font-bold text-emerald-300">
+                    Загалом: {billingPreviewGrandTotal} грн
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      )}
+      {billingModalPlayer && (
+        <BillingEditorModal
+          player={billingModalPlayer}
+          value={billingForm}
+          onChange={setBillingField}
+          onClose={() => setBillingModalPlayer(null)}
+          onSave={saveBillingForPlayer}
+          saving={billingSaving}
+        />
+      )}
+
       {/* ---- Between rounds: MVP voting + start next round ---- */}
       {isBetweenRounds && (
         <div className="space-y-3 mb-5">
@@ -2080,6 +2342,99 @@ function SmallButton({ onClick, icon, label, color }) {
     <button onClick={onClick} className={`flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-bold border active:scale-95 transition-transform ${colors[color] || colors.emerald}`}>
       <span>{icon}</span> {label}
     </button>
+  );
+}
+
+function BillingEditorModal({ player, value, onChange, onClose, onSave, saving }) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 p-3">
+      <div className="w-full max-w-lg rounded-2xl bg-slate-900 border border-slate-700/50 overflow-hidden">
+        <div className="p-4 border-b border-slate-700/40 flex items-center justify-between">
+          <div>
+            <div className="font-black">🧾 Розрахунок</div>
+            <div className="text-xs text-gray-400">{formatNick(player?.player_name)}</div>
+          </div>
+          <button
+            onClick={onClose}
+            className="px-3 py-1.5 rounded-xl bg-slate-800/70 border border-slate-700/40 text-xs font-bold text-gray-200 active:scale-95"
+          >
+            ✕
+          </button>
+        </div>
+
+        <div className="p-4 space-y-3 max-h-[70vh] overflow-y-auto">
+          {BILLING_FIELDS.map((f) => {
+            const mode = value?.[`${f.key}_mode`] || "amount";
+            return (
+              <div key={f.key} className="rounded-xl border border-slate-700/40 bg-slate-800/50 p-3">
+                <div className="flex items-center justify-between gap-2 mb-2">
+                  <div className="text-xs font-semibold text-gray-200">{f.label}</div>
+                  <select
+                    value={mode}
+                    onChange={(e) => onChange(`${f.key}_mode`, e.target.value)}
+                    className="bg-slate-900/70 border border-slate-700/40 rounded-lg px-2 py-1 text-[11px]"
+                  >
+                    <option value="amount">Сума</option>
+                    <option value="qty_price">К-сть × Ціна</option>
+                  </select>
+                </div>
+                {mode === "amount" ? (
+                  <input
+                    type="number"
+                    min={0}
+                    value={value?.[`${f.key}_amount`] ?? 0}
+                    onChange={(e) =>
+                      onChange(
+                        `${f.key}_amount`,
+                        e.target.value === "" ? 0 : Number(e.target.value),
+                      )
+                    }
+                    className="w-full bg-slate-900/70 border border-slate-700/40 rounded-lg px-2 py-1 text-xs"
+                    placeholder="Сума"
+                  />
+                ) : (
+                  <div className="grid grid-cols-2 gap-2">
+                    <input
+                      type="number"
+                      min={0}
+                      value={value?.[`${f.key}_qty`] ?? 0}
+                      onChange={(e) =>
+                        onChange(
+                          `${f.key}_qty`,
+                          e.target.value === "" ? 0 : Number(e.target.value),
+                        )
+                      }
+                      className="w-full bg-slate-900/70 border border-slate-700/40 rounded-lg px-2 py-1 text-xs"
+                      placeholder="К-сть"
+                    />
+                    <input
+                      type="number"
+                      min={0}
+                      value={value?.[`${f.key}_unit_price`] ?? 0}
+                      onChange={(e) =>
+                        onChange(
+                          `${f.key}_unit_price`,
+                          e.target.value === "" ? 0 : Number(e.target.value),
+                        )
+                      }
+                      className="w-full bg-slate-900/70 border border-slate-700/40 rounded-lg px-2 py-1 text-xs"
+                      placeholder="Ціна"
+                    />
+                  </div>
+                )}
+              </div>
+            );
+          })}
+          <button
+            onClick={onSave}
+            disabled={saving}
+            className="w-full bg-gradient-to-r from-fuchsia-600 to-violet-600 py-3.5 rounded-2xl font-bold text-[15px] shadow-lg transition-all active:scale-[0.98] disabled:opacity-50"
+          >
+            {saving ? <Spinner /> : "✅ Зберегти"}
+          </button>
+        </div>
+      </div>
+    </div>
   );
 }
 
