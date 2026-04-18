@@ -146,6 +146,9 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
   const [billingModalPlayer, setBillingModalPlayer] = useState(null);
   const [billingForm, setBillingForm] = useState({});
   const [billingSaving, setBillingSaving] = useState(false);
+  const [playerActionTarget, setPlayerActionTarget] = useState(null);
+  const [prepaymentModalPlayer, setPrepaymentModalPlayer] = useState(null);
+  const [prepaymentModalAmount, setPrepaymentModalAmount] = useState("");
   const [settlementData, setSettlementData] = useState(null);
   const [settlementLoading, setSettlementLoading] = useState(false);
   const [settlementSavingKey, setSettlementSavingKey] = useState(null);
@@ -398,6 +401,43 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
       showAlert("✅ Передоплату збережено");
     } catch (e) {
       showAlert(e.message || "Не вдалося зберегти передоплату");
+      haptic("error");
+    } finally {
+      setSettlementSavingKey(null);
+    }
+  }
+
+  function openPlayerActions(player) {
+    if (!isAdmin) return;
+    setPlayerActionTarget(player);
+  }
+
+  function openPrepaymentModalForPlayer(player) {
+    if (!player) return;
+    setPlayerActionTarget(null);
+    setPrepaymentModalPlayer(player);
+    const current = prepaymentDrafts[player.player_id];
+    setPrepaymentModalAmount(current !== undefined ? String(current) : "0");
+  }
+
+  async function submitPlayerPrepayment() {
+    if (!prepaymentModalPlayer) return;
+    const playerId = prepaymentModalPlayer.player_id;
+    try {
+      setSettlementSavingKey(`prepay-modal-${playerId}`);
+      const amount = Number(prepaymentModalAmount || 0);
+      await upsertGamePrepayment(gameId, playerId, {
+        amount: Number.isFinite(amount) ? Math.max(0, Math.floor(amount)) : 0,
+      });
+      setPrepaymentDrafts((prev) => ({
+        ...prev,
+        [playerId]: String(Number.isFinite(amount) ? Math.max(0, Math.floor(amount)) : 0),
+      }));
+      await loadSettlementData();
+      setPrepaymentModalPlayer(null);
+      showAlert("✅ Передплату зараховано");
+    } catch (e) {
+      showAlert(e.message || "Не вдалося зарахувати передплату");
       haptic("error");
     } finally {
       setSettlementSavingKey(null);
@@ -2086,6 +2126,23 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
           saving={billingSaving}
         />
       )}
+      {playerActionTarget && (
+        <PlayerActionsModal
+          player={playerActionTarget}
+          onClose={() => setPlayerActionTarget(null)}
+          onPrepayment={() => openPrepaymentModalForPlayer(playerActionTarget)}
+        />
+      )}
+      {prepaymentModalPlayer && (
+        <PrepaymentModal
+          player={prepaymentModalPlayer}
+          amount={prepaymentModalAmount}
+          saving={settlementSavingKey === `prepay-modal-${prepaymentModalPlayer.player_id}`}
+          onChangeAmount={setPrepaymentModalAmount}
+          onClose={() => setPrepaymentModalPlayer(null)}
+          onSave={submitPlayerPrepayment}
+        />
+      )}
 
       {/* ---- Between rounds: MVP voting + start next round ---- */}
       {isBetweenRounds && (
@@ -2363,7 +2420,12 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
               key={p.player_id}
               className="flex items-center justify-between py-2.5 px-2 rounded-xl hover:bg-slate-700/20 transition-colors"
             >
-              <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={() => openPlayerActions(p)}
+                className={`flex items-center gap-3 text-left ${isAdmin ? "hover:opacity-80" : "cursor-default"}`}
+                disabled={!isAdmin}
+              >
                 <div
                   className={`w-2.5 h-2.5 rounded-full ${
                     p.attendance === "checked_in"
@@ -2391,7 +2453,7 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
                     </span>
                   )}
                 </div>
-              </div>
+              </button>
               <div className="flex items-center gap-2">
                 {p.team_name && (
                   <span className="text-[11px] text-gray-500 truncate max-w-[110px]">
@@ -2577,6 +2639,75 @@ function SmallButton({ onClick, icon, label, color }) {
     <button onClick={onClick} className={`flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-bold border active:scale-95 transition-transform ${colors[color] || colors.emerald}`}>
       <span>{icon}</span> {label}
     </button>
+  );
+}
+
+function PlayerActionsModal({ player, onClose, onPrepayment }) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 p-3">
+      <div className="w-full max-w-sm rounded-2xl bg-slate-900 border border-slate-700/50 overflow-hidden">
+        <div className="p-4 border-b border-slate-700/40 flex items-center justify-between">
+          <div>
+            <div className="font-black text-sm">Дії з гравцем</div>
+            <div className="text-xs text-gray-400">{formatNick(player?.nickname || player?.player_name)}</div>
+          </div>
+          <button
+            onClick={onClose}
+            className="px-3 py-1.5 rounded-xl bg-slate-800/70 border border-slate-700/40 text-xs font-bold text-gray-200 active:scale-95"
+          >
+            ✕
+          </button>
+        </div>
+        <div className="p-3">
+          <button
+            type="button"
+            onClick={onPrepayment}
+            className="w-full text-left px-3 py-3 rounded-xl bg-emerald-700/30 border border-emerald-600/40 text-sm font-semibold text-emerald-200 active:scale-[0.99]"
+          >
+            💳 Зарахувати передплату
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function PrepaymentModal({ player, amount, onChangeAmount, onClose, onSave, saving }) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 p-3">
+      <div className="w-full max-w-sm rounded-2xl bg-slate-900 border border-slate-700/50 overflow-hidden">
+        <div className="p-4 border-b border-slate-700/40 flex items-center justify-between">
+          <div>
+            <div className="font-black text-sm">Зарахувати передплату</div>
+            <div className="text-xs text-gray-400">{formatNick(player?.nickname || player?.player_name)}</div>
+          </div>
+          <button
+            onClick={onClose}
+            className="px-3 py-1.5 rounded-xl bg-slate-800/70 border border-slate-700/40 text-xs font-bold text-gray-200 active:scale-95"
+          >
+            ✕
+          </button>
+        </div>
+        <div className="p-4 space-y-3">
+          <label className="block text-xs text-gray-400">Сума, грн</label>
+          <input
+            type="number"
+            min={0}
+            value={amount}
+            onChange={(e) => onChangeAmount(e.target.value)}
+            className="w-full bg-slate-900/70 border border-slate-700/40 rounded-lg px-3 py-2 text-sm"
+          />
+          <button
+            type="button"
+            onClick={onSave}
+            disabled={saving}
+            className="w-full py-2.5 rounded-xl bg-emerald-600/80 text-sm font-bold text-black disabled:opacity-50"
+          >
+            {saving ? "Збереження..." : "Зарахувати"}
+          </button>
+        </div>
+      </div>
+    </div>
   );
 }
 

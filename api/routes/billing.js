@@ -531,8 +531,8 @@ router.post("/:id/prepayments/:playerId", adminMiddleware, async (req, res) => {
       "SELECT attendance FROM game_players WHERE game_id=? AND player_id=?",
       [gid, playerId],
     );
-    if (!reg || reg.attendance !== "checked_in") {
-      return res.status(400).json({ error: "Player is not checked-in for this game" });
+    if (!reg || reg.attendance === "no_show") {
+      return res.status(400).json({ error: "Player is not eligible for prepayment in this game" });
     }
 
     const amount = parseMoneyAmount(req.body?.amount);
