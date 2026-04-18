@@ -11,7 +11,7 @@ module.exports = {
     .filter((x) => Number.isInteger(x) && x > 0),
   CHANNEL_ID: process.env.CHANNEL_ID,
   BOT_USERNAME: process.env.BOT_USERNAME || "banana_airsoft_app_bot",
-  PAYMENT_CARD_NUMBER: process.env.PAYMENT_CARD_NUMBER || "",
+  PAYMENT_CARD_NUMBER: process.env.PAYMENT_CARD_NUMBER || "4441114452431495",
   LOG_LEVEL: process.env.LOG_LEVEL || "info",
   WEBAPP_URL: process.env.WEBAPP_URL,
   DB: {
