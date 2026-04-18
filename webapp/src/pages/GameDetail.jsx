@@ -2418,14 +2418,14 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
           {players.map((p) => (
             <div
               key={p.player_id}
-              className="flex items-center justify-between py-2.5 px-2 rounded-xl hover:bg-slate-700/20 transition-colors"
+              onClick={() => {
+                if (isAdmin) openPlayerActions(p);
+              }}
+              className={`flex items-center justify-between py-2.5 px-2 rounded-xl transition-colors ${
+                isAdmin ? "hover:bg-slate-700/20 cursor-pointer" : "hover:bg-slate-700/20"
+              }`}
             >
-              <button
-                type="button"
-                onClick={() => openPlayerActions(p)}
-                className={`flex items-center gap-3 text-left ${isAdmin ? "hover:opacity-80" : "cursor-default"}`}
-                disabled={!isAdmin}
-              >
+              <div className="flex items-center gap-3 text-left">
                 <div
                   className={`w-2.5 h-2.5 rounded-full ${
                     p.attendance === "checked_in"
@@ -2453,7 +2453,7 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
                     </span>
                   )}
                 </div>
-              </button>
+              </div>
               <div className="flex items-center gap-2">
                 {p.team_name && (
                   <span className="text-[11px] text-gray-500 truncate max-w-[110px]">
@@ -2467,12 +2467,15 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
                   (p.game_team === "A" || p.game_team === "B") && (
                     <div className="flex items-center gap-1 ml-1">
                       <button
-                        onClick={() =>
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          return (
                           doAction(
                             () => adminMoveGameTeam(gameId, p.player_id, "A"),
                             "Гравця переміщено в команду A",
                           )
-                        }
+                          );
+                        }}
                         className={`px-2 py-1 rounded-lg text-[10px] font-semibold active:scale-95 transition-all ${
                           p.game_team === "A"
                             ? "bg-amber-600 text-white"
@@ -2482,12 +2485,15 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
                         A
                       </button>
                       <button
-                        onClick={() =>
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          return (
                           doAction(
                             () => adminMoveGameTeam(gameId, p.player_id, "B"),
                             "Гравця переміщено в команду B",
                           )
-                        }
+                          );
+                        }}
                         className={`px-2 py-1 rounded-lg text-[10px] font-semibold active:scale-95 transition-all ${
                           p.game_team === "B"
                             ? "bg-blue-600 text-white"
@@ -2503,7 +2509,8 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
                   g.status !== "cancelled" &&
                   p.attendance !== "no_show" && (
                     <button
-                      onClick={async () => {
+                      onClick={async (e) => {
+                        e.stopPropagation();
                         const ok = await showConfirm(
                           `Виключити ${formatNick(p.nickname)} з гри?`,
                         );
