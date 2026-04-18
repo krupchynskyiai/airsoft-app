@@ -1405,7 +1405,9 @@ router.get("/loot/requests", async (req, res) => {
     const rows = await q(
       `SELECT lr.id,
               lr.player_id,
+              p.callsign AS player_callsign,
               p.nickname AS player_nickname,
+              COALESCE(p.callsign, p.nickname) AS player_name,
               lr.reward_key,
               lr.rarity,
               lr.image_url,

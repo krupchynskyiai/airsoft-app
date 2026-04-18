@@ -752,7 +752,7 @@ function LootRequestsForm({ onDone }) {
             >
               <div className="flex items-start justify-between gap-3">
                 <div>
-                  <div className="text-sm font-bold">{rw.player_nickname}</div>
+                  <div className="text-sm font-bold">{rw.player_name || rw.player_callsign || rw.player_nickname}</div>
                   <div className="text-xs text-gray-300">{rw.reward_title || rw.reward_key}</div>
                   {rw.reward_description ? (
                     <div className="text-[11px] text-gray-500 mt-0.5">
@@ -788,7 +788,7 @@ function LootRequestsForm({ onDone }) {
               Позначити бонус як використаний?
             </p>
             <p className="text-xs text-gray-400 mb-1">
-              {confirmReward.player_nickname}
+              {confirmReward.player_name || confirmReward.player_callsign || confirmReward.player_nickname}
             </p>
             <p className="text-xs text-sky-300 mb-4">
               {confirmReward.reward_title || confirmReward.reward_key}
