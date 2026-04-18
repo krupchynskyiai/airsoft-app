@@ -1409,7 +1409,10 @@ ${info}`,
 ⏱ Тривалість: <b>${game.duration || "—"}</b>
 🪙 Вартість участі: <b>${game.payment} грн</b>`;
 
-        if (remainingBefore === 0 && remainingAfter > 0) {
+        if (remainingAfter > 5) {
+          // Do not spam channel updates when free slots are already comfortably available.
+          msg = null;
+        } else if (remainingBefore === 0 && remainingAfter > 0) {
           // was full, now at least 1 free slot
           msg = `✅ <b>З'явилося вільне місце!</b>
 

@@ -9,6 +9,13 @@ import {
   getGameBilling,
   updateGameBilling,
   downloadGameBillingExport,
+  getGameSettlements,
+  upsertGamePrepayment,
+  markGamePlayerPaid,
+  getGameUnpaid,
+  getMyGameSettlement,
+  notifyGamePaymentsMass,
+  notifyGamePaymentSingle,
   getMvpState,
   adminEndRoundBatch,
   adminSetGameStatus,
@@ -139,6 +146,12 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
   const [billingModalPlayer, setBillingModalPlayer] = useState(null);
   const [billingForm, setBillingForm] = useState({});
   const [billingSaving, setBillingSaving] = useState(false);
+  const [settlementData, setSettlementData] = useState(null);
+  const [settlementLoading, setSettlementLoading] = useState(false);
+  const [settlementSavingKey, setSettlementSavingKey] = useState(null);
+  const [unpaidOnly, setUnpaidOnly] = useState(false);
+  const [prepaymentDrafts, setPrepaymentDrafts] = useState({});
+  const [mySettlement, setMySettlement] = useState(null);
   const [billingPreviewBasePrice, setBillingPreviewBasePrice] = useState(
     isAdmin ? 700 : 500,
   );
@@ -223,10 +236,28 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
   }, [isAdmin, data?.game?.id]);
 
   useEffect(() => {
-    if (!isAdmin && !isOrganizer) return;
+    if (!isAdmin) return;
     if (!gameId) return;
     loadBillingData();
-  }, [isAdmin, isOrganizer, gameId]);
+    loadSettlementData();
+  }, [isAdmin, gameId, unpaidOnly]);
+
+  useEffect(() => {
+    if (!gameId) return;
+    let cancelled = false;
+    async function loadMySettlement() {
+      try {
+        const data = await getMyGameSettlement(gameId);
+        if (!cancelled) setMySettlement(data);
+      } catch {
+        if (!cancelled) setMySettlement(null);
+      }
+    }
+    loadMySettlement();
+    return () => {
+      cancelled = true;
+    };
+  }, [gameId]);
 
   useEffect(() => {
     setBillingPreviewBasePrice(isAdmin ? 700 : 500);
@@ -276,7 +307,7 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
   }
 
   async function loadBillingData() {
-    if (!isAdmin && !isOrganizer) return;
+    if (!isAdmin) return;
     try {
       setBillingLoading(true);
       const d = await getGameBilling(gameId);
@@ -285,6 +316,29 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
       setBillingData(null);
     } finally {
       setBillingLoading(false);
+    }
+  }
+
+  async function loadSettlementData() {
+    if (!isAdmin) return;
+    try {
+      setSettlementLoading(true);
+      const d = unpaidOnly ? await getGameUnpaid(gameId) : await getGameSettlements(gameId);
+      const rows = d?.rows || [];
+      setSettlementData(d);
+      setPrepaymentDrafts((prev) => {
+        const next = { ...prev };
+        rows.forEach((r) => {
+          if (next[r.player_id] === undefined) {
+            next[r.player_id] = String(r?.settlement?.prepayment_amount || 0);
+          }
+        });
+        return next;
+      });
+    } catch {
+      setSettlementData(null);
+    } finally {
+      setSettlementLoading(false);
     }
   }
 
@@ -305,6 +359,7 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
       setBillingSaving(true);
       await updateGameBilling(gameId, billingModalPlayer.player_id, billingForm);
       await loadBillingData();
+      await loadSettlementData();
       setBillingModalPlayer(null);
       showAlert("✅ Розрахунок збережено");
     } catch (e) {
@@ -329,6 +384,64 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
     } catch (e) {
       showAlert(e.message || "Не вдалося сформувати XLSX");
       haptic("error");
+    }
+  }
+
+  async function savePrepayment(playerId) {
+    try {
+      setSettlementSavingKey(`prepay-${playerId}`);
+      const amount = Number(prepaymentDrafts[playerId] || 0);
+      await upsertGamePrepayment(gameId, playerId, {
+        amount: Number.isFinite(amount) ? Math.max(0, Math.floor(amount)) : 0,
+      });
+      await loadSettlementData();
+      showAlert("✅ Передоплату збережено");
+    } catch (e) {
+      showAlert(e.message || "Не вдалося зберегти передоплату");
+      haptic("error");
+    } finally {
+      setSettlementSavingKey(null);
+    }
+  }
+
+  async function markPlayerPaid(playerId, debtAmount) {
+    try {
+      setSettlementSavingKey(`paid-${playerId}`);
+      await markGamePlayerPaid(gameId, playerId, { amount: debtAmount });
+      await loadSettlementData();
+      showAlert("✅ Оплату відмічено");
+    } catch (e) {
+      showAlert(e.message || "Не вдалося відмітити оплату");
+      haptic("error");
+    } finally {
+      setSettlementSavingKey(null);
+    }
+  }
+
+  async function notifyPlayerDebt(playerId) {
+    try {
+      setSettlementSavingKey(`notify-${playerId}`);
+      await notifyGamePaymentSingle(gameId, playerId);
+      showAlert("✅ Повідомлення відправлено");
+    } catch (e) {
+      showAlert(e.message || "Не вдалося відправити повідомлення");
+      haptic("error");
+    } finally {
+      setSettlementSavingKey(null);
+    }
+  }
+
+  async function notifyAllDebtors() {
+    try {
+      setSettlementSavingKey("notify-mass");
+      const result = await notifyGamePaymentsMass(gameId);
+      const sent = Number(result?.sent || 0);
+      showAlert(`✅ Відправлено: ${sent}`);
+    } catch (e) {
+      showAlert(e.message || "Не вдалося відправити розсилку");
+      haptic("error");
+    } finally {
+      setSettlementSavingKey(null);
     }
   }
 
@@ -541,8 +654,9 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
     typeof g.max_players === "number"
       ? Math.max(0, g.max_players - players.length)
       : null;
-  const canManageBilling = isAdmin || isOrganizer;
+  const canManageBilling = isAdmin;
   const equipmentItems = equipmentState?.items || [];
+  const settlementRows = settlementData?.rows || [];
 
   const joinAdditionalCost = Object.entries(joinEquipmentMap).reduce((sum, [itemKey, qty]) => {
     const n = Number(qty) || 0;
@@ -635,6 +749,18 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
                 💳 Моя сума: <span className="font-semibold text-emerald-300">{myTotalCost} грн</span>
                 {" "}
                 <span className="text-xs text-gray-500">(база {g.payment || 0} + допи {myEquipmentTotal || 0})</span>
+              </p>
+            )}
+            {mySettlement?.settlement && (
+              <p className="text-gray-300">
+                🧾 Мій чек:{" "}
+                <span className="font-semibold text-emerald-300">
+                  {mySettlement.settlement.gross_due_public || 0} грн
+                </span>
+                {" "}
+                <span className="text-xs text-gray-500">
+                  (сплачено {mySettlement.settlement.paid_total || 0}, борг {mySettlement.settlement.debt_public || 0})
+                </span>
               </p>
             )}
           </div>
@@ -1707,7 +1833,10 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
             </div>
             <button
               type="button"
-              onClick={loadBillingData}
+              onClick={async () => {
+                await loadBillingData();
+                await loadSettlementData();
+              }}
               className="px-2 py-1 rounded-lg bg-slate-800/70 border border-slate-700/40 text-[10px] font-bold text-gray-300"
             >
               Оновити
@@ -1718,20 +1847,22 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
             Редагування доступне для гравців з підтвердженим check-in.
           </div>
 
-          <div className="grid grid-cols-2 gap-2 mb-3">
-            <button
-              type="button"
-              onClick={() => downloadBilling("admin")}
-              className="py-2 rounded-xl bg-emerald-700/40 border border-emerald-600/40 text-xs font-bold text-emerald-200"
-            >
-              XLSX Admin (700)
-            </button>
+          <div className="grid grid-cols-1 gap-2 mb-3">
+            {isAdmin && (
+              <button
+                type="button"
+                onClick={() => downloadBilling("admin_public")}
+                className="py-2 rounded-xl bg-emerald-700/40 border border-emerald-600/40 text-xs font-bold text-emerald-200"
+              >
+                XLSX Публічний список оплат
+              </button>
+            )}
             <button
               type="button"
               onClick={() => downloadBilling("organizer")}
               className="py-2 rounded-xl bg-sky-700/40 border border-sky-600/40 text-xs font-bold text-sky-200"
             >
-              XLSX Organizer (500)
+              XLSX Організаторський розрахунок
             </button>
           </div>
 
@@ -1764,6 +1895,110 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
                 ))}
                 {!(billingData?.players || []).length && (
                   <div className="text-xs text-gray-500">Немає гравців з check-in.</div>
+                )}
+              </div>
+
+              <div className="mt-3 rounded-2xl border border-slate-700/40 bg-slate-900/40 p-2">
+                <div className="flex items-center justify-between gap-2 mb-2">
+                  <p className="text-[11px] font-semibold uppercase tracking-wider text-gray-300">
+                    Оплати та борги
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setUnpaidOnly((v) => !v)}
+                      className={`px-2 py-1 rounded-lg text-[10px] font-bold border ${
+                        unpaidOnly
+                          ? "bg-amber-600/30 border-amber-500/50 text-amber-200"
+                          : "bg-slate-800/70 border-slate-700/40 text-gray-300"
+                      }`}
+                    >
+                      {unpaidOnly ? "Тільки боржники" : "Всі гравці"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={notifyAllDebtors}
+                      disabled={settlementSavingKey === "notify-mass"}
+                      className="px-2 py-1 rounded-lg bg-indigo-700/40 border border-indigo-600/40 text-[10px] font-bold text-indigo-200 disabled:opacity-40"
+                    >
+                      DM боржникам
+                    </button>
+                  </div>
+                </div>
+
+                {settlementLoading ? (
+                  <div className="text-xs text-gray-500">Завантаження розрахунків...</div>
+                ) : (
+                  <>
+                    <div className="text-[10px] text-gray-400 mb-2">
+                      Борг (700): {Number(settlementData?.totals?.debt_public || 0)} грн
+                    </div>
+                    <div className="space-y-1.5 max-h-72 overflow-y-auto pr-1">
+                      {settlementRows.map((row) => {
+                        const debt = Number(row?.settlement?.debt_public || 0);
+                        const prepayVal = prepaymentDrafts[row.player_id] ?? "";
+                        return (
+                          <div
+                            key={`settle-${row.player_id}`}
+                            className="rounded-xl border border-slate-700/40 bg-slate-800/50 p-2"
+                          >
+                            <div className="flex items-center justify-between gap-2 mb-1">
+                              <div className="text-xs font-semibold text-gray-200">
+                                {formatNick(row.player_name)}
+                              </div>
+                              <div className={`text-[10px] font-bold ${debt > 0 ? "text-amber-300" : "text-emerald-300"}`}>
+                                Борг: {debt} грн
+                              </div>
+                            </div>
+                            <div className="text-[10px] text-gray-400 mb-2">
+                              До сплати: {row?.settlement?.gross_due_public || 0} | Сплачено: {row?.settlement?.paid_total || 0}
+                            </div>
+                            <div className="flex items-center gap-1.5">
+                              <input
+                                type="number"
+                                min="0"
+                                value={prepayVal}
+                                onChange={(e) =>
+                                  setPrepaymentDrafts((prev) => ({
+                                    ...prev,
+                                    [row.player_id]: e.target.value,
+                                  }))
+                                }
+                                className="w-20 px-2 py-1 rounded-lg bg-slate-900 border border-slate-700 text-[10px]"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => savePrepayment(row.player_id)}
+                                disabled={settlementSavingKey === `prepay-${row.player_id}`}
+                                className="px-2 py-1 rounded-lg bg-cyan-700/40 border border-cyan-600/40 text-[10px] font-bold text-cyan-200 disabled:opacity-40"
+                              >
+                                Передплата
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => markPlayerPaid(row.player_id, debt)}
+                                disabled={debt <= 0 || settlementSavingKey === `paid-${row.player_id}`}
+                                className="px-2 py-1 rounded-lg bg-emerald-700/40 border border-emerald-600/40 text-[10px] font-bold text-emerald-200 disabled:opacity-40"
+                              >
+                                Оплачено
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => notifyPlayerDebt(row.player_id)}
+                                disabled={debt <= 0 || settlementSavingKey === `notify-${row.player_id}`}
+                                className="px-2 py-1 rounded-lg bg-violet-700/40 border border-violet-600/40 text-[10px] font-bold text-violet-200 disabled:opacity-40"
+                              >
+                                DM
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      })}
+                      {!settlementRows.length && (
+                        <div className="text-xs text-gray-500">Список розрахунків порожній.</div>
+                      )}
+                    </div>
+                  </>
                 )}
               </div>
 

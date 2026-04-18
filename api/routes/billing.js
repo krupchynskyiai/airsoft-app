@@ -1,7 +1,9 @@
 const { Router } = require("express");
 const { q, q1, ins } = require("../../database/helpers");
-const { adminOrOrganizerMiddleware } = require("../middleware/auth");
+const { adminMiddleware } = require("../middleware/auth");
 const ExcelJS = require("exceljs");
+const config = require("../../config");
+const bot = require("../bot");
 
 const router = Router();
 
@@ -13,6 +15,8 @@ const CATEGORIES = [
   "mini_bar",
   "repair",
 ];
+const PLAYER_BASE_PRICE = 700;
+const ORGANIZER_BASE_PRICE = 500;
 
 function toNonNegativeInt(v, fallback = 0) {
   if (v === null || v === undefined || v === "") return fallback;
@@ -54,9 +58,42 @@ function buildBillingTotals(row) {
   return { perCategory, extrasTotal };
 }
 
+function parseMoneyAmount(v) {
+  const n = Number(v);
+  if (!Number.isFinite(n)) return 0;
+  return Math.max(0, Math.floor(n));
+}
+
+function computeSettlementRow(playerRow, prepaymentAmount, paymentEventAmount) {
+  const extrasDue = Number(playerRow?.computed?.extras_total || 0);
+  const prepayment = Number(prepaymentAmount || 0);
+  const payments = Number(paymentEventAmount || 0);
+  const paidTotal = prepayment + payments;
+
+  const grossPublic = PLAYER_BASE_PRICE + extrasDue;
+  const grossOrganizer = ORGANIZER_BASE_PRICE + extrasDue;
+
+  const debtPublic = Math.max(0, grossPublic - paidTotal);
+  const debtOrganizer = Math.max(0, grossOrganizer - paidTotal);
+
+  return {
+    extras_due: extrasDue,
+    base_due_public: PLAYER_BASE_PRICE,
+    base_due_organizer: ORGANIZER_BASE_PRICE,
+    gross_due_public: grossPublic,
+    gross_due_organizer: grossOrganizer,
+    prepayment_amount: prepayment,
+    payment_events_amount: payments,
+    paid_total: paidTotal,
+    debt_public: debtPublic,
+    debt_organizer: debtOrganizer,
+    is_paid_public: debtPublic <= 0,
+  };
+}
+
 async function loadBillingContext(gid) {
   const game = await q1(
-    "SELECT id, status, payment FROM games WHERE id=?",
+    "SELECT id, status, payment, date, time, location FROM games WHERE id=?",
     [gid],
   );
   if (!game) return null;
@@ -66,6 +103,7 @@ async function loadBillingContext(gid) {
         gp.player_id,
         COALESCE(p.callsign, p.nickname) AS player_name,
         p.telegram_username,
+        p.telegram_id,
         gp.attendance,
         b.*
      FROM game_players gp
@@ -83,6 +121,7 @@ async function loadBillingContext(gid) {
       player_id: r.player_id,
       player_name: r.player_name,
       telegram_username: r.telegram_username,
+      telegram_id: r.telegram_id || null,
       attendance: r.attendance,
       billing: {
         extra_weapon_mode: r.extra_weapon_mode || "amount",
@@ -122,12 +161,96 @@ async function loadBillingContext(gid) {
       id: game.id,
       status: game.status,
       base_price: toNonNegativeInt(game.payment, 0),
+      date: game.date || null,
+      time: game.time || null,
+      location: game.location || null,
     },
     players,
   };
 }
 
-router.get("/:id/billing", adminOrOrganizerMiddleware, async (req, res) => {
+async function loadSettlementContext(gid) {
+  const billing = await loadBillingContext(gid);
+  if (!billing) return null;
+  const playerIds = billing.players.map((p) => p.player_id);
+  if (!playerIds.length) {
+    return {
+      ...billing,
+      rows: [],
+      totals: {
+        count: 0,
+        gross_due_public: 0,
+        gross_due_organizer: 0,
+        paid_total: 0,
+        debt_public: 0,
+        debt_organizer: 0,
+      },
+    };
+  }
+
+  const placeholders = playerIds.map(() => "?").join(",");
+  const prepayments = await q(
+    `SELECT player_id, amount, note
+     FROM game_player_prepayments
+     WHERE game_id=? AND player_id IN (${placeholders})`,
+    [gid, ...playerIds],
+  );
+  const paymentEvents = await q(
+    `SELECT player_id, COALESCE(SUM(amount),0) AS total_amount
+     FROM game_player_payment_events
+     WHERE game_id=? AND player_id IN (${placeholders})
+     GROUP BY player_id`,
+    [gid, ...playerIds],
+  );
+
+  const prepayMap = new Map(
+    prepayments.map((r) => [Number(r.player_id), { amount: Number(r.amount || 0), note: r.note || "" }]),
+  );
+  const eventMap = new Map(
+    paymentEvents.map((r) => [Number(r.player_id), Number(r.total_amount || 0)]),
+  );
+
+  const rows = billing.players.map((p) => {
+    const prepay = prepayMap.get(Number(p.player_id)) || { amount: 0, note: "" };
+    const paymentAmount = eventMap.get(Number(p.player_id)) || 0;
+    const settlement = computeSettlementRow(p, prepay.amount, paymentAmount);
+    return {
+      ...p,
+      settlement: {
+        ...settlement,
+        prepayment_note: prepay.note || "",
+      },
+    };
+  });
+
+  const totals = rows.reduce(
+    (acc, r) => {
+      acc.count += 1;
+      acc.gross_due_public += r.settlement.gross_due_public;
+      acc.gross_due_organizer += r.settlement.gross_due_organizer;
+      acc.paid_total += r.settlement.paid_total;
+      acc.debt_public += r.settlement.debt_public;
+      acc.debt_organizer += r.settlement.debt_organizer;
+      return acc;
+    },
+    {
+      count: 0,
+      gross_due_public: 0,
+      gross_due_organizer: 0,
+      paid_total: 0,
+      debt_public: 0,
+      debt_organizer: 0,
+    },
+  );
+
+  return {
+    ...billing,
+    rows,
+    totals,
+  };
+}
+
+router.get("/:id/billing", adminMiddleware, async (req, res) => {
   try {
     const gid = parseInt(req.params.id, 10);
     const data = await loadBillingContext(gid);
@@ -138,7 +261,7 @@ router.get("/:id/billing", adminOrOrganizerMiddleware, async (req, res) => {
   }
 });
 
-router.post("/:id/billing/:playerId", adminOrOrganizerMiddleware, async (req, res) => {
+router.post("/:id/billing/:playerId", adminMiddleware, async (req, res) => {
   try {
     const gid = parseInt(req.params.id, 10);
     const playerId = parseInt(req.params.playerId, 10);
@@ -232,17 +355,16 @@ router.post("/:id/billing/:playerId", adminOrOrganizerMiddleware, async (req, re
   }
 });
 
-router.get("/:id/billing/export", adminOrOrganizerMiddleware, async (req, res) => {
+router.get("/:id/billing/export", adminMiddleware, async (req, res) => {
   try {
     const gid = parseInt(req.params.id, 10);
-    const view = String(req.query.view || "admin").trim() === "organizer"
-      ? "organizer"
-      : "admin";
-    const basePrice = view === "organizer" ? 500 : 700;
+    const viewRaw = String(req.query.view || "admin_public").trim();
+    const view = viewRaw === "organizer" ? "organizer" : "admin_public";
 
     const data = await loadBillingContext(gid);
     if (!data) return res.status(404).json({ error: "Game not found" });
 
+    const basePrice = view === "organizer" ? ORGANIZER_BASE_PRICE : PLAYER_BASE_PRICE;
     const workbook = new ExcelJS.Workbook();
     const sheet = workbook.addWorksheet(`Гра_${gid}`);
     const headers = [
@@ -287,24 +409,26 @@ router.get("/:id/billing/export", adminOrOrganizerMiddleware, async (req, res) =
       ]);
     });
 
-    const totalLabelRow = sheet.addRow([
-      "",
-      "ЗАГАЛОМ",
-      grandTotal,
-      "",
-      "",
-      "",
-      "",
-      "",
-      "",
-      "",
-    ]);
-    totalLabelRow.font = { bold: true };
-    totalLabelRow.fill = {
-      type: "pattern",
-      pattern: "solid",
-      fgColor: { argb: "FFF3F4F6" },
-    };
+    if (view === "organizer") {
+      const totalLabelRow = sheet.addRow([
+        "",
+        "ЗАГАЛОМ",
+        grandTotal,
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+      ]);
+      totalLabelRow.font = { bold: true };
+      totalLabelRow.fill = {
+        type: "pattern",
+        pattern: "solid",
+        fgColor: { argb: "FFF3F4F6" },
+      };
+    }
 
     sheet.columns = [
       { width: 6 },
@@ -338,7 +462,9 @@ router.get("/:id/billing/export", adminOrOrganizerMiddleware, async (req, res) =
       }
     }
 
-    const fileName = `game_${gid}_billing_${view}.xlsx`;
+    const fileName = view === "organizer"
+      ? `organizer_settlement_game_${gid}.xlsx`
+      : `player_payment_list_game_${gid}.xlsx`;
     res.setHeader(
       "Content-Type",
       "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
@@ -346,6 +472,223 @@ router.get("/:id/billing/export", adminOrOrganizerMiddleware, async (req, res) =
     res.setHeader("Content-Disposition", `attachment; filename="${fileName}"`);
     await workbook.xlsx.write(res);
     res.end();
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+router.get("/:id/settlements", adminMiddleware, async (req, res) => {
+  try {
+    const gid = parseInt(req.params.id, 10);
+    const settlement = await loadSettlementContext(gid);
+    if (!settlement) return res.status(404).json({ error: "Game not found" });
+    res.json(settlement);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+router.get("/:id/unpaid", adminMiddleware, async (req, res) => {
+  try {
+    const gid = parseInt(req.params.id, 10);
+    const settlement = await loadSettlementContext(gid);
+    if (!settlement) return res.status(404).json({ error: "Game not found" });
+    const rows = settlement.rows.filter((r) => r.settlement.debt_public > 0);
+    const totals = rows.reduce(
+      (acc, r) => {
+        acc.count += 1;
+        acc.gross_due_public += r.settlement.gross_due_public;
+        acc.gross_due_organizer += r.settlement.gross_due_organizer;
+        acc.paid_total += r.settlement.paid_total;
+        acc.debt_public += r.settlement.debt_public;
+        acc.debt_organizer += r.settlement.debt_organizer;
+        return acc;
+      },
+      {
+        count: 0,
+        gross_due_public: 0,
+        gross_due_organizer: 0,
+        paid_total: 0,
+        debt_public: 0,
+        debt_organizer: 0,
+      },
+    );
+    res.json({ game: settlement.game, rows, count: rows.length, totals });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+router.post("/:id/prepayments/:playerId", adminMiddleware, async (req, res) => {
+  try {
+    const gid = parseInt(req.params.id, 10);
+    const playerId = parseInt(req.params.playerId, 10);
+    if (!gid || !playerId) {
+      return res.status(400).json({ error: "Invalid game or player id" });
+    }
+
+    const reg = await q1(
+      "SELECT attendance FROM game_players WHERE game_id=? AND player_id=?",
+      [gid, playerId],
+    );
+    if (!reg || reg.attendance !== "checked_in") {
+      return res.status(400).json({ error: "Player is not checked-in for this game" });
+    }
+
+    const amount = parseMoneyAmount(req.body?.amount);
+    const note = String(req.body?.note || "").trim() || null;
+    const actorId = req.player?.id || null;
+
+    await ins(
+      `INSERT INTO game_player_prepayments (game_id, player_id, amount, note, created_by_player_id)
+       VALUES (?,?,?,?,?)
+       ON DUPLICATE KEY UPDATE
+         amount=VALUES(amount),
+         note=VALUES(note),
+         created_by_player_id=VALUES(created_by_player_id),
+         updated_at=NOW()`,
+      [gid, playerId, amount, note, actorId],
+    );
+
+    res.json({ success: true });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+router.post("/:id/payments/:playerId/mark-paid", adminMiddleware, async (req, res) => {
+  try {
+    const gid = parseInt(req.params.id, 10);
+    const playerId = parseInt(req.params.playerId, 10);
+    if (!gid || !playerId) {
+      return res.status(400).json({ error: "Invalid game or player id" });
+    }
+
+    const settlement = await loadSettlementContext(gid);
+    if (!settlement) return res.status(404).json({ error: "Game not found" });
+    const target = settlement.rows.find((r) => r.player_id === playerId);
+    if (!target) return res.status(404).json({ error: "Player not found in checked-in list" });
+
+    const requestedAmount = req.body?.amount;
+    let amount = parseMoneyAmount(requestedAmount);
+    if (requestedAmount === undefined || requestedAmount === null || requestedAmount === "") {
+      amount = target.settlement.debt_public;
+    }
+    if (amount <= 0) {
+      return res.status(400).json({ error: "Nothing to mark as paid" });
+    }
+
+    const note = String(req.body?.note || "").trim() || null;
+    const actorId = req.player?.id || null;
+    await ins(
+      `INSERT INTO game_player_payment_events
+        (game_id, player_id, amount, event_type, note, created_by_player_id)
+       VALUES (?,?,?,?,?,?)`,
+      [gid, playerId, amount, "payment", note, actorId],
+    );
+
+    res.json({ success: true, amount });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+router.post("/:id/notify-payment/:playerId", adminMiddleware, async (req, res) => {
+  try {
+    const gid = parseInt(req.params.id, 10);
+    const playerId = parseInt(req.params.playerId, 10);
+    if (!gid || !playerId) {
+      return res.status(400).json({ error: "Invalid game or player id" });
+    }
+    const settlement = await loadSettlementContext(gid);
+    if (!settlement) return res.status(404).json({ error: "Game not found" });
+    const row = settlement.rows.find((r) => r.player_id === playerId);
+    if (!row) return res.status(404).json({ error: "Player not found in checked-in list" });
+    if (!row.telegram_id) {
+      return res.status(400).json({ error: "Player has no telegram_id for direct message" });
+    }
+
+    const card = config.PAYMENT_CARD_NUMBER || "картка не вказана";
+    const msg = `💳 Розрахунок за гру #${settlement.game.id}
+
+👤 ${row.player_name}
+📅 ${settlement.game.date || "—"} ${settlement.game.time || ""}
+📍 ${settlement.game.location || "—"}
+
+База: ${row.settlement.base_due_public} грн
+Допи: ${row.settlement.extras_due} грн
+Разом: ${row.settlement.gross_due_public} грн
+Сплачено: ${row.settlement.paid_total} грн
+До сплати: ${row.settlement.debt_public} грн
+
+Картка: ${card}`;
+
+    await bot.api.sendMessage(row.telegram_id, msg);
+    res.json({ success: true });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+router.post("/:id/notify-payment", adminMiddleware, async (req, res) => {
+  try {
+    const gid = parseInt(req.params.id, 10);
+    const settlement = await loadSettlementContext(gid);
+    if (!settlement) return res.status(404).json({ error: "Game not found" });
+    const card = config.PAYMENT_CARD_NUMBER || "картка не вказана";
+
+    let sent = 0;
+    const skipped = [];
+    for (const row of settlement.rows) {
+      if (row.settlement.debt_public <= 0) continue;
+      if (!row.telegram_id) {
+        skipped.push({ player_id: row.player_id, reason: "no_telegram_id" });
+        continue;
+      }
+      const msg = `💳 Розрахунок за гру #${settlement.game.id}
+
+👤 ${row.player_name}
+📅 ${settlement.game.date || "—"} ${settlement.game.time || ""}
+📍 ${settlement.game.location || "—"}
+
+База: ${row.settlement.base_due_public} грн
+Допи: ${row.settlement.extras_due} грн
+Разом: ${row.settlement.gross_due_public} грн
+Сплачено: ${row.settlement.paid_total} грн
+До сплати: ${row.settlement.debt_public} грн
+
+Картка: ${card}`;
+      await bot.api.sendMessage(row.telegram_id, msg);
+      sent += 1;
+    }
+    res.json({ success: true, sent, skipped });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+router.get("/:id/my-settlement", async (req, res) => {
+  try {
+    const gid = parseInt(req.params.id, 10);
+    const playerId = Number(req.player?.id || 0);
+    if (!gid || !playerId) {
+      return res.status(400).json({ error: "Invalid game or player id" });
+    }
+
+    const settlement = await loadSettlementContext(gid);
+    if (!settlement) return res.status(404).json({ error: "Game not found" });
+
+    const row = settlement.rows.find((r) => Number(r.player_id) === playerId);
+    if (!row) {
+      return res.status(404).json({ error: "Settlement is available only for your own participation" });
+    }
+
+    res.json({
+      game: settlement.game,
+      player_id: row.player_id,
+      player_name: row.player_name,
+      settlement: row.settlement,
+    });
   } catch (e) {
     res.status(500).json({ error: e.message });
   }

@@ -89,8 +89,19 @@ export const getRoundStatus = (id) => api(`/games/${id}/round`);
 export const getGameBilling = (id) => api(`/games/${id}/billing`);
 export const updateGameBilling = (id, playerId, payload) =>
   api(`/games/${id}/billing/${playerId}`, { method: "POST", body: payload });
-export const downloadGameBillingExport = (id, view = "admin") =>
+export const downloadGameBillingExport = (id, view = "admin_public") =>
   apiDownload(`/games/${id}/billing/export?view=${encodeURIComponent(view)}`);
+export const getGameSettlements = (id) => api(`/games/${id}/settlements`);
+export const getGameUnpaid = (id) => api(`/games/${id}/unpaid`);
+export const getMyGameSettlement = (id) => api(`/games/${id}/my-settlement`);
+export const upsertGamePrepayment = (id, playerId, payload) =>
+  api(`/games/${id}/prepayments/${playerId}`, { method: "POST", body: payload });
+export const markGamePlayerPaid = (id, playerId, payload = {}) =>
+  api(`/games/${id}/payments/${playerId}/mark-paid`, { method: "POST", body: payload });
+export const notifyGamePaymentsMass = (id) =>
+  api(`/games/${id}/notify-payment`, { method: "POST" });
+export const notifyGamePaymentSingle = (id, playerId) =>
+  api(`/games/${id}/notify-payment/${playerId}`, { method: "POST" });
 export const getMvpState = (id) => api(`/games/${id}/mvp-state`);
 export const voteMvp = (id, roundId, targetPlayerId) =>
   api(`/games/${id}/mvp-vote`, {
