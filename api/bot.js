@@ -2,9 +2,12 @@ const { Bot } = require("grammy");
 const config = require("../config");
 const { q1, ins } = require("../database/helpers");
 const log = require("../utils/logger");
+const { installOutboundGuard, installAnnouncementTopic } = require("../services/envGuard");
 const { installNotificationGuard } = require("../utils/notificationGuard");
 
 const bot = new Bot(config.BOT_TOKEN);
+installAnnouncementTopic(bot);
+installOutboundGuard(bot);
 installNotificationGuard(bot, "api-bot");
 
 // Handle team application inline buttons from captain

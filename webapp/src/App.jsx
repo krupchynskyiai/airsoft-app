@@ -71,6 +71,7 @@ export default function App() {
       }
     }
   }, []);
+  
 
   useEffect(() => {
     loadProfile();

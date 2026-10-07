@@ -14,11 +14,18 @@ const { handleGeoCheckin, handleGameGeo } = require("./handlers/games");
 const { handleTextSteps } = require("./handlers/admin");
 const { createServer } = require("./api/server");
 const { startKeepWarm } = require("./services/keepWarm");
+const { installOutboundGuard, installAnnouncementTopic, verifyBotIdentity } = require("./services/envGuard");
 const { installNotificationGuard } = require("./utils/notificationGuard");
+const apiBot = require("./api/bot");
 
 // ---- Create bot ----
 const bot = new Bot(config.BOT_TOKEN);
+installAnnouncementTopic(bot);
+installOutboundGuard(bot);
 installNotificationGuard(bot, "main-bot");
+
+// Marks bot replies outside production so staging chats are easy to tell apart
+const envTag = config.IS_PROD ? "" : `🧪 *${esc(config.APP_ENV.toUpperCase())}*\n\n`;
 
 // ---- Session ----
 bot.use(session({ initial: () => ({ step: null, data: {} }) }));
@@ -56,7 +63,7 @@ bot.command("start", async (ctx) => {
     await syncTelegramUsernameWithDbPlayer(existing, ctx.from);
     const kb = new InlineKeyboard().webApp("🎯 Увійти", webappUrl);
     return ctx.reply(
-      `👋 Вітаю, *${esc(existing.nickname)}*\\!\n\nНатисни кнопку щоб відкрити додаток:`,
+      `${envTag}👋 Вітаю, *${esc(existing.nickname)}*\\!\n\nНатисни кнопку щоб відкрити додаток:`,
       { parse_mode: "MarkdownV2", reply_markup: kb }
     );
   }
@@ -64,7 +71,7 @@ bot.command("start", async (ctx) => {
   // Not registered — still show app button (registration happens in app)
   const kb = new InlineKeyboard().webApp("🎯 Увійти", webappUrl);
   return ctx.reply(
-    `🎯 *Ласкаво просимо до Airsoft Club\\!*\n\nНатисни кнопку щоб зареєструватись та увійти:`,
+    `${envTag}🎯 *Ласкаво просимо до Airsoft Club\\!*\n\nНатисни кнопку щоб зареєструватись та увійти:`,
     { parse_mode: "MarkdownV2", reply_markup: kb }
   );
 });
@@ -175,6 +182,12 @@ async function main() {
   log.info("=============================");
   log.info("  AIRSOFT CLUB BOT + APP v2  ");
   log.info("=============================");
+  log.info("Environment", { APP_ENV: config.APP_ENV });
+
+  // Fails fast if a non-production instance is pointed at the production bot/channel
+  const me = await verifyBotIdentity(bot);
+  bot.botInfo = me;
+  apiBot.botInfo = me;
 
   await initDB();
 
