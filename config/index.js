@@ -37,7 +37,11 @@ module.exports = {
   // Channel or group for announcements. For a group with topics, CHANNEL_THREAD_ID
   // is the topic id the bot posts into (empty = General).
   CHANNEL_ID: process.env.CHANNEL_ID,
-  CHANNEL_THREAD_ID: parseInt(process.env.CHANNEL_THREAD_ID || "", 10) || null,
+  // Topic 1 is General, which the Bot API addresses without message_thread_id.
+  CHANNEL_THREAD_ID: (() => {
+    const id = parseInt(process.env.CHANNEL_THREAD_ID || "", 10);
+    return id > 1 ? id : null;
+  })(),
   // Overwritten at startup with the real username from getMe(), so deep links
   // always point to the bot this instance is running as.
   BOT_USERNAME: process.env.BOT_USERNAME || (IS_PROD ? "banana_airsoft_app_bot" : ""),
