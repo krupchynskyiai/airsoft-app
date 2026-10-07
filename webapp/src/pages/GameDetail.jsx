@@ -706,7 +706,7 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
   if (loading) {
     return (
       <div className="space-y-4 animate-pulse">
-        <div className="h-8 bg-slate-800 rounded-xl w-1/4" />
+        <div className="h-8 bg-slate-800 rounded-lg w-1/4" />
         <div className="h-48 bg-slate-800 rounded-2xl" />
         <div className="h-32 bg-slate-800 rounded-2xl" />
       </div>
@@ -2532,7 +2532,7 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
                       : p.attendance === "no_show"
                       ? "bg-red-400"
                       : p.attendance === "left_early"
-                      ? "bg-orange-400"
+                      ? "bg-amber-600"
                       : "bg-gray-600"
                   }`}
                   title={
@@ -2544,7 +2544,7 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
                 <div>
                   <span className="text-sm font-medium">{formatNick(p.nickname)}</span>
                   {p.attendance === "left_early" && (
-                    <span className="ml-2 text-[10px] font-bold px-1.5 py-0.5 rounded bg-orange-500/20 text-orange-300">
+                    <span className="ml-2 rounded border px-1.5 py-0.5 font-mono text-[10px] font-bold uppercase tracking-wider text-amber-300 border-amber-400/30 bg-amber-400/10">
                       Пішов раніше
                     </span>
                   )}
@@ -2727,63 +2727,87 @@ async function adminStartRound(gameId) {
 }
 
 function Spinner() {
-  return <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin inline-block" />;
+  return <span className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin inline-block opacity-80" />;
 }
 
 // ---- Sub-components ----
 
 function StatusBadge({ status }) {
   const config = {
-    upcoming: "bg-blue-500/20 text-blue-300 border-blue-500/20",
-    checkin: "bg-amber-500/20 text-amber-300 border-amber-500/20",
-    active: "bg-red-500/20 text-red-300 border-red-500/20",
-    finished: "bg-slate-600/30 text-gray-400 border-slate-600/20",
-    cancelled: "bg-slate-700/30 text-gray-500 border-slate-700/20",
+    upcoming: "text-emerald-300 border-emerald-400/30 bg-emerald-400/10",
+    checkin: "text-amber-300 border-amber-400/30 bg-amber-400/10",
+    active: "text-red-300 border-red-400/40 bg-red-400/10",
+    finished: "text-gray-400 border-slate-600/50 bg-slate-700/30",
+    cancelled: "text-gray-500 border-slate-700/50 bg-slate-800/30",
+  };
+  const dots = {
+    upcoming: "bg-emerald-400",
+    checkin: "bg-amber-400 animate-pulse",
+    active: "bg-red-400 animate-pulse",
+    finished: "bg-gray-500",
+    cancelled: "bg-gray-600",
   };
   const labels = { upcoming: "Очікується", checkin: "Check-in", active: "LIVE", finished: "Завершена", cancelled: "Скасована" };
-  return <span className={`px-3 py-1 rounded-xl text-[11px] font-bold border ${config[status] || ""}`}>{labels[status] || status}</span>;
+  return (
+    <span className={`inline-flex items-center gap-1.5 rounded border px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-wider ${config[status] || "text-gray-400 border-slate-600/50 bg-slate-700/30"}`}>
+      <span className={`w-1.5 h-1.5 rounded-full ${dots[status] || "bg-gray-500"}`} />
+      {labels[status] || status}
+    </span>
+  );
+}
+
+function BriefRow({ icon: Icon, label, children }) {
+  return (
+    <div className="flex items-start gap-3">
+      <Icon className="w-4 h-4 mt-0.5 shrink-0 text-gray-500" strokeWidth={2} />
+      <dt className="w-28 shrink-0 text-[11px] uppercase tracking-wider text-gray-500 pt-0.5">{label}</dt>
+      <dd className="min-w-0 flex-1 text-[15px] font-semibold text-gray-100">{children}</dd>
+    </div>
+  );
 }
 
 function ActionButton({ onClick, loading, icon, label, className }) {
   return (
-    <button onClick={onClick} disabled={loading} className={`w-full flex items-center justify-center gap-2 py-4 rounded-2xl font-bold text-[15px] shadow-lg transition-all active:scale-[0.98] disabled:opacity-50 ${className}`}>
-      {loading ? <Spinner /> : <><span>{icon}</span>{label}</>}
+    <button onClick={onClick} disabled={loading} className={`w-full flex items-center justify-center gap-2 py-4 rounded-lg font-bold text-[15px] transition-all active:scale-[0.98] disabled:opacity-50 ${className}`}>
+      {loading ? <Spinner /> : <>{icon}{label}</>}
     </button>
   );
 }
 
 function SmallButton({ onClick, icon, label, color }) {
-  const colors = { amber: "bg-amber-700/40 border-amber-600/30 text-amber-300", red: "bg-red-700/40 border-red-600/30 text-red-300", emerald: "bg-emerald-700/40 border-emerald-600/30 text-emerald-300" };
+  const colors = { amber: "bg-amber-400/10 border-amber-400/40 text-amber-300", red: "bg-red-500/15 border-red-400/40 text-red-300", emerald: "bg-emerald-400 border-emerald-400 text-slate-950" };
   return (
-    <button onClick={onClick} className={`flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-bold border active:scale-95 transition-transform ${colors[color] || colors.emerald}`}>
-      <span>{icon}</span> {label}
+    <button onClick={onClick} className={`flex items-center gap-1.5 px-4 py-2.5 rounded-lg text-sm font-bold border active:scale-[0.98] transition-transform ${colors[color] || colors.emerald}`}>
+      {icon} {label}
     </button>
   );
 }
 
 function PlayerActionsModal({ player, onClose, onPrepayment }) {
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 p-3">
-      <div className="w-full max-w-sm rounded-2xl bg-slate-900 border border-slate-700/50 overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/70 p-3">
+      <div className="w-full max-w-sm rounded-2xl bg-slate-900 border border-slate-600/60 overflow-hidden">
         <div className="p-4 border-b border-slate-700/40 flex items-center justify-between">
           <div>
-            <div className="font-black text-sm">Дії з гравцем</div>
+            <div className="text-xs font-bold uppercase tracking-wider text-gray-300">Дії з гравцем</div>
             <div className="text-xs text-gray-400">{formatNick(player?.nickname || player?.player_name)}</div>
           </div>
           <button
             onClick={onClose}
-            className="px-3 py-1.5 rounded-xl bg-slate-800/70 border border-slate-700/40 text-xs font-bold text-gray-200 active:scale-95"
+            className="px-2.5 py-1.5 rounded-lg bg-slate-800 border border-slate-600/60 text-gray-200 active:scale-95"
+            aria-label="Закрити"
           >
-            ✕
+            <X className="w-4 h-4" strokeWidth={2} />
           </button>
         </div>
         <div className="p-3">
           <button
             type="button"
             onClick={onPrepayment}
-            className="w-full text-left px-3 py-3 rounded-xl bg-emerald-700/30 border border-emerald-600/40 text-sm font-semibold text-emerald-200 active:scale-[0.99]"
+            className="w-full flex items-center gap-2 text-left px-3 py-3 rounded-lg bg-slate-800 border border-slate-600/60 text-gray-200 text-sm font-semibold active:scale-[0.99]"
           >
-            💳 Зарахувати передплату
+            <CreditCard className="w-4 h-4 text-emerald-300" strokeWidth={2} />
+            Зарахувати передплату
           </button>
         </div>
       </div>
@@ -2824,12 +2848,12 @@ function SettlementRow({
   const notifyKey = `notify-${row.player_id}`;
 
   return (
-    <div className="rounded-xl border border-slate-700/40 bg-slate-800/50 p-2">
+    <div className="rounded-lg border border-slate-700/50 bg-slate-800/50 p-2">
       <div className="flex items-center justify-between gap-2 mb-1">
         <div className="text-xs font-semibold text-gray-200 flex items-center gap-1.5 min-w-0">
           <span className="truncate">{formatNick(row.player_name)}</span>
           {isLeftEarly && (
-            <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-orange-500/20 text-orange-300 shrink-0">
+            <span className="rounded border px-1.5 py-0.5 font-mono text-[9px] font-bold uppercase tracking-wider text-amber-300 border-amber-400/30 bg-amber-400/10 shrink-0">
               Пішов раніше
             </span>
           )}
@@ -2847,8 +2871,9 @@ function SettlementRow({
         {row?.settlement?.paid_total || 0}
       </div>
       {lootDiscount > 0 && (
-        <div className="text-[10px] text-emerald-300 mb-2">
-          🎁 Бонус: −{lootDiscount} грн
+        <div className="flex items-center gap-1 text-[10px] text-emerald-300 mb-2">
+          <Gift className="w-3.5 h-3.5 shrink-0" strokeWidth={2} />
+          Бонус: −{lootDiscount} грн
           {lootRewards.length
             ? ` (${lootRewards
                 .map((r) => `${r.reward_key} −${r.discount_percent}%`)
@@ -2868,7 +2893,7 @@ function SettlementRow({
           type="button"
           onClick={() => onSavePrepayment(draft)}
           disabled={savingKey === prepayKey}
-          className="px-2 py-1 rounded-lg bg-cyan-700/40 border border-cyan-600/40 text-[10px] font-bold text-cyan-200 disabled:opacity-40"
+          className="px-2 py-1 rounded-lg bg-slate-800 border border-slate-600/60 text-gray-200 text-[10px] font-bold disabled:opacity-40"
         >
           Передплата
         </button>
@@ -2876,7 +2901,7 @@ function SettlementRow({
           type="button"
           onClick={onMarkPaid}
           disabled={debt <= 0 || savingKey === paidKey}
-          className="px-2 py-1 rounded-lg bg-emerald-700/40 border border-emerald-600/40 text-[10px] font-bold text-emerald-200 disabled:opacity-40"
+          className="px-2 py-1 rounded-lg bg-emerald-400 text-slate-950 text-[10px] font-bold disabled:opacity-40"
         >
           Оплачено
         </button>
@@ -2884,7 +2909,7 @@ function SettlementRow({
           type="button"
           onClick={onNotify}
           disabled={debt <= 0 || savingKey === notifyKey}
-          className="px-2 py-1 rounded-lg bg-violet-700/40 border border-violet-600/40 text-[10px] font-bold text-violet-200 disabled:opacity-40"
+          className="px-2 py-1 rounded-lg bg-slate-800 border border-slate-600/60 text-gray-200 text-[10px] font-bold disabled:opacity-40"
         >
           DM
         </button>
@@ -2895,18 +2920,19 @@ function SettlementRow({
 
 function PrepaymentModal({ player, amount, onChangeAmount, onClose, onSave, saving }) {
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 p-3">
-      <div className="w-full max-w-sm rounded-2xl bg-slate-900 border border-slate-700/50 overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/70 p-3">
+      <div className="w-full max-w-sm rounded-2xl bg-slate-900 border border-slate-600/60 overflow-hidden">
         <div className="p-4 border-b border-slate-700/40 flex items-center justify-between">
           <div>
-            <div className="font-black text-sm">Зарахувати передплату</div>
+            <div className="text-xs font-bold uppercase tracking-wider text-gray-300">Зарахувати передплату</div>
             <div className="text-xs text-gray-400">{formatNick(player?.nickname || player?.player_name)}</div>
           </div>
           <button
             onClick={onClose}
-            className="px-3 py-1.5 rounded-xl bg-slate-800/70 border border-slate-700/40 text-xs font-bold text-gray-200 active:scale-95"
+            className="px-2.5 py-1.5 rounded-lg bg-slate-800 border border-slate-600/60 text-gray-200 active:scale-95"
+            aria-label="Закрити"
           >
-            ✕
+            <X className="w-4 h-4" strokeWidth={2} />
           </button>
         </div>
         <div className="p-4 space-y-3">
@@ -2922,7 +2948,7 @@ function PrepaymentModal({ player, amount, onChangeAmount, onClose, onSave, savi
             type="button"
             onClick={onSave}
             disabled={saving}
-            className="w-full py-2.5 rounded-xl bg-emerald-600/80 text-sm font-bold text-black disabled:opacity-50"
+            className="w-full py-2.5 rounded-lg bg-emerald-400 text-slate-950 text-sm font-bold active:scale-[0.98] disabled:opacity-50"
           >
             {saving ? "Збереження..." : "Зарахувати"}
           </button>
@@ -2934,18 +2960,22 @@ function PrepaymentModal({ player, amount, onChangeAmount, onClose, onSave, savi
 
 function BillingEditorModal({ player, value, onChange, onClose, onSave, saving }) {
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 p-3">
-      <div className="w-full max-w-lg rounded-2xl bg-slate-900 border border-slate-700/50 overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/70 p-3">
+      <div className="w-full max-w-lg rounded-2xl bg-slate-900 border border-slate-600/60 overflow-hidden">
         <div className="p-4 border-b border-slate-700/40 flex items-center justify-between">
           <div>
-            <div className="font-black">🧾 Розрахунок</div>
+            <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-gray-300">
+              <Receipt className="w-5 h-5 text-emerald-300" strokeWidth={2} />
+              Розрахунок
+            </div>
             <div className="text-xs text-gray-400">{formatNick(player?.player_name)}</div>
           </div>
           <button
             onClick={onClose}
-            className="px-3 py-1.5 rounded-xl bg-slate-800/70 border border-slate-700/40 text-xs font-bold text-gray-200 active:scale-95"
+            className="px-2.5 py-1.5 rounded-lg bg-slate-800 border border-slate-600/60 text-gray-200 active:scale-95"
+            aria-label="Закрити"
           >
-            ✕
+            <X className="w-4 h-4" strokeWidth={2} />
           </button>
         </div>
 
@@ -2953,7 +2983,7 @@ function BillingEditorModal({ player, value, onChange, onClose, onSave, saving }
           {BILLING_FIELDS.map((f) => {
             const mode = value?.[`${f.key}_mode`] || "amount";
             return (
-              <div key={f.key} className="rounded-xl border border-slate-700/40 bg-slate-800/50 p-3">
+              <div key={f.key} className="rounded-lg border border-slate-700/50 bg-slate-800/50 p-3">
                 <div className="flex items-center justify-between gap-2 mb-2">
                   <div className="text-xs font-semibold text-gray-200">{f.label}</div>
                   <select
@@ -3015,9 +3045,9 @@ function BillingEditorModal({ player, value, onChange, onClose, onSave, saving }
           <button
             onClick={onSave}
             disabled={saving}
-            className="w-full bg-gradient-to-r from-fuchsia-600 to-violet-600 py-3.5 rounded-2xl font-bold text-[15px] shadow-lg transition-all active:scale-[0.98] disabled:opacity-50"
+            className="w-full flex items-center justify-center gap-2 bg-emerald-400 text-slate-950 py-3.5 rounded-lg font-bold text-[15px] transition-all active:scale-[0.98] disabled:opacity-50"
           >
-            {saving ? <Spinner /> : "✅ Зберегти"}
+            {saving ? <Spinner /> : <><Check className="w-5 h-5" strokeWidth={2} />Зберегти</>}
           </button>
         </div>
       </div>
@@ -3027,15 +3057,19 @@ function BillingEditorModal({ player, value, onChange, onClose, onSave, saving }
 
 function RideModal({ value, onChange, onClose, onSubmit, submitting }) {
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 p-3">
-      <div className="w-full max-w-lg rounded-2xl bg-slate-900 border border-slate-700/50 overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/70 p-3">
+      <div className="w-full max-w-lg rounded-2xl bg-slate-900 border border-slate-600/60 overflow-hidden">
         <div className="p-4 border-b border-slate-700/40 flex items-center justify-between">
-          <div className="font-black">🚗 Запропонувати поїздку</div>
+          <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-gray-300">
+            <Car className="w-5 h-5 text-emerald-300" strokeWidth={2} />
+            Запропонувати поїздку
+          </div>
           <button
             onClick={onClose}
-            className="px-3 py-1.5 rounded-xl bg-slate-800/70 border border-slate-700/40 text-xs font-bold text-gray-200 active:scale-95"
+            className="px-2.5 py-1.5 rounded-lg bg-slate-800 border border-slate-600/60 text-gray-200 active:scale-95"
+            aria-label="Закрити"
           >
-            ✕
+            <X className="w-4 h-4" strokeWidth={2} />
           </button>
         </div>
 
@@ -3053,7 +3087,7 @@ function RideModal({ value, onChange, onClose, onSubmit, submitting }) {
                     seats_total: parseInt(e.target.value || "1", 10),
                   })
                 }
-                className="mt-1 w-full bg-slate-800/60 border border-slate-700/40 rounded-xl p-2 text-sm text-gray-200 focus:outline-none focus:border-emerald-500/40"
+                className="mt-1 w-full bg-slate-800/60 border border-slate-700/40 rounded-lg p-2 text-sm text-gray-200 focus:outline-none focus:border-emerald-500/40"
               />
             </label>
             <label className="text-xs text-gray-400">
@@ -3064,7 +3098,7 @@ function RideModal({ value, onChange, onClose, onSubmit, submitting }) {
                   onChange({ ...value, depart_time: e.target.value })
                 }
                 placeholder="Напр. 08:30 або після роботи"
-                className="mt-1 w-full bg-slate-800/60 border border-slate-700/40 rounded-xl p-2 text-sm text-gray-200 placeholder:text-gray-500 focus:outline-none focus:border-emerald-500/40"
+                className="mt-1 w-full bg-slate-800/60 border border-slate-700/40 rounded-lg p-2 text-sm text-gray-200 placeholder:text-gray-500 focus:outline-none focus:border-emerald-500/40"
               />
             </label>
           </div>
@@ -3077,7 +3111,7 @@ function RideModal({ value, onChange, onClose, onSubmit, submitting }) {
                 onChange({ ...value, depart_location: e.target.value })
               }
               placeholder="Напр. метро, ТЦ, точка збору"
-              className="mt-1 w-full bg-slate-800/60 border border-slate-700/40 rounded-xl p-2 text-sm text-gray-200 placeholder:text-gray-500 focus:outline-none focus:border-emerald-500/40"
+              className="mt-1 w-full bg-slate-800/60 border border-slate-700/40 rounded-lg p-2 text-sm text-gray-200 placeholder:text-gray-500 focus:outline-none focus:border-emerald-500/40"
             />
           </label>
 
@@ -3088,7 +3122,7 @@ function RideModal({ value, onChange, onClose, onSubmit, submitting }) {
                 value={value.car_make}
                 onChange={(e) => onChange({ ...value, car_make: e.target.value })}
                 placeholder="Toyota"
-                className="mt-1 w-full bg-slate-800/60 border border-slate-700/40 rounded-xl p-2 text-sm text-gray-200 placeholder:text-gray-500 focus:outline-none focus:border-emerald-500/40"
+                className="mt-1 w-full bg-slate-800/60 border border-slate-700/40 rounded-lg p-2 text-sm text-gray-200 placeholder:text-gray-500 focus:outline-none focus:border-emerald-500/40"
               />
             </label>
             <label className="text-xs text-gray-400">
@@ -3097,7 +3131,7 @@ function RideModal({ value, onChange, onClose, onSubmit, submitting }) {
                 value={value.car_color}
                 onChange={(e) => onChange({ ...value, car_color: e.target.value })}
                 placeholder="Сірий"
-                className="mt-1 w-full bg-slate-800/60 border border-slate-700/40 rounded-xl p-2 text-sm text-gray-200 placeholder:text-gray-500 focus:outline-none focus:border-emerald-500/40"
+                className="mt-1 w-full bg-slate-800/60 border border-slate-700/40 rounded-lg p-2 text-sm text-gray-200 placeholder:text-gray-500 focus:outline-none focus:border-emerald-500/40"
               />
             </label>
           </div>
@@ -3105,9 +3139,9 @@ function RideModal({ value, onChange, onClose, onSubmit, submitting }) {
           <button
             onClick={onSubmit}
             disabled={submitting}
-            className="w-full bg-gradient-to-r from-emerald-600 to-teal-600 py-3.5 rounded-2xl font-bold text-[15px] shadow-lg transition-all active:scale-[0.98] disabled:opacity-50"
+            className="w-full flex items-center justify-center gap-2 bg-emerald-400 text-slate-950 py-3.5 rounded-lg font-bold text-[15px] transition-all active:scale-[0.98] disabled:opacity-50"
           >
-            {submitting ? <Spinner /> : "✅ Опублікувати"}
+            {submitting ? <Spinner /> : <><Check className="w-5 h-5" strokeWidth={2} />Опублікувати</>}
           </button>
         </div>
       </div>
@@ -3131,14 +3165,15 @@ function RideRequestButton({ disabled, maxSeats, onRequest }) {
           max={Math.max(1, maxSeats || 1)}
           value={seats}
           onChange={(e) => setSeats(parseInt(e.target.value || "1", 10))}
-          className="w-16 bg-slate-800/60 border border-slate-700/40 rounded-xl p-2 text-xs text-gray-200 focus:outline-none focus:border-emerald-500/40"
+          className="w-16 bg-slate-800/60 border border-slate-700/40 rounded-lg p-2 text-xs text-gray-200 focus:outline-none focus:border-emerald-500/40"
         />
         <button
           onClick={() => onRequest(seats)}
           disabled={disabled}
-          className="px-3 py-2 rounded-xl bg-emerald-700/40 border border-emerald-600/30 text-xs font-bold text-emerald-200 active:scale-95 disabled:opacity-50"
+          className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-emerald-400 text-slate-950 text-xs font-bold active:scale-95 disabled:opacity-50"
         >
-          🙋 Запит
+          <Hand className="w-4 h-4" strokeWidth={2} />
+          Запит
         </button>
       </div>
       <div className="text-[10px] text-gray-500">до {Math.max(1, maxSeats || 1)}</div>
