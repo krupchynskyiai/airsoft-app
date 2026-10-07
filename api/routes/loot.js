@@ -108,7 +108,7 @@ router.get("/state", async (req, res) => {
     const state = await getSpinState(player.id);
 
     const rewards = await q(
-      "SELECT id, reward_key, rarity, image_url, status, source, created_at FROM player_loot_rewards WHERE player_id=? ORDER BY created_at DESC LIMIT 50",
+      "SELECT id, reward_key, rarity, image_url, status, source, game_id, created_at FROM player_loot_rewards WHERE player_id=? ORDER BY created_at DESC LIMIT 50",
       [player.id],
     );
 
@@ -118,6 +118,7 @@ router.get("/state", async (req, res) => {
       description: r.description,
       rarity: r.rarity,
       image_url: r.imageUrl,
+      billing: r.billing || null,
     }));
 
     res.json({
@@ -183,8 +184,34 @@ router.post("/spin", async (req, res) => {
   }
 });
 
+// Games the player can bind a reward to — upcoming / in-progress games
+// they're registered for. Used by the reward activation flow so players
+// pick which game the bonus should be applied to for settlement purposes.
+router.get("/eligible-games", async (req, res) => {
+  try {
+    const player = await getPlayerFromReq(req);
+    const rows = await q(
+      `SELECT g.id, g.date, g.time, g.location, g.status, g.payment, gp.attendance
+         FROM game_players gp
+         JOIN games g ON g.id = gp.game_id
+        WHERE gp.player_id = ?
+          AND g.status IN ('draft','checkin','active')
+          AND gp.attendance IN ('registered','checkin_pending','checked_in','left_early')
+        ORDER BY g.date ASC, g.time ASC
+        LIMIT 20`,
+      [player.id],
+    );
+    res.json({ games: rows });
+  } catch (e) {
+    log.error("Loot eligible-games error", { error: e.message });
+    res.status(500).json({ error: e.message });
+  }
+});
+
 // POST /api/loot/rewards/:id/request-use
 // Гравець лише подає запит, а списання бонуса робить адмін.
+// Приймає опціональний game_id — для знижкових бонусів обов'язковий, щоб
+// розрахунок по конкретній грі врахував знижку.
 router.post("/rewards/:id/request-use", async (req, res) => {
   try {
     const player = await getPlayerFromReq(req);
@@ -194,8 +221,17 @@ router.post("/rewards/:id/request-use", async (req, res) => {
       return res.status(400).json({ error: "Invalid reward id" });
     }
 
+    const rawGameId = req.body?.game_id;
+    const gameId =
+      rawGameId === null || rawGameId === undefined || rawGameId === ""
+        ? null
+        : parseInt(rawGameId, 10);
+    if (gameId !== null && !Number.isFinite(gameId)) {
+      return res.status(400).json({ error: "Invalid game_id" });
+    }
+
     const row = await q1(
-      "SELECT id, player_id, status, source, reward_key FROM player_loot_rewards WHERE id=?",
+      "SELECT id, player_id, status, source, reward_key, game_id FROM player_loot_rewards WHERE id=?",
       [rewardId],
     );
 
@@ -212,9 +248,39 @@ router.post("/rewards/:id/request-use", async (req, res) => {
       return res.status(400).json({ error: "Запит вже надіслано. Очікуйте підтвердження адміна." });
     }
 
+    const rewardMeta = LOOT_REWARDS.find((r) => r.key === row.reward_key);
+    const requiresGame = !!rewardMeta?.billing?.requiresGame;
+
+    if (requiresGame && !gameId) {
+      return res.status(400).json({
+        error:
+          "Для цього бонусу треба обрати гру, до якої він буде застосований.",
+      });
+    }
+
+    if (gameId) {
+      const gp = await q1(
+        `SELECT g.id, g.status, gp.attendance
+           FROM game_players gp
+           JOIN games g ON g.id = gp.game_id
+          WHERE gp.game_id = ? AND gp.player_id = ?`,
+        [gameId, player.id],
+      );
+      if (!gp) {
+        return res
+          .status(400)
+          .json({ error: "Ти не зареєстрований(а) на цю гру." });
+      }
+      if (!["draft", "checkin", "active"].includes(gp.status)) {
+        return res
+          .status(400)
+          .json({ error: "Для цієї гри не можна активувати бонус." });
+      }
+    }
+
     const upd = await ins(
-      "UPDATE player_loot_rewards SET source='use_requested', updated_at=NOW() WHERE id=? AND player_id=? AND status='active'",
-      [rewardId, player.id],
+      "UPDATE player_loot_rewards SET source='use_requested', game_id=?, updated_at=NOW() WHERE id=? AND player_id=? AND status='active'",
+      [gameId, rewardId, player.id],
     );
     if (!upd?.affectedRows) {
       return res.status(400).json({ error: "Не вдалося створити запит." });
@@ -224,9 +290,15 @@ router.post("/rewards/:id/request-use", async (req, res) => {
       rewardId,
       playerId: player.id,
       rewardKey: row.reward_key,
+      gameId,
     });
 
-    return res.json({ success: true, reward_id: rewardId, source: "use_requested" });
+    return res.json({
+      success: true,
+      reward_id: rewardId,
+      source: "use_requested",
+      game_id: gameId,
+    });
   } catch (e) {
     log.error("Loot request use error", { error: e.message });
     return res.status(500).json({ error: e.message });

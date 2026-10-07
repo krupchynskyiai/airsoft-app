@@ -15,6 +15,8 @@ const LOOT_REWARDS = [
     weight: 1,
     imageUrl: "/gifts/sale-20.png",
     enabled: true,
+    // Settlement: reduces the player's public base price by 20% when applied to a game.
+    billing: { basePriceDiscountPercent: 20, requiresGame: true },
   },
   {
     key: "balls_50",
@@ -33,6 +35,7 @@ const LOOT_REWARDS = [
     weight: 1,
     imageUrl: "/gifts/sale-50.png",
     enabled: true,
+    billing: { basePriceDiscountPercent: 50, requiresGame: true },
   },
   {
     key: "free_game",
@@ -42,6 +45,7 @@ const LOOT_REWARDS = [
     weight: 1,
     imageUrl: "/gifts/free-game.png",
     enabled: true,
+    billing: { basePriceDiscountPercent: 100, requiresGame: true },
   },
   {
     key: "custom_patch",

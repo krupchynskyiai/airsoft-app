@@ -4,6 +4,7 @@ const { adminMiddleware } = require("../middleware/auth");
 const ExcelJS = require("exceljs");
 const config = require("../../config");
 const bot = require("../bot");
+const { LOOT_REWARDS } = require("../../constants/lootRewards");
 
 const router = Router();
 
@@ -17,6 +18,24 @@ const CATEGORIES = [
 ];
 const PLAYER_BASE_PRICE = 700;
 const ORGANIZER_BASE_PRICE = 500;
+
+// Map of reward_key -> billing metadata for fast lookups in settlement.
+const LOOT_BILLING_BY_KEY = new Map(
+  LOOT_REWARDS.filter((r) => r.billing && r.billing.basePriceDiscountPercent > 0).map(
+    (r) => [r.key, r.billing],
+  ),
+);
+
+// A reward "counts" against a game's settlement once it has been bound to
+// that game AND either the player requested to use it OR the admin redeemed it.
+// Rewards still sitting in inventory (source='spin', status='active') do not
+// reduce anyone's bill until the player explicitly claims them for a game.
+function lootRewardAppliesToSettlement(row) {
+  if (!row || !row.game_id) return false;
+  if (row.status === "redeemed") return true;
+  if (row.status === "active" && row.source === "use_requested") return true;
+  return false;
+}
 
 function toNonNegativeInt(v, fallback = 0) {
   if (v === null || v === undefined || v === "") return fallback;
@@ -64,13 +83,42 @@ function parseMoneyAmount(v) {
   return Math.max(0, Math.floor(n));
 }
 
-function computeSettlementRow(playerRow, prepaymentAmount, paymentEventAmount) {
+function computeSettlementRow(
+  playerRow,
+  prepaymentAmount,
+  paymentEventAmount,
+  appliedLootRewards = [],
+) {
   const extrasDue = Number(playerRow?.computed?.extras_total || 0);
   const prepayment = Number(prepaymentAmount || 0);
   const payments = Number(paymentEventAmount || 0);
   const paidTotal = prepayment + payments;
 
-  const grossPublic = PLAYER_BASE_PRICE + extrasDue;
+  // Loot discounts only reduce the player-facing (public) base price. The
+  // organizer still collects their fixed share per slot — the club absorbs
+  // any bonus discounts.
+  let lootDiscount = 0;
+  const lootApplied = [];
+  for (const r of appliedLootRewards) {
+    const meta = LOOT_BILLING_BY_KEY.get(r.reward_key);
+    if (!meta || !meta.basePriceDiscountPercent) continue;
+    const delta = Math.floor(
+      (PLAYER_BASE_PRICE * meta.basePriceDiscountPercent) / 100,
+    );
+    if (delta <= 0) continue;
+    lootDiscount += delta;
+    lootApplied.push({
+      reward_id: r.id,
+      reward_key: r.reward_key,
+      discount_percent: meta.basePriceDiscountPercent,
+      discount_amount: delta,
+      status: r.status,
+      source: r.source,
+    });
+  }
+
+  const basePublic = Math.max(0, PLAYER_BASE_PRICE - lootDiscount);
+  const grossPublic = basePublic + extrasDue;
   const grossOrganizer = ORGANIZER_BASE_PRICE + extrasDue;
 
   const debtPublic = Math.max(0, grossPublic - paidTotal);
@@ -78,8 +126,11 @@ function computeSettlementRow(playerRow, prepaymentAmount, paymentEventAmount) {
 
   return {
     extras_due: extrasDue,
-    base_due_public: PLAYER_BASE_PRICE,
+    base_due_public: basePublic,
+    base_due_public_before_loot: PLAYER_BASE_PRICE,
     base_due_organizer: ORGANIZER_BASE_PRICE,
+    loot_discount: lootDiscount,
+    loot_rewards: lootApplied,
     gross_due_public: grossPublic,
     gross_due_organizer: grossOrganizer,
     prepayment_amount: prepayment,
@@ -98,19 +149,28 @@ async function loadBillingContext(gid) {
   );
   if (!game) return null;
 
+  // NOTE: columns from `b.*` include `player_id`/`game_id`/`id`, which would
+  // silently overwrite the ones from `gp`/`p` when the row has no billing
+  // record (LEFT JOIN → NULLs). Explicitly alias gp.player_id so the mapping
+  // below gets the correct id regardless of billing presence.
   const rows = await q(
     `SELECT
-        gp.player_id,
+        gp.player_id AS player_id,
         COALESCE(p.callsign, p.nickname) AS player_name,
         p.telegram_username,
         p.telegram_id,
         gp.attendance,
-        b.*
+        b.extra_weapon_mode, b.extra_weapon_amount, b.extra_weapon_qty, b.extra_weapon_unit_price,
+        b.bb_mode, b.bb_amount, b.bb_qty, b.bb_unit_price,
+        b.grenade_mode, b.grenade_amount, b.grenade_qty, b.grenade_unit_price,
+        b.smoke_mode, b.smoke_amount, b.smoke_qty, b.smoke_unit_price,
+        b.mini_bar_mode, b.mini_bar_amount, b.mini_bar_qty, b.mini_bar_unit_price,
+        b.repair_mode, b.repair_amount, b.repair_qty, b.repair_unit_price
      FROM game_players gp
      JOIN players p ON p.id = gp.player_id
      LEFT JOIN game_player_billing b
        ON b.game_id = gp.game_id AND b.player_id = gp.player_id
-     WHERE gp.game_id=? AND gp.attendance='checked_in'
+     WHERE gp.game_id=? AND gp.attendance IN ('checked_in','left_early')
      ORDER BY player_name ASC`,
     [gid],
   );
@@ -203,17 +263,46 @@ async function loadSettlementContext(gid) {
     [gid, ...playerIds],
   );
 
+  // Loot rewards the player has bound to this specific game. We accept both
+  // pending-use and already-redeemed rewards here so that a discount always
+  // stays reflected in the settlement once the player has earmarked it,
+  // regardless of whether the admin has closed it out yet.
+  const lootRewards = await q(
+    `SELECT id, player_id, reward_key, status, source
+     FROM player_loot_rewards
+     WHERE game_id=? AND player_id IN (${placeholders})
+       AND (
+         (status='active' AND source='use_requested')
+         OR status='redeemed'
+       )`,
+    [gid, ...playerIds],
+  );
+
   const prepayMap = new Map(
     prepayments.map((r) => [Number(r.player_id), { amount: Number(r.amount || 0), note: r.note || "" }]),
   );
   const eventMap = new Map(
     paymentEvents.map((r) => [Number(r.player_id), Number(r.total_amount || 0)]),
   );
+  const lootByPlayer = new Map();
+  for (const r of lootRewards) {
+    if (!lootRewardAppliesToSettlement(r)) continue;
+    const pid = Number(r.player_id);
+    const list = lootByPlayer.get(pid) || [];
+    list.push(r);
+    lootByPlayer.set(pid, list);
+  }
 
   const rows = billing.players.map((p) => {
     const prepay = prepayMap.get(Number(p.player_id)) || { amount: 0, note: "" };
     const paymentAmount = eventMap.get(Number(p.player_id)) || 0;
-    const settlement = computeSettlementRow(p, prepay.amount, paymentAmount);
+    const playerLoot = lootByPlayer.get(Number(p.player_id)) || [];
+    const settlement = computeSettlementRow(
+      p,
+      prepay.amount,
+      paymentAmount,
+      playerLoot,
+    );
     return {
       ...p,
       settlement: {
@@ -273,8 +362,13 @@ router.post("/:id/billing/:playerId", adminMiddleware, async (req, res) => {
       "SELECT id, attendance FROM game_players WHERE game_id=? AND player_id=?",
       [gid, playerId],
     );
-    if (!reg || reg.attendance !== "checked_in") {
-      return res.status(400).json({ error: "Player is not checked-in for this game" });
+    if (
+      !reg ||
+      (reg.attendance !== "checked_in" && reg.attendance !== "left_early")
+    ) {
+      return res.status(400).json({
+        error: "Player did not participate in this game (needs check-in or left-early status)",
+      });
     }
 
     const parsed = {};
@@ -361,8 +455,11 @@ router.get("/:id/billing/export", adminMiddleware, async (req, res) => {
     const viewRaw = String(req.query.view || "admin_public").trim();
     const view = viewRaw === "organizer" ? "organizer" : "admin_public";
 
-    const data = await loadBillingContext(gid);
-    if (!data) return res.status(404).json({ error: "Game not found" });
+    // Use the settlement context so the public export reflects loot-based
+    // discounts (free game / -50% / -20%) that players applied to this game.
+    const settlement = await loadSettlementContext(gid);
+    if (!settlement) return res.status(404).json({ error: "Game not found" });
+    const data = { game: settlement.game, players: settlement.rows };
 
     const basePrice = view === "organizer" ? ORGANIZER_BASE_PRICE : PLAYER_BASE_PRICE;
     const workbook = new ExcelJS.Workbook();
@@ -393,13 +490,22 @@ router.get("/:id/billing/export", adminMiddleware, async (req, res) => {
     let grandTotal = 0;
     data.players.forEach((p, idx) => {
       const c = p.computed.categories;
-      const total = basePrice + p.computed.extras_total;
+      // Public view reflects loot discounts applied to this game; the
+      // organizer view always uses the fixed per-slot base price.
+      const rowBase =
+        view === "organizer"
+          ? ORGANIZER_BASE_PRICE
+          : p.settlement?.base_due_public ?? basePrice;
+      const total =
+        view === "organizer"
+          ? rowBase + p.computed.extras_total
+          : p.settlement?.gross_due_public ?? rowBase + p.computed.extras_total;
       grandTotal += total;
       sheet.addRow([
         idx + 1,
         p.player_name,
         total,
-        basePrice,
+        rowBase,
         c.extra_weapon,
         c.bb,
         c.grenade,

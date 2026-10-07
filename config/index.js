@@ -45,8 +45,11 @@ module.exports = {
   // Overwritten at startup with the real username from getMe(), so deep links
   // always point to the bot this instance is running as.
   BOT_USERNAME: process.env.BOT_USERNAME || (IS_PROD ? "banana_airsoft_app_bot" : ""),
+  // Non-production only: the bot this instance must run as. Refuses to start
+  // if BOT_TOKEN belongs to any other bot.
+  STAGING_BOT_USERNAME: (process.env.STAGING_BOT_USERNAME || "").replace(/^@/, ""),
   // Username of the production bot. Non-production instances refuse to start with it.
-  PROD_BOT_USERNAME: process.env.PROD_BOT_USERNAME || "banana_airsoft_app_bot",
+  PROD_BOT_USERNAME: (process.env.PROD_BOT_USERNAME || "banana_airsoft_app_bot").replace(/^@/, ""),
   // Production channel id. Non-production instances refuse to post into it.
   PROD_CHANNEL_ID: process.env.PROD_CHANNEL_ID || "",
   // Non-production only: if set, the bot may message only these chats (plus CHANNEL_ID).
@@ -54,6 +57,15 @@ module.exports = {
   PAYMENT_CARD_NUMBER: process.env.PAYMENT_CARD_NUMBER || "4441114452431495",
   LOG_LEVEL: process.env.LOG_LEVEL || "info",
   WEBAPP_URL: process.env.WEBAPP_URL,
+  // Global kill-switch for any outgoing Telegram messages (DMs, channel posts,
+  // edits, etc.). Meant for running against a test DB that contains real
+  // telegram_ids so we can't accidentally notify real users.
+  NOTIFICATIONS_DISABLED:
+    String(process.env.NOTIFICATIONS_DISABLED || "").toLowerCase() === "true",
+  // When the kill-switch is on, optionally still allow messages to ADMIN_IDS
+  // so admins can test bot flows end-to-end.
+  NOTIFICATIONS_ALLOW_ADMINS:
+    String(process.env.NOTIFICATIONS_ALLOW_ADMINS || "").toLowerCase() === "true",
   DB: {
     host: process.env.DB_HOST || "localhost",
     port: parseInt(process.env.DB_PORT || "3306"),

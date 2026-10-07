@@ -1,0 +1,499 @@
+[2026-04-21T07:25:47.558Z] [WARN] Keep-warm ping failed | {"healthUrl":"https://airsoft-app.onrender.com/api/health","error":"getaddrinfo ENOTFOUND airsoft-app.onrender.com"}
+[2026-04-21T07:25:50.084Z] [DEBUG] API GET /profile | {"body":{}}
+[2026-04-21T07:25:50.086Z] [WARN] DEV AUTH BYPASS | {"userId":412606522}
+[2026-04-21T07:25:50.119Z] [ERROR] Q fail | {"sql":"SELECT * FROM players WHERE telegram_id=?","error":"getaddrinfo ENOTFOUND s5.thehost.com.ua"}
+[2026-04-21T07:25:50.131Z] [ERROR] Auth middleware error | {"message":"getaddrinfo ENOTFOUND s5.thehost.com.ua","code":"ENOTFOUND","errno":-3008}
+[2026-04-21T07:25:50.232Z] [DEBUG] API GET /profile | {"body":{}}
+[2026-04-21T07:25:50.233Z] [WARN] DEV AUTH BYPASS | {"userId":412606522}
+[2026-04-21T07:25:50.245Z] [ERROR] Q fail | {"sql":"SELECT * FROM players WHERE telegram_id=?","error":"getaddrinfo ENOTFOUND s5.thehost.com.ua"}
+[2026-04-21T07:25:50.247Z] [ERROR] Auth middleware error | {"message":"getaddrinfo ENOTFOUND s5.thehost.com.ua","code":"ENOTFOUND","errno":-3008}
+[2026-04-21T07:25:51.066Z] [DEBUG] API GET /profile | {"body":{}}
+[2026-04-21T07:25:51.067Z] [WARN] DEV AUTH BYPASS | {"userId":412606522}
+[2026-04-21T07:25:51.077Z] [ERROR] Q fail | {"sql":"SELECT * FROM players WHERE telegram_id=?","error":"getaddrinfo ENOTFOUND s5.thehost.com.ua"}
+[2026-04-21T07:25:51.078Z] [ERROR] Auth middleware error | {"message":"getaddrinfo ENOTFOUND s5.thehost.com.ua","code":"ENOTFOUND","errno":-3008}
+[2026-04-21T07:25:51.100Z] [DEBUG] API GET /profile | {"body":{}}
+[2026-04-21T07:25:51.101Z] [WARN] DEV AUTH BYPASS | {"userId":412606522}
+[2026-04-21T07:25:51.104Z] [ERROR] Q fail | {"sql":"SELECT * FROM players WHERE telegram_id=?","error":"getaddrinfo ENOTFOUND s5.thehost.com.ua"}
+[2026-04-21T07:25:51.106Z] [ERROR] Auth middleware error | {"message":"getaddrinfo ENOTFOUND s5.thehost.com.ua","code":"ENOTFOUND","errno":-3008}
+[2026-04-21T07:25:51.533Z] [DEBUG] API GET /profile | {"body":{}}
+[2026-04-21T07:25:51.534Z] [WARN] DEV AUTH BYPASS | {"userId":412606522}
+[2026-04-21T07:25:51.559Z] [ERROR] Q fail | {"sql":"SELECT * FROM players WHERE telegram_id=?","error":"getaddrinfo ENOTFOUND s5.thehost.com.ua"}
+[2026-04-21T07:25:51.590Z] [ERROR] Auth middleware error | {"message":"getaddrinfo ENOTFOUND s5.thehost.com.ua","code":"ENOTFOUND","errno":-3008}
+[2026-04-21T07:25:51.609Z] [DEBUG] API GET /profile | {"body":{}}
+[2026-04-21T07:25:51.610Z] [WARN] DEV AUTH BYPASS | {"userId":412606522}
+[2026-04-21T07:25:51.617Z] [ERROR] Q fail | {"sql":"SELECT * FROM players WHERE telegram_id=?","error":"getaddrinfo ENOTFOUND s5.thehost.com.ua"}
+[2026-04-21T07:25:51.618Z] [ERROR] Auth middleware error | {"message":"getaddrinfo ENOTFOUND s5.thehost.com.ua","code":"ENOTFOUND","errno":-3008}
+[2026-04-21T07:25:52.324Z] [DEBUG] API GET /profile | {"body":{}}
+[2026-04-21T07:25:52.325Z] [WARN] DEV AUTH BYPASS | {"userId":412606522}
+[2026-04-21T07:25:52.327Z] [ERROR] Q fail | {"sql":"SELECT * FROM players WHERE telegram_id=?","error":"getaddrinfo ENOTFOUND s5.thehost.com.ua"}
+[2026-04-21T07:25:52.327Z] [ERROR] Auth middleware error | {"message":"getaddrinfo ENOTFOUND s5.thehost.com.ua","code":"ENOTFOUND","errno":-3008}
+[2026-04-21T07:25:52.430Z] [DEBUG] API GET /profile | {"body":{}}
+[2026-04-21T07:25:52.431Z] [WARN] DEV AUTH BYPASS | {"userId":412606522}
+[2026-04-21T07:25:52.433Z] [ERROR] Q fail | {"sql":"SELECT * FROM players WHERE telegram_id=?","error":"getaddrinfo ENOTFOUND s5.thehost.com.ua"}
+[2026-04-21T07:25:52.436Z] [ERROR] Auth middleware error | {"message":"getaddrinfo ENOTFOUND s5.thehost.com.ua","code":"ENOTFOUND","errno":-3008}
+[2026-04-21T07:25:53.358Z] [DEBUG] API GET /profile | {"body":{}}
+[2026-04-21T07:25:53.359Z] [WARN] DEV AUTH BYPASS | {"userId":412606522}
+[2026-04-21T07:25:53.360Z] [ERROR] Q fail | {"sql":"SELECT * FROM players WHERE telegram_id=?","error":"getaddrinfo ENOTFOUND s5.thehost.com.ua"}
+[2026-04-21T07:25:53.361Z] [ERROR] Auth middleware error | {"message":"getaddrinfo ENOTFOUND s5.thehost.com.ua","code":"ENOTFOUND","errno":-3008}
+[2026-04-21T07:25:53.371Z] [DEBUG] API GET /profile | {"body":{}}
+[2026-04-21T07:25:53.372Z] [WARN] DEV AUTH BYPASS | {"userId":412606522}
+[2026-04-21T07:25:53.413Z] [ERROR] Q fail | {"sql":"SELECT * FROM players WHERE telegram_id=?","error":"getaddrinfo ENOTFOUND s5.thehost.com.ua"}
+[2026-04-21T07:25:53.415Z] [ERROR] Auth middleware error | {"message":"getaddrinfo ENOTFOUND s5.thehost.com.ua","code":"ENOTFOUND","errno":-3008}
+[2026-04-21T07:25:53.793Z] [DEBUG] API GET /profile | {"body":{}}
+[2026-04-21T07:25:53.794Z] [WARN] DEV AUTH BYPASS | {"userId":412606522}
+[2026-04-21T07:25:53.876Z] [ERROR] Q fail | {"sql":"SELECT * FROM players WHERE telegram_id=?","error":"getaddrinfo ENOTFOUND s5.thehost.com.ua"}
+[2026-04-21T07:25:53.912Z] [ERROR] Auth middleware error | {"message":"getaddrinfo ENOTFOUND s5.thehost.com.ua","code":"ENOTFOUND","errno":-3008}
+[2026-04-21T07:25:53.984Z] [DEBUG] API GET /profile | {"body":{}}
+[2026-04-21T07:25:53.984Z] [WARN] DEV AUTH BYPASS | {"userId":412606522}
+[2026-04-21T07:25:54.003Z] [ERROR] Q fail | {"sql":"SELECT * FROM players WHERE telegram_id=?","error":"getaddrinfo ENOTFOUND s5.thehost.com.ua"}
+[2026-04-21T07:25:54.004Z] [ERROR] Auth middleware error | {"message":"getaddrinfo ENOTFOUND s5.thehost.com.ua","code":"ENOTFOUND","errno":-3008}
+[2026-04-21T07:25:54.706Z] [DEBUG] API GET /profile | {"body":{}}
+[2026-04-21T07:25:54.707Z] [WARN] DEV AUTH BYPASS | {"userId":412606522}
+[2026-04-21T07:25:54.903Z] [DB] Q | {"sql":"SELECT * FROM players WHERE telegram_id=?","rows":1,"ms":196}
+[2026-04-21T07:25:54.943Z] [DB] Q | {"sql":"SELECT p.*, t.name AS team_name\n       FROM players p LEFT JOIN teams t ON p.team_id = t.id\n       W","rows":1,"ms":39}
+[2026-04-21T07:25:54.982Z] [DB] Q | {"sql":"SELECT badge_name, badge_emoji FROM player_badges WHERE player_id = ?","rows":7,"ms":39}
+[2026-04-21T07:25:55.022Z] [DB] Q | {"sql":"SELECT g.id, g.date, g.time, g.game_mode, g.status, gp.result, gp.kills_total, gp.deaths_total\n     ","rows":5,"ms":38}
+[2026-04-21T07:25:55.063Z] [DB] Q | {"sql":"SELECT winner_game_team, COUNT(*) AS wins\n         FROM rounds\n         WHERE game_id=? AND status='","rows":1,"ms":40}
+[2026-04-21T07:25:55.084Z] [DB] Q | {"sql":"SELECT winner_game_team, COUNT(*) AS wins\n         FROM rounds\n         WHERE game_id=? AND status='","rows":2,"ms":20}
+[2026-04-21T07:25:55.104Z] [DB] Q | {"sql":"SELECT winner_game_team, COUNT(*) AS wins\n         FROM rounds\n         WHERE game_id=? AND status='","rows":2,"ms":18}
+[2026-04-21T07:25:55.124Z] [DB] Q | {"sql":"SELECT winner_game_team, COUNT(*) AS wins\n         FROM rounds\n         WHERE game_id=? AND status='","rows":2,"ms":18}
+[2026-04-21T07:25:55.143Z] [DB] Q | {"sql":"SELECT winner_game_team, COUNT(*) AS wins\n         FROM rounds\n         WHERE game_id=? AND status='","rows":2,"ms":18}
+[2026-04-21T07:25:55.181Z] [DB] Q | {"sql":"SELECT COUNT(*) AS c\n       FROM round_players rp\n       JOIN rounds r ON r.id = rp.round_id\n       ","rows":1,"ms":38}
+[2026-04-21T07:25:55.218Z] [DB] Q | {"sql":"SELECT COUNT(*) AS c\n       FROM round_players rp\n       JOIN rounds r ON r.id = rp.round_id\n       ","rows":1,"ms":36}
+[2026-04-21T07:25:55.257Z] [DB] Q | {"sql":"SELECT p.id, p.nickname, p.callsign, p.rating\n       FROM friends f\n       JOIN players p ON p.id = ","rows":2,"ms":37}
+[2026-04-21T07:25:55.258Z] [INFO] Profile API | {"tgId":412606522,"isAdmin":true,"admins":[412606522]}
+[2026-04-21T07:25:56.812Z] [DEBUG] API GET /profile | {"body":{}}
+[2026-04-21T07:25:56.813Z] [WARN] DEV AUTH BYPASS | {"userId":412606522}
+[2026-04-21T07:25:56.876Z] [DB] Q | {"sql":"SELECT * FROM players WHERE telegram_id=?","rows":1,"ms":63}
+[2026-04-21T07:25:56.896Z] [DB] Q | {"sql":"SELECT p.*, t.name AS team_name\n       FROM players p LEFT JOIN teams t ON p.team_id = t.id\n       W","rows":1,"ms":18}
+[2026-04-21T07:25:56.917Z] [DB] Q | {"sql":"SELECT badge_name, badge_emoji FROM player_badges WHERE player_id = ?","rows":7,"ms":18}
+[2026-04-21T07:25:56.937Z] [DB] Q | {"sql":"SELECT g.id, g.date, g.time, g.game_mode, g.status, gp.result, gp.kills_total, gp.deaths_total\n     ","rows":5,"ms":19}
+[2026-04-21T07:25:57.065Z] [DB] Q | {"sql":"SELECT winner_game_team, COUNT(*) AS wins\n         FROM rounds\n         WHERE game_id=? AND status='","rows":1,"ms":126}
+[2026-04-21T07:25:57.084Z] [DB] Q | {"sql":"SELECT winner_game_team, COUNT(*) AS wins\n         FROM rounds\n         WHERE game_id=? AND status='","rows":2,"ms":19}
+[2026-04-21T07:25:57.107Z] [DB] Q | {"sql":"SELECT winner_game_team, COUNT(*) AS wins\n         FROM rounds\n         WHERE game_id=? AND status='","rows":2,"ms":20}
+[2026-04-21T07:25:57.129Z] [DB] Q | {"sql":"SELECT winner_game_team, COUNT(*) AS wins\n         FROM rounds\n         WHERE game_id=? AND status='","rows":2,"ms":21}
+[2026-04-21T07:25:57.150Z] [DB] Q | {"sql":"SELECT winner_game_team, COUNT(*) AS wins\n         FROM rounds\n         WHERE game_id=? AND status='","rows":2,"ms":19}
+[2026-04-21T07:25:57.287Z] [DB] Q | {"sql":"SELECT COUNT(*) AS c\n       FROM round_players rp\n       JOIN rounds r ON r.id = rp.round_id\n       ","rows":1,"ms":136}
+[2026-04-21T07:25:57.313Z] [DB] Q | {"sql":"SELECT COUNT(*) AS c\n       FROM round_players rp\n       JOIN rounds r ON r.id = rp.round_id\n       ","rows":1,"ms":25}
+[2026-04-21T07:25:57.339Z] [DB] Q | {"sql":"SELECT p.id, p.nickname, p.callsign, p.rating\n       FROM friends f\n       JOIN players p ON p.id = ","rows":2,"ms":24}
+[2026-04-21T07:25:57.341Z] [INFO] Profile API | {"tgId":412606522,"isAdmin":true,"admins":[412606522]}
+[2026-04-21T07:30:47.708Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-21T07:35:47.700Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-21T07:40:48.024Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-21T07:45:48.102Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-21T07:50:47.684Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-21T07:55:47.712Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-21T08:00:48.076Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-21T08:05:48.172Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-21T08:10:48.130Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-21T08:15:47.812Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-21T08:20:47.691Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-21T08:25:48.084Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-21T08:30:48.260Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-21T08:35:47.698Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-21T08:40:48.224Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-21T08:45:47.730Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-21T08:50:47.869Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-21T08:55:47.726Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-21T09:00:48.198Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-21T09:05:48.217Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-21T09:10:47.771Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-21T09:15:48.271Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-21T09:20:47.778Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-21T09:25:47.793Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-21T09:30:48.330Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-21T09:35:47.785Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-21T09:40:48.226Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-21T09:45:48.499Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-21T09:50:47.854Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-21T09:55:47.853Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-21T10:00:48.380Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-21T10:05:47.802Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-21T10:10:48.246Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-21T10:15:47.809Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-21T10:20:48.277Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-21T10:25:47.946Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-21T10:30:48.283Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-21T10:35:48.098Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-21T10:40:47.888Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-21T10:45:48.369Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-21T10:50:48.294Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-21T10:55:47.966Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-21T11:00:48.318Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-21T11:05:47.966Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-21T11:10:47.896Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-21T11:15:48.393Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-21T11:20:47.913Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-21T11:25:48.320Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-21T11:30:48.117Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-21T11:35:47.936Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-21T11:40:48.523Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-21T11:45:48.441Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-21T11:50:48.109Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-21T11:55:48.467Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-21T12:00:48.146Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-21T12:05:47.965Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-21T12:10:48.100Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-21T12:15:47.971Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-21T12:20:48.010Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-21T12:25:48.075Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-21T12:30:48.025Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-21T12:35:48.166Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-21T12:40:48.055Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-21T12:45:48.202Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-21T12:50:48.014Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-21T12:55:48.567Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-21T13:00:48.452Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-21T13:05:48.063Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-21T13:10:48.160Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-21T13:15:48.098Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-21T13:20:48.467Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-21T13:25:48.501Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-21T13:30:48.552Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-21T13:35:48.654Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-21T13:40:48.632Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-21T13:45:48.138Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-21T13:50:48.668Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-21T13:55:48.115Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-21T14:00:48.353Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-21T14:05:48.161Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-21T14:07:38.112Z] [DEBUG] API GET /profile | {"body":{}}
+[2026-04-21T14:07:38.127Z] [WARN] DEV AUTH BYPASS | {"userId":412606522}
+[2026-04-21T14:07:38.284Z] [DB] Q | {"sql":"SELECT * FROM players WHERE telegram_id=?","rows":1,"ms":153}
+[2026-04-21T14:07:38.336Z] [DB] Q | {"sql":"SELECT p.*, t.name AS team_name\n       FROM players p LEFT JOIN teams t ON p.team_id = t.id\n       W","rows":1,"ms":43}
+[2026-04-21T14:07:38.377Z] [DB] Q | {"sql":"SELECT badge_name, badge_emoji FROM player_badges WHERE player_id = ?","rows":7,"ms":39}
+[2026-04-21T14:07:38.425Z] [DB] Q | {"sql":"SELECT g.id, g.date, g.time, g.game_mode, g.status, gp.result, gp.kills_total, gp.deaths_total\n     ","rows":5,"ms":39}
+[2026-04-21T14:07:38.466Z] [DB] Q | {"sql":"SELECT winner_game_team, COUNT(*) AS wins\n         FROM rounds\n         WHERE game_id=? AND status='","rows":1,"ms":40}
+[2026-04-21T14:07:38.487Z] [DB] Q | {"sql":"SELECT winner_game_team, COUNT(*) AS wins\n         FROM rounds\n         WHERE game_id=? AND status='","rows":2,"ms":19}
+[2026-04-21T14:07:38.507Z] [DB] Q | {"sql":"SELECT winner_game_team, COUNT(*) AS wins\n         FROM rounds\n         WHERE game_id=? AND status='","rows":2,"ms":19}
+[2026-04-21T14:07:38.529Z] [DB] Q | {"sql":"SELECT winner_game_team, COUNT(*) AS wins\n         FROM rounds\n         WHERE game_id=? AND status='","rows":2,"ms":19}
+[2026-04-21T14:14:42.071Z] [ERROR] Q fail | {"sql":"SELECT winner_game_team, COUNT(*) AS wins\n         FROM rounds\n         WHERE game_id=? AND status='","error":"read ECONNRESET"}
+[2026-04-21T14:14:42.116Z] [ERROR] API /profile error | {"error":"read ECONNRESET"}
+[2026-04-21T14:14:42.407Z] [WARN] Keep-warm ping failed | {"healthUrl":"https://airsoft-app.onrender.com/api/health","error":"getaddrinfo ENOTFOUND airsoft-app.onrender.com"}
+[2026-04-21T14:14:44.142Z] [DEBUG] API GET /profile | {"body":{}}
+[2026-04-21T14:14:44.143Z] [WARN] DEV AUTH BYPASS | {"userId":412606522}
+[2026-04-21T14:14:44.151Z] [ERROR] Q fail | {"sql":"SELECT * FROM players WHERE telegram_id=?","error":"getaddrinfo ENOTFOUND s5.thehost.com.ua"}
+[2026-04-21T14:14:44.163Z] [ERROR] Auth middleware error | {"message":"getaddrinfo ENOTFOUND s5.thehost.com.ua","code":"ENOTFOUND","errno":-3008}
+[2026-04-21T14:14:44.173Z] [DEBUG] API GET /profile | {"body":{}}
+[2026-04-21T14:14:44.175Z] [WARN] DEV AUTH BYPASS | {"userId":412606522}
+[2026-04-21T14:14:44.188Z] [ERROR] Q fail | {"sql":"SELECT * FROM players WHERE telegram_id=?","error":"getaddrinfo ENOTFOUND s5.thehost.com.ua"}
+[2026-04-21T14:14:44.190Z] [ERROR] Auth middleware error | {"message":"getaddrinfo ENOTFOUND s5.thehost.com.ua","code":"ENOTFOUND","errno":-3008}
+[2026-04-21T14:14:44.561Z] [DEBUG] API GET /profile | {"body":{}}
+[2026-04-21T14:14:44.562Z] [WARN] DEV AUTH BYPASS | {"userId":412606522}
+[2026-04-21T14:14:44.566Z] [ERROR] Q fail | {"sql":"SELECT * FROM players WHERE telegram_id=?","error":"getaddrinfo ENOTFOUND s5.thehost.com.ua"}
+[2026-04-21T14:14:44.567Z] [ERROR] Auth middleware error | {"message":"getaddrinfo ENOTFOUND s5.thehost.com.ua","code":"ENOTFOUND","errno":-3008}
+[2026-04-21T14:14:44.573Z] [DEBUG] API GET /profile | {"body":{}}
+[2026-04-21T14:14:44.576Z] [WARN] DEV AUTH BYPASS | {"userId":412606522}
+[2026-04-21T14:14:44.588Z] [ERROR] Q fail | {"sql":"SELECT * FROM players WHERE telegram_id=?","error":"getaddrinfo ENOTFOUND s5.thehost.com.ua"}
+[2026-04-21T14:14:44.590Z] [ERROR] Auth middleware error | {"message":"getaddrinfo ENOTFOUND s5.thehost.com.ua","code":"ENOTFOUND","errno":-3008}
+[2026-04-21T14:14:44.986Z] [DEBUG] API GET /profile | {"body":{}}
+[2026-04-21T14:14:44.988Z] [WARN] DEV AUTH BYPASS | {"userId":412606522}
+[2026-04-21T14:14:44.993Z] [ERROR] Q fail | {"sql":"SELECT * FROM players WHERE telegram_id=?","error":"getaddrinfo ENOTFOUND s5.thehost.com.ua"}
+[2026-04-21T14:14:44.994Z] [ERROR] Auth middleware error | {"message":"getaddrinfo ENOTFOUND s5.thehost.com.ua","code":"ENOTFOUND","errno":-3008}
+[2026-04-21T14:14:45.057Z] [DEBUG] API GET /profile | {"body":{}}
+[2026-04-21T14:14:45.058Z] [WARN] DEV AUTH BYPASS | {"userId":412606522}
+[2026-04-21T14:14:45.070Z] [ERROR] Q fail | {"sql":"SELECT * FROM players WHERE telegram_id=?","error":"getaddrinfo ENOTFOUND s5.thehost.com.ua"}
+[2026-04-21T14:14:45.072Z] [ERROR] Auth middleware error | {"message":"getaddrinfo ENOTFOUND s5.thehost.com.ua","code":"ENOTFOUND","errno":-3008}
+[2026-04-21T14:14:45.710Z] [DEBUG] API GET /profile | {"body":{}}
+[2026-04-21T14:14:45.711Z] [WARN] DEV AUTH BYPASS | {"userId":412606522}
+[2026-04-21T14:14:45.713Z] [ERROR] Q fail | {"sql":"SELECT * FROM players WHERE telegram_id=?","error":"getaddrinfo ENOTFOUND s5.thehost.com.ua"}
+[2026-04-21T14:14:45.714Z] [ERROR] Auth middleware error | {"message":"getaddrinfo ENOTFOUND s5.thehost.com.ua","code":"ENOTFOUND","errno":-3008}
+[2026-04-21T14:14:45.789Z] [DEBUG] API GET /profile | {"body":{}}
+[2026-04-21T14:14:45.790Z] [WARN] DEV AUTH BYPASS | {"userId":412606522}
+[2026-04-21T14:14:45.792Z] [ERROR] Q fail | {"sql":"SELECT * FROM players WHERE telegram_id=?","error":"getaddrinfo ENOTFOUND s5.thehost.com.ua"}
+[2026-04-21T14:14:45.793Z] [ERROR] Auth middleware error | {"message":"getaddrinfo ENOTFOUND s5.thehost.com.ua","code":"ENOTFOUND","errno":-3008}
+[2026-04-21T14:14:46.744Z] [DEBUG] API GET /profile | {"body":{}}
+[2026-04-21T14:14:46.745Z] [WARN] DEV AUTH BYPASS | {"userId":412606522}
+[2026-04-21T14:14:46.748Z] [ERROR] Q fail | {"sql":"SELECT * FROM players WHERE telegram_id=?","error":"getaddrinfo ENOTFOUND s5.thehost.com.ua"}
+[2026-04-21T14:14:46.749Z] [ERROR] Auth middleware error | {"message":"getaddrinfo ENOTFOUND s5.thehost.com.ua","code":"ENOTFOUND","errno":-3008}
+[2026-04-21T14:14:46.755Z] [DEBUG] API GET /profile | {"body":{}}
+[2026-04-21T14:14:46.756Z] [WARN] DEV AUTH BYPASS | {"userId":412606522}
+[2026-04-21T14:14:46.759Z] [ERROR] Q fail | {"sql":"SELECT * FROM players WHERE telegram_id=?","error":"getaddrinfo ENOTFOUND s5.thehost.com.ua"}
+[2026-04-21T14:14:46.761Z] [ERROR] Auth middleware error | {"message":"getaddrinfo ENOTFOUND s5.thehost.com.ua","code":"ENOTFOUND","errno":-3008}
+[2026-04-21T14:14:47.174Z] [DEBUG] API GET /profile | {"body":{}}
+[2026-04-21T14:14:47.175Z] [WARN] DEV AUTH BYPASS | {"userId":412606522}
+[2026-04-21T14:14:47.178Z] [ERROR] Q fail | {"sql":"SELECT * FROM players WHERE telegram_id=?","error":"getaddrinfo ENOTFOUND s5.thehost.com.ua"}
+[2026-04-21T14:14:47.179Z] [ERROR] Auth middleware error | {"message":"getaddrinfo ENOTFOUND s5.thehost.com.ua","code":"ENOTFOUND","errno":-3008}
+[2026-04-21T14:14:47.191Z] [DEBUG] API GET /profile | {"body":{}}
+[2026-04-21T14:14:47.193Z] [WARN] DEV AUTH BYPASS | {"userId":412606522}
+[2026-04-21T14:14:47.208Z] [ERROR] Q fail | {"sql":"SELECT * FROM players WHERE telegram_id=?","error":"getaddrinfo ENOTFOUND s5.thehost.com.ua"}
+[2026-04-21T14:14:47.211Z] [ERROR] Auth middleware error | {"message":"getaddrinfo ENOTFOUND s5.thehost.com.ua","code":"ENOTFOUND","errno":-3008}
+[2026-04-21T14:14:47.905Z] [DEBUG] API GET /profile | {"body":{}}
+[2026-04-21T14:14:47.907Z] [WARN] DEV AUTH BYPASS | {"userId":412606522}
+[2026-04-21T14:14:47.909Z] [ERROR] Q fail | {"sql":"SELECT * FROM players WHERE telegram_id=?","error":"getaddrinfo ENOTFOUND s5.thehost.com.ua"}
+[2026-04-21T14:14:47.910Z] [ERROR] Auth middleware error | {"message":"getaddrinfo ENOTFOUND s5.thehost.com.ua","code":"ENOTFOUND","errno":-3008}
+[2026-04-21T14:14:47.934Z] [DEBUG] API GET /profile | {"body":{}}
+[2026-04-21T14:14:47.935Z] [WARN] DEV AUTH BYPASS | {"userId":412606522}
+[2026-04-21T14:14:47.940Z] [ERROR] Q fail | {"sql":"SELECT * FROM players WHERE telegram_id=?","error":"getaddrinfo ENOTFOUND s5.thehost.com.ua"}
+[2026-04-21T14:14:47.941Z] [ERROR] Auth middleware error | {"message":"getaddrinfo ENOTFOUND s5.thehost.com.ua","code":"ENOTFOUND","errno":-3008}
+[2026-04-21T14:50:51.737Z] [WARN] Keep-warm ping failed | {"healthUrl":"https://airsoft-app.onrender.com/api/health","error":"getaddrinfo ENOTFOUND airsoft-app.onrender.com"}
+[2026-04-21T14:50:53.280Z] [DEBUG] API GET /profile | {"body":{}}
+[2026-04-21T14:50:53.281Z] [WARN] DEV AUTH BYPASS | {"userId":412606522}
+[2026-04-21T14:50:53.284Z] [ERROR] Q fail | {"sql":"SELECT * FROM players WHERE telegram_id=?","error":"getaddrinfo ENOTFOUND s5.thehost.com.ua"}
+[2026-04-21T14:50:53.299Z] [ERROR] Auth middleware error | {"message":"getaddrinfo ENOTFOUND s5.thehost.com.ua","code":"ENOTFOUND","errno":-3008}
+[2026-04-21T14:50:53.324Z] [DEBUG] API GET /profile | {"body":{}}
+[2026-04-21T14:50:53.327Z] [WARN] DEV AUTH BYPASS | {"userId":412606522}
+[2026-04-21T14:50:53.329Z] [ERROR] Q fail | {"sql":"SELECT * FROM players WHERE telegram_id=?","error":"getaddrinfo ENOTFOUND s5.thehost.com.ua"}
+[2026-04-21T14:50:53.330Z] [ERROR] Auth middleware error | {"message":"getaddrinfo ENOTFOUND s5.thehost.com.ua","code":"ENOTFOUND","errno":-3008}
+[2026-04-21T14:50:53.760Z] [DEBUG] API GET /profile | {"body":{}}
+[2026-04-21T14:50:53.761Z] [WARN] DEV AUTH BYPASS | {"userId":412606522}
+[2026-04-21T14:50:53.773Z] [ERROR] Q fail | {"sql":"SELECT * FROM players WHERE telegram_id=?","error":"getaddrinfo ENOTFOUND s5.thehost.com.ua"}
+[2026-04-21T14:50:53.784Z] [ERROR] Auth middleware error | {"message":"getaddrinfo ENOTFOUND s5.thehost.com.ua","code":"ENOTFOUND","errno":-3008}
+[2026-04-21T14:50:53.799Z] [DEBUG] API GET /profile | {"body":{}}
+[2026-04-21T14:50:53.801Z] [WARN] DEV AUTH BYPASS | {"userId":412606522}
+[2026-04-21T14:50:53.805Z] [ERROR] Q fail | {"sql":"SELECT * FROM players WHERE telegram_id=?","error":"getaddrinfo ENOTFOUND s5.thehost.com.ua"}
+[2026-04-21T14:50:53.814Z] [ERROR] Auth middleware error | {"message":"getaddrinfo ENOTFOUND s5.thehost.com.ua","code":"ENOTFOUND","errno":-3008}
+[2026-04-21T14:50:54.509Z] [DEBUG] API GET /profile | {"body":{}}
+[2026-04-21T14:50:54.510Z] [WARN] DEV AUTH BYPASS | {"userId":412606522}
+[2026-04-21T14:50:54.512Z] [ERROR] Q fail | {"sql":"SELECT * FROM players WHERE telegram_id=?","error":"getaddrinfo ENOTFOUND s5.thehost.com.ua"}
+[2026-04-21T14:50:54.513Z] [ERROR] Auth middleware error | {"message":"getaddrinfo ENOTFOUND s5.thehost.com.ua","code":"ENOTFOUND","errno":-3008}
+[2026-04-21T14:50:54.560Z] [DEBUG] API GET /profile | {"body":{}}
+[2026-04-21T14:50:54.562Z] [WARN] DEV AUTH BYPASS | {"userId":412606522}
+[2026-04-21T14:50:54.566Z] [ERROR] Q fail | {"sql":"SELECT * FROM players WHERE telegram_id=?","error":"getaddrinfo ENOTFOUND s5.thehost.com.ua"}
+[2026-04-21T14:50:54.576Z] [ERROR] Auth middleware error | {"message":"getaddrinfo ENOTFOUND s5.thehost.com.ua","code":"ENOTFOUND","errno":-3008}
+[2026-04-21T14:50:55.533Z] [DEBUG] API GET /profile | {"body":{}}
+[2026-04-21T14:50:55.534Z] [WARN] DEV AUTH BYPASS | {"userId":412606522}
+[2026-04-21T14:50:55.541Z] [ERROR] Q fail | {"sql":"SELECT * FROM players WHERE telegram_id=?","error":"getaddrinfo ENOTFOUND s5.thehost.com.ua"}
+[2026-04-21T14:50:55.542Z] [ERROR] Auth middleware error | {"message":"getaddrinfo ENOTFOUND s5.thehost.com.ua","code":"ENOTFOUND","errno":-3008}
+[2026-04-21T14:50:55.552Z] [DEBUG] API GET /profile | {"body":{}}
+[2026-04-21T14:50:55.553Z] [WARN] DEV AUTH BYPASS | {"userId":412606522}
+[2026-04-21T14:50:55.555Z] [ERROR] Q fail | {"sql":"SELECT * FROM players WHERE telegram_id=?","error":"getaddrinfo ENOTFOUND s5.thehost.com.ua"}
+[2026-04-21T14:50:55.556Z] [ERROR] Auth middleware error | {"message":"getaddrinfo ENOTFOUND s5.thehost.com.ua","code":"ENOTFOUND","errno":-3008}
+[2026-04-21T14:50:55.969Z] [DEBUG] API GET /profile | {"body":{}}
+[2026-04-21T14:50:55.970Z] [WARN] DEV AUTH BYPASS | {"userId":412606522}
+[2026-04-21T14:50:55.971Z] [ERROR] Q fail | {"sql":"SELECT * FROM players WHERE telegram_id=?","error":"getaddrinfo ENOTFOUND s5.thehost.com.ua"}
+[2026-04-21T14:50:55.972Z] [ERROR] Auth middleware error | {"message":"getaddrinfo ENOTFOUND s5.thehost.com.ua","code":"ENOTFOUND","errno":-3008}
+[2026-04-21T14:50:55.981Z] [DEBUG] API GET /profile | {"body":{}}
+[2026-04-21T14:50:55.982Z] [WARN] DEV AUTH BYPASS | {"userId":412606522}
+[2026-04-21T14:50:55.984Z] [ERROR] Q fail | {"sql":"SELECT * FROM players WHERE telegram_id=?","error":"getaddrinfo ENOTFOUND s5.thehost.com.ua"}
+[2026-04-21T14:50:55.985Z] [ERROR] Auth middleware error | {"message":"getaddrinfo ENOTFOUND s5.thehost.com.ua","code":"ENOTFOUND","errno":-3008}
+[2026-04-21T14:50:56.704Z] [DEBUG] API GET /profile | {"body":{}}
+[2026-04-21T14:50:56.706Z] [WARN] DEV AUTH BYPASS | {"userId":412606522}
+[2026-04-21T14:50:56.708Z] [ERROR] Q fail | {"sql":"SELECT * FROM players WHERE telegram_id=?","error":"getaddrinfo ENOTFOUND s5.thehost.com.ua"}
+[2026-04-21T14:50:56.709Z] [ERROR] Auth middleware error | {"message":"getaddrinfo ENOTFOUND s5.thehost.com.ua","code":"ENOTFOUND","errno":-3008}
+[2026-04-21T14:50:56.728Z] [DEBUG] API GET /profile | {"body":{}}
+[2026-04-21T14:50:56.731Z] [WARN] DEV AUTH BYPASS | {"userId":412606522}
+[2026-04-21T14:50:56.734Z] [ERROR] Q fail | {"sql":"SELECT * FROM players WHERE telegram_id=?","error":"getaddrinfo ENOTFOUND s5.thehost.com.ua"}
+[2026-04-21T14:50:56.736Z] [ERROR] Auth middleware error | {"message":"getaddrinfo ENOTFOUND s5.thehost.com.ua","code":"ENOTFOUND","errno":-3008}
+[2026-04-21T14:55:52.226Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-21T15:09:54.327Z] [WARN] Keep-warm ping failed | {"healthUrl":"https://airsoft-app.onrender.com/api/health","error":"getaddrinfo ENOTFOUND airsoft-app.onrender.com"}
+[2026-04-21T15:09:56.031Z] [DEBUG] API GET /profile | {"body":{}}
+[2026-04-21T15:09:56.032Z] [WARN] DEV AUTH BYPASS | {"userId":412606522}
+[2026-04-21T15:09:56.040Z] [ERROR] Q fail | {"sql":"SELECT * FROM players WHERE telegram_id=?","error":"getaddrinfo ENOTFOUND s5.thehost.com.ua"}
+[2026-04-21T15:09:56.042Z] [ERROR] Auth middleware error | {"message":"getaddrinfo ENOTFOUND s5.thehost.com.ua","code":"ENOTFOUND","errno":-3008}
+[2026-04-21T15:09:56.055Z] [DEBUG] API GET /profile | {"body":{}}
+[2026-04-21T15:09:56.056Z] [WARN] DEV AUTH BYPASS | {"userId":412606522}
+[2026-04-21T15:09:56.073Z] [ERROR] Q fail | {"sql":"SELECT * FROM players WHERE telegram_id=?","error":"getaddrinfo ENOTFOUND s5.thehost.com.ua"}
+[2026-04-21T15:09:56.080Z] [ERROR] Auth middleware error | {"message":"getaddrinfo ENOTFOUND s5.thehost.com.ua","code":"ENOTFOUND","errno":-3008}
+[2026-04-21T15:09:56.468Z] [DEBUG] API GET /profile | {"body":{}}
+[2026-04-21T15:09:56.469Z] [WARN] DEV AUTH BYPASS | {"userId":412606522}
+[2026-04-21T15:09:56.472Z] [ERROR] Q fail | {"sql":"SELECT * FROM players WHERE telegram_id=?","error":"getaddrinfo ENOTFOUND s5.thehost.com.ua"}
+[2026-04-21T15:09:56.473Z] [ERROR] Auth middleware error | {"message":"getaddrinfo ENOTFOUND s5.thehost.com.ua","code":"ENOTFOUND","errno":-3008}
+[2026-04-21T15:09:56.726Z] [DEBUG] API GET /profile | {"body":{}}
+[2026-04-21T15:09:56.727Z] [WARN] DEV AUTH BYPASS | {"userId":412606522}
+[2026-04-21T15:09:56.734Z] [ERROR] Q fail | {"sql":"SELECT * FROM players WHERE telegram_id=?","error":"getaddrinfo ENOTFOUND s5.thehost.com.ua"}
+[2026-04-21T15:09:56.755Z] [ERROR] Auth middleware error | {"message":"getaddrinfo ENOTFOUND s5.thehost.com.ua","code":"ENOTFOUND","errno":-3008}
+[2026-04-21T15:09:57.358Z] [DEBUG] API GET /profile | {"body":{}}
+[2026-04-21T15:09:57.359Z] [WARN] DEV AUTH BYPASS | {"userId":412606522}
+[2026-04-21T15:09:57.361Z] [ERROR] Q fail | {"sql":"SELECT * FROM players WHERE telegram_id=?","error":"getaddrinfo ENOTFOUND s5.thehost.com.ua"}
+[2026-04-21T15:09:57.362Z] [ERROR] Auth middleware error | {"message":"getaddrinfo ENOTFOUND s5.thehost.com.ua","code":"ENOTFOUND","errno":-3008}
+[2026-04-21T15:09:57.526Z] [DEBUG] API GET /profile | {"body":{}}
+[2026-04-21T15:09:57.527Z] [WARN] DEV AUTH BYPASS | {"userId":412606522}
+[2026-04-21T15:09:57.529Z] [ERROR] Q fail | {"sql":"SELECT * FROM players WHERE telegram_id=?","error":"getaddrinfo ENOTFOUND s5.thehost.com.ua"}
+[2026-04-21T15:09:57.530Z] [ERROR] Auth middleware error | {"message":"getaddrinfo ENOTFOUND s5.thehost.com.ua","code":"ENOTFOUND","errno":-3008}
+[2026-04-21T15:09:58.385Z] [DEBUG] API GET /profile | {"body":{}}
+[2026-04-21T15:09:58.386Z] [WARN] DEV AUTH BYPASS | {"userId":412606522}
+[2026-04-21T15:09:58.390Z] [ERROR] Q fail | {"sql":"SELECT * FROM players WHERE telegram_id=?","error":"getaddrinfo ENOTFOUND s5.thehost.com.ua"}
+[2026-04-21T15:09:58.391Z] [ERROR] Auth middleware error | {"message":"getaddrinfo ENOTFOUND s5.thehost.com.ua","code":"ENOTFOUND","errno":-3008}
+[2026-04-21T15:09:58.409Z] [DEBUG] API GET /profile | {"body":{}}
+[2026-04-21T15:09:58.410Z] [WARN] DEV AUTH BYPASS | {"userId":412606522}
+[2026-04-21T15:09:58.415Z] [ERROR] Q fail | {"sql":"SELECT * FROM players WHERE telegram_id=?","error":"getaddrinfo ENOTFOUND s5.thehost.com.ua"}
+[2026-04-21T15:09:58.416Z] [ERROR] Auth middleware error | {"message":"getaddrinfo ENOTFOUND s5.thehost.com.ua","code":"ENOTFOUND","errno":-3008}
+[2026-04-21T15:09:58.832Z] [DEBUG] API GET /profile | {"body":{}}
+[2026-04-21T15:09:58.833Z] [WARN] DEV AUTH BYPASS | {"userId":412606522}
+[2026-04-21T15:09:58.835Z] [ERROR] Q fail | {"sql":"SELECT * FROM players WHERE telegram_id=?","error":"getaddrinfo ENOTFOUND s5.thehost.com.ua"}
+[2026-04-21T15:09:58.837Z] [ERROR] Auth middleware error | {"message":"getaddrinfo ENOTFOUND s5.thehost.com.ua","code":"ENOTFOUND","errno":-3008}
+[2026-04-21T15:09:58.849Z] [DEBUG] API GET /profile | {"body":{}}
+[2026-04-21T15:09:58.850Z] [WARN] DEV AUTH BYPASS | {"userId":412606522}
+[2026-04-21T15:09:58.852Z] [ERROR] Q fail | {"sql":"SELECT * FROM players WHERE telegram_id=?","error":"getaddrinfo ENOTFOUND s5.thehost.com.ua"}
+[2026-04-21T15:09:58.853Z] [ERROR] Auth middleware error | {"message":"getaddrinfo ENOTFOUND s5.thehost.com.ua","code":"ENOTFOUND","errno":-3008}
+[2026-04-21T15:09:59.562Z] [DEBUG] API GET /profile | {"body":{}}
+[2026-04-21T15:09:59.563Z] [WARN] DEV AUTH BYPASS | {"userId":412606522}
+[2026-04-21T15:09:59.565Z] [ERROR] Q fail | {"sql":"SELECT * FROM players WHERE telegram_id=?","error":"getaddrinfo ENOTFOUND s5.thehost.com.ua"}
+[2026-04-21T15:09:59.572Z] [ERROR] Auth middleware error | {"message":"getaddrinfo ENOTFOUND s5.thehost.com.ua","code":"ENOTFOUND","errno":-3008}
+[2026-04-21T15:09:59.583Z] [DEBUG] API GET /profile | {"body":{}}
+[2026-04-21T15:09:59.584Z] [WARN] DEV AUTH BYPASS | {"userId":412606522}
+[2026-04-21T15:09:59.588Z] [ERROR] Q fail | {"sql":"SELECT * FROM players WHERE telegram_id=?","error":"getaddrinfo ENOTFOUND s5.thehost.com.ua"}
+[2026-04-21T15:09:59.590Z] [ERROR] Auth middleware error | {"message":"getaddrinfo ENOTFOUND s5.thehost.com.ua","code":"ENOTFOUND","errno":-3008}
+[2026-04-21T15:14:53.991Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-21T15:19:53.887Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-21T15:24:53.958Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-21T15:29:54.500Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-21T17:33:13.394Z] [WARN] Keep-warm ping failed | {"healthUrl":"https://airsoft-app.onrender.com/api/health","error":"getaddrinfo ENOTFOUND airsoft-app.onrender.com"}
+[2026-04-21T17:33:15.415Z] [DEBUG] API GET /profile | {"body":{}}
+[2026-04-21T17:33:15.416Z] [WARN] DEV AUTH BYPASS | {"userId":412606522}
+[2026-04-21T17:33:15.426Z] [ERROR] Q fail | {"sql":"SELECT * FROM players WHERE telegram_id=?","error":"getaddrinfo ENOTFOUND s5.thehost.com.ua"}
+[2026-04-21T17:33:15.434Z] [ERROR] Auth middleware error | {"message":"getaddrinfo ENOTFOUND s5.thehost.com.ua","code":"ENOTFOUND","errno":-3008}
+[2026-04-21T17:33:15.470Z] [DEBUG] API GET /profile | {"body":{}}
+[2026-04-21T17:33:15.471Z] [WARN] DEV AUTH BYPASS | {"userId":412606522}
+[2026-04-21T17:33:15.484Z] [ERROR] Q fail | {"sql":"SELECT * FROM players WHERE telegram_id=?","error":"getaddrinfo ENOTFOUND s5.thehost.com.ua"}
+[2026-04-21T17:33:15.487Z] [ERROR] Auth middleware error | {"message":"getaddrinfo ENOTFOUND s5.thehost.com.ua","code":"ENOTFOUND","errno":-3008}
+[2026-04-21T17:33:15.888Z] [DEBUG] API GET /profile | {"body":{}}
+[2026-04-21T17:33:15.889Z] [WARN] DEV AUTH BYPASS | {"userId":412606522}
+[2026-04-21T17:33:15.894Z] [ERROR] Q fail | {"sql":"SELECT * FROM players WHERE telegram_id=?","error":"getaddrinfo ENOTFOUND s5.thehost.com.ua"}
+[2026-04-21T17:33:15.898Z] [ERROR] Auth middleware error | {"message":"getaddrinfo ENOTFOUND s5.thehost.com.ua","code":"ENOTFOUND","errno":-3008}
+[2026-04-21T17:33:15.947Z] [DEBUG] API GET /profile | {"body":{}}
+[2026-04-21T17:33:15.949Z] [WARN] DEV AUTH BYPASS | {"userId":412606522}
+[2026-04-21T17:33:15.971Z] [ERROR] Q fail | {"sql":"SELECT * FROM players WHERE telegram_id=?","error":"getaddrinfo ENOTFOUND s5.thehost.com.ua"}
+[2026-04-21T17:33:15.975Z] [ERROR] Auth middleware error | {"message":"getaddrinfo ENOTFOUND s5.thehost.com.ua","code":"ENOTFOUND","errno":-3008}
+[2026-04-21T17:33:16.636Z] [DEBUG] API GET /profile | {"body":{}}
+[2026-04-21T17:33:16.637Z] [WARN] DEV AUTH BYPASS | {"userId":412606522}
+[2026-04-21T17:33:16.639Z] [ERROR] Q fail | {"sql":"SELECT * FROM players WHERE telegram_id=?","error":"getaddrinfo ENOTFOUND s5.thehost.com.ua"}
+[2026-04-21T17:33:16.641Z] [ERROR] Auth middleware error | {"message":"getaddrinfo ENOTFOUND s5.thehost.com.ua","code":"ENOTFOUND","errno":-3008}
+[2026-04-21T17:33:16.736Z] [DEBUG] API GET /profile | {"body":{}}
+[2026-04-21T17:33:16.737Z] [WARN] DEV AUTH BYPASS | {"userId":412606522}
+[2026-04-21T17:33:16.740Z] [ERROR] Q fail | {"sql":"SELECT * FROM players WHERE telegram_id=?","error":"getaddrinfo ENOTFOUND s5.thehost.com.ua"}
+[2026-04-21T17:33:16.741Z] [ERROR] Auth middleware error | {"message":"getaddrinfo ENOTFOUND s5.thehost.com.ua","code":"ENOTFOUND","errno":-3008}
+[2026-04-21T17:33:17.677Z] [DEBUG] API GET /profile | {"body":{}}
+[2026-04-21T17:33:17.678Z] [WARN] DEV AUTH BYPASS | {"userId":412606522}
+[2026-04-21T17:33:17.682Z] [ERROR] Q fail | {"sql":"SELECT * FROM players WHERE telegram_id=?","error":"getaddrinfo ENOTFOUND s5.thehost.com.ua"}
+[2026-04-21T17:33:17.683Z] [ERROR] Auth middleware error | {"message":"getaddrinfo ENOTFOUND s5.thehost.com.ua","code":"ENOTFOUND","errno":-3008}
+[2026-04-21T17:33:17.697Z] [DEBUG] API GET /profile | {"body":{}}
+[2026-04-21T17:33:17.699Z] [WARN] DEV AUTH BYPASS | {"userId":412606522}
+[2026-04-21T17:33:17.703Z] [ERROR] Q fail | {"sql":"SELECT * FROM players WHERE telegram_id=?","error":"getaddrinfo ENOTFOUND s5.thehost.com.ua"}
+[2026-04-21T17:33:17.706Z] [ERROR] Auth middleware error | {"message":"getaddrinfo ENOTFOUND s5.thehost.com.ua","code":"ENOTFOUND","errno":-3008}
+[2026-04-21T17:41:37.566Z] [WARN] Keep-warm ping failed | {"healthUrl":"https://airsoft-app.onrender.com/api/health","error":"getaddrinfo ENOTFOUND airsoft-app.onrender.com"}
+[2026-04-21T19:02:01.344Z] [WARN] Keep-warm ping failed | {"healthUrl":"https://airsoft-app.onrender.com/api/health","error":"getaddrinfo ENOTFOUND airsoft-app.onrender.com"}
+[2026-04-21T19:02:05.235Z] [DEBUG] API GET /profile | {"body":{}}
+[2026-04-21T19:02:05.236Z] [WARN] DEV AUTH BYPASS | {"userId":412606522}
+[2026-04-21T19:02:05.259Z] [ERROR] Q fail | {"sql":"SELECT * FROM players WHERE telegram_id=?","error":"getaddrinfo ENOTFOUND s5.thehost.com.ua"}
+[2026-04-21T19:02:05.260Z] [ERROR] Auth middleware error | {"message":"getaddrinfo ENOTFOUND s5.thehost.com.ua","code":"ENOTFOUND","errno":-3008}
+[2026-04-21T19:02:05.274Z] [DEBUG] API GET /profile | {"body":{}}
+[2026-04-21T19:02:05.275Z] [WARN] DEV AUTH BYPASS | {"userId":412606522}
+[2026-04-21T19:02:05.290Z] [ERROR] Q fail | {"sql":"SELECT * FROM players WHERE telegram_id=?","error":"getaddrinfo ENOTFOUND s5.thehost.com.ua"}
+[2026-04-21T19:02:05.291Z] [ERROR] Auth middleware error | {"message":"getaddrinfo ENOTFOUND s5.thehost.com.ua","code":"ENOTFOUND","errno":-3008}
+[2026-04-21T19:02:05.690Z] [DEBUG] API GET /profile | {"body":{}}
+[2026-04-21T19:02:05.691Z] [WARN] DEV AUTH BYPASS | {"userId":412606522}
+[2026-04-21T19:02:05.693Z] [ERROR] Q fail | {"sql":"SELECT * FROM players WHERE telegram_id=?","error":"getaddrinfo ENOTFOUND s5.thehost.com.ua"}
+[2026-04-21T19:02:05.694Z] [ERROR] Auth middleware error | {"message":"getaddrinfo ENOTFOUND s5.thehost.com.ua","code":"ENOTFOUND","errno":-3008}
+[2026-04-21T19:02:05.720Z] [DEBUG] API GET /profile | {"body":{}}
+[2026-04-21T19:02:05.721Z] [WARN] DEV AUTH BYPASS | {"userId":412606522}
+[2026-04-21T19:02:05.726Z] [ERROR] Q fail | {"sql":"SELECT * FROM players WHERE telegram_id=?","error":"getaddrinfo ENOTFOUND s5.thehost.com.ua"}
+[2026-04-21T19:02:05.732Z] [ERROR] Auth middleware error | {"message":"getaddrinfo ENOTFOUND s5.thehost.com.ua","code":"ENOTFOUND","errno":-3008}
+[2026-04-21T19:02:11.966Z] [DEBUG] API GET /profile | {"body":{}}
+[2026-04-21T19:02:11.967Z] [WARN] DEV AUTH BYPASS | {"userId":412606522}
+[2026-04-21T19:02:13.155Z] [DB] Q | {"sql":"SELECT * FROM players WHERE telegram_id=?","rows":1,"ms":1188}
+[2026-04-21T19:02:13.192Z] [DB] Q | {"sql":"SELECT p.*, t.name AS team_name\n       FROM players p LEFT JOIN teams t ON p.team_id = t.id\n       W","rows":1,"ms":35}
+[2026-04-21T19:02:13.243Z] [DB] Q | {"sql":"SELECT badge_name, badge_emoji FROM player_badges WHERE player_id = ?","rows":7,"ms":50}
+[2026-04-21T19:02:13.281Z] [DB] Q | {"sql":"SELECT g.id, g.date, g.time, g.game_mode, g.status, gp.result, gp.kills_total, gp.deaths_total\n     ","rows":5,"ms":37}
+[2026-04-21T19:02:13.318Z] [DB] Q | {"sql":"SELECT winner_game_team, COUNT(*) AS wins\n         FROM rounds\n         WHERE game_id=? AND status='","rows":1,"ms":36}
+[2026-04-21T19:02:13.336Z] [DB] Q | {"sql":"SELECT winner_game_team, COUNT(*) AS wins\n         FROM rounds\n         WHERE game_id=? AND status='","rows":2,"ms":16}
+[2026-04-21T19:02:13.359Z] [DB] Q | {"sql":"SELECT winner_game_team, COUNT(*) AS wins\n         FROM rounds\n         WHERE game_id=? AND status='","rows":2,"ms":22}
+[2026-04-21T19:02:13.381Z] [DB] Q | {"sql":"SELECT winner_game_team, COUNT(*) AS wins\n         FROM rounds\n         WHERE game_id=? AND status='","rows":2,"ms":22}
+[2026-04-21T19:02:13.404Z] [DB] Q | {"sql":"SELECT winner_game_team, COUNT(*) AS wins\n         FROM rounds\n         WHERE game_id=? AND status='","rows":2,"ms":21}
+[2026-04-21T19:02:13.458Z] [DB] Q | {"sql":"SELECT COUNT(*) AS c\n       FROM round_players rp\n       JOIN rounds r ON r.id = rp.round_id\n       ","rows":1,"ms":54}
+[2026-04-21T19:02:13.492Z] [DB] Q | {"sql":"SELECT COUNT(*) AS c\n       FROM round_players rp\n       JOIN rounds r ON r.id = rp.round_id\n       ","rows":1,"ms":32}
+[2026-04-21T19:02:13.527Z] [DB] Q | {"sql":"SELECT p.id, p.nickname, p.callsign, p.rating\n       FROM friends f\n       JOIN players p ON p.id = ","rows":2,"ms":35}
+[2026-04-21T19:02:13.530Z] [INFO] Profile API | {"tgId":412606522,"isAdmin":true,"admins":[412606522]}
+[2026-04-21T19:02:13.567Z] [DEBUG] API GET /profile | {"body":{}}
+[2026-04-21T19:02:13.568Z] [WARN] DEV AUTH BYPASS | {"userId":412606522}
+[2026-04-21T19:02:13.590Z] [DB] Q | {"sql":"SELECT * FROM players WHERE telegram_id=?","rows":1,"ms":22}
+[2026-04-21T19:02:13.611Z] [DB] Q | {"sql":"SELECT p.*, t.name AS team_name\n       FROM players p LEFT JOIN teams t ON p.team_id = t.id\n       W","rows":1,"ms":20}
+[2026-04-21T19:02:13.630Z] [DB] Q | {"sql":"SELECT badge_name, badge_emoji FROM player_badges WHERE player_id = ?","rows":7,"ms":16}
+[2026-04-21T19:02:13.650Z] [DB] Q | {"sql":"SELECT g.id, g.date, g.time, g.game_mode, g.status, gp.result, gp.kills_total, gp.deaths_total\n     ","rows":5,"ms":19}
+[2026-04-21T19:02:13.668Z] [DB] Q | {"sql":"SELECT winner_game_team, COUNT(*) AS wins\n         FROM rounds\n         WHERE game_id=? AND status='","rows":1,"ms":17}
+[2026-04-21T19:02:13.687Z] [DB] Q | {"sql":"SELECT winner_game_team, COUNT(*) AS wins\n         FROM rounds\n         WHERE game_id=? AND status='","rows":2,"ms":17}
+[2026-04-21T19:02:13.711Z] [DB] Q | {"sql":"SELECT winner_game_team, COUNT(*) AS wins\n         FROM rounds\n         WHERE game_id=? AND status='","rows":2,"ms":23}
+[2026-04-21T19:02:13.735Z] [DB] Q | {"sql":"SELECT winner_game_team, COUNT(*) AS wins\n         FROM rounds\n         WHERE game_id=? AND status='","rows":2,"ms":22}
+[2026-04-21T19:02:13.757Z] [DB] Q | {"sql":"SELECT winner_game_team, COUNT(*) AS wins\n         FROM rounds\n         WHERE game_id=? AND status='","rows":2,"ms":22}
+[2026-04-21T19:02:13.779Z] [DB] Q | {"sql":"SELECT COUNT(*) AS c\n       FROM round_players rp\n       JOIN rounds r ON r.id = rp.round_id\n       ","rows":1,"ms":20}
+[2026-04-21T19:02:13.815Z] [DB] Q | {"sql":"SELECT COUNT(*) AS c\n       FROM round_players rp\n       JOIN rounds r ON r.id = rp.round_id\n       ","rows":1,"ms":36}
+[2026-04-21T19:02:13.855Z] [DB] Q | {"sql":"SELECT p.id, p.nickname, p.callsign, p.rating\n       FROM friends f\n       JOIN players p ON p.id = ","rows":2,"ms":39}
+[2026-04-21T19:02:13.856Z] [INFO] Profile API | {"tgId":412606522,"isAdmin":true,"admins":[412606522]}
+[2026-04-21T19:02:13.874Z] [DEBUG] API GET /profile | {"body":{}}
+[2026-04-21T19:02:13.877Z] [WARN] DEV AUTH BYPASS | {"userId":412606522}
+[2026-04-21T19:02:13.897Z] [DB] Q | {"sql":"SELECT * FROM players WHERE telegram_id=?","rows":1,"ms":18}
+[2026-04-21T19:02:13.915Z] [DB] Q | {"sql":"SELECT p.*, t.name AS team_name\n       FROM players p LEFT JOIN teams t ON p.team_id = t.id\n       W","rows":1,"ms":17}
+[2026-04-21T19:02:13.935Z] [DB] Q | {"sql":"SELECT badge_name, badge_emoji FROM player_badges WHERE player_id = ?","rows":7,"ms":19}
+[2026-04-21T19:02:13.966Z] [DB] Q | {"sql":"SELECT g.id, g.date, g.time, g.game_mode, g.status, gp.result, gp.kills_total, gp.deaths_total\n     ","rows":5,"ms":29}
+[2026-04-21T19:02:13.985Z] [DB] Q | {"sql":"SELECT winner_game_team, COUNT(*) AS wins\n         FROM rounds\n         WHERE game_id=? AND status='","rows":1,"ms":18}
+[2026-04-21T19:02:14.002Z] [DB] Q | {"sql":"SELECT winner_game_team, COUNT(*) AS wins\n         FROM rounds\n         WHERE game_id=? AND status='","rows":2,"ms":17}
+[2026-04-21T19:02:14.021Z] [DB] Q | {"sql":"SELECT winner_game_team, COUNT(*) AS wins\n         FROM rounds\n         WHERE game_id=? AND status='","rows":2,"ms":18}
+[2026-04-21T19:02:14.048Z] [DB] Q | {"sql":"SELECT winner_game_team, COUNT(*) AS wins\n         FROM rounds\n         WHERE game_id=? AND status='","rows":2,"ms":27}
+[2026-04-21T19:02:14.072Z] [DB] Q | {"sql":"SELECT winner_game_team, COUNT(*) AS wins\n         FROM rounds\n         WHERE game_id=? AND status='","rows":2,"ms":19}
+[2026-04-21T19:02:14.091Z] [DB] Q | {"sql":"SELECT COUNT(*) AS c\n       FROM round_players rp\n       JOIN rounds r ON r.id = rp.round_id\n       ","rows":1,"ms":17}
+[2026-04-21T19:02:14.109Z] [DB] Q | {"sql":"SELECT COUNT(*) AS c\n       FROM round_players rp\n       JOIN rounds r ON r.id = rp.round_id\n       ","rows":1,"ms":18}
+[2026-04-21T19:02:14.130Z] [DB] Q | {"sql":"SELECT p.id, p.nickname, p.callsign, p.rating\n       FROM friends f\n       JOIN players p ON p.id = ","rows":2,"ms":20}
+[2026-04-21T19:02:14.131Z] [INFO] Profile API | {"tgId":412606522,"isAdmin":true,"admins":[412606522]}
+[2026-04-21T19:07:01.986Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-21T19:12:01.493Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-21T19:17:01.652Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-21T19:22:01.531Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-21T19:27:01.569Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-21T19:32:01.990Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-21T19:37:01.555Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-21T19:42:01.981Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-21T19:47:01.574Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-21T19:52:01.592Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-21T19:57:01.590Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-21T20:02:02.079Z] [DEBUG] Keep-warm ping OK | {"status":200}
+[2026-04-21T20:03:58.837Z] [DEBUG] API GET /profile | {"body":{}}
+[2026-04-21T20:03:58.855Z] [WARN] DEV AUTH BYPASS | {"userId":412606522}
+[2026-04-21T20:03:59.017Z] [DB] Q | {"sql":"SELECT * FROM players WHERE telegram_id=?","rows":1,"ms":159}
+[2026-04-21T20:03:59.060Z] [DB] Q | {"sql":"SELECT p.*, t.name AS team_name\n       FROM players p LEFT JOIN teams t ON p.team_id = t.id\n       W","rows":1,"ms":41}
+[2026-04-21T20:03:59.100Z] [DB] Q | {"sql":"SELECT badge_name, badge_emoji FROM player_badges WHERE player_id = ?","rows":7,"ms":39}
+[2026-04-21T20:03:59.149Z] [DB] Q | {"sql":"SELECT g.id, g.date, g.time, g.game_mode, g.status, gp.result, gp.kills_total, gp.deaths_total\n     ","rows":5,"ms":47}
+[2026-04-21T20:03:59.204Z] [DB] Q | {"sql":"SELECT winner_game_team, COUNT(*) AS wins\n         FROM rounds\n         WHERE game_id=? AND status='","rows":1,"ms":54}
+[2026-04-21T20:03:59.225Z] [DB] Q | {"sql":"SELECT winner_game_team, COUNT(*) AS wins\n         FROM rounds\n         WHERE game_id=? AND status='","rows":2,"ms":20}
+[2026-04-21T20:03:59.248Z] [DB] Q | {"sql":"SELECT winner_game_team, COUNT(*) AS wins\n         FROM rounds\n         WHERE game_id=? AND status='","rows":2,"ms":22}
+[2026-04-21T20:03:59.269Z] [DB] Q | {"sql":"SELECT winner_game_team, COUNT(*) AS wins\n         FROM rounds\n         WHERE game_id=? AND status='","rows":2,"ms":19}
+[2026-04-21T20:03:59.289Z] [DB] Q | {"sql":"SELECT winner_game_team, COUNT(*) AS wins\n         FROM rounds\n         WHERE game_id=? AND status='","rows":2,"ms":20}
+[2026-04-21T20:03:59.571Z] [DB] Q | {"sql":"SELECT COUNT(*) AS c\n       FROM round_players rp\n       JOIN rounds r ON r.id = rp.round_id\n       ","rows":1,"ms":281}
+[2026-04-21T20:03:59.638Z] [DB] Q | {"sql":"SELECT COUNT(*) AS c\n       FROM round_players rp\n       JOIN rounds r ON r.id = rp.round_id\n       ","rows":1,"ms":65}
+[2026-04-21T20:03:59.686Z] [DB] Q | {"sql":"SELECT p.id, p.nickname, p.callsign, p.rating\n       FROM friends f\n       JOIN players p ON p.id = ","rows":2,"ms":47}
+[2026-04-21T20:03:59.688Z] [INFO] Profile API | {"tgId":412606522,"isAdmin":true,"admins":[412606522]}
+[2026-04-21T20:03:59.702Z] [DEBUG] API GET /profile | {"body":{}}
+[2026-04-21T20:03:59.703Z] [WARN] DEV AUTH BYPASS | {"userId":412606522}
+[2026-04-21T20:03:59.741Z] [DB] Q | {"sql":"SELECT * FROM players WHERE telegram_id=?","rows":1,"ms":33}
+[2026-04-21T20:03:59.764Z] [DB] Q | {"sql":"SELECT p.*, t.name AS team_name\n       FROM players p LEFT JOIN teams t ON p.team_id = t.id\n       W","rows":1,"ms":22}
+[2026-04-21T20:03:59.772Z] [DEBUG] API GET /friends | {"body":{}}
+[2026-04-21T20:03:59.773Z] [WARN] DEV AUTH BYPASS | {"userId":412606522}
+[2026-04-21T20:03:59.777Z] [DEBUG] API GET /loot/state | {"body":{}}
+[2026-04-21T20:03:59.779Z] [WARN] DEV AUTH BYPASS | {"userId":412606522}
+[2026-04-21T20:03:59.785Z] [DEBUG] API GET /survey/status | {"body":{}}
+[2026-04-21T20:03:59.786Z] [WARN] DEV AUTH BYPASS | {"userId":412606522}
+[2026-04-21T20:03:59.798Z] [DB] Q | {"sql":"SELECT badge_name, badge_emoji FROM player_badges WHERE player_id = ?","rows":7,"ms":32}
+[2026-04-21T20:03:59.822Z] [DB] Q | {"sql":"SELECT g.id, g.date, g.time, g.game_mode, g.status, gp.result, gp.kills_total, gp.deaths_total\n     ","rows":5,"ms":23}
+[2026-04-21T20:03:59.849Z] [DB] Q | {"sql":"SELECT winner_game_team, COUNT(*) AS wins\n         FROM rounds\n         WHERE game_id=? AND status='","rows":1,"ms":25}
+[2026-04-21T20:03:59.887Z] [DB] Q | {"sql":"SELECT winner_game_team, COUNT(*) AS wins\n         FROM rounds\n         WHERE game_id=? AND status='","rows":2,"ms":28}
+[2026-04-21T20:03:59.911Z] [DB] Q | {"sql":"SELECT * FROM players WHERE telegram_id=?","rows":1,"ms":126}
+[2026-04-21T20:03:59.917Z] [DB] Q | {"sql":"SELECT winner_game_team, COUNT(*) AS wins\n         FROM rounds\n         WHERE game_id=? AND status='","rows":2,"ms":29}
+[2026-04-21T20:03:59.919Z] [DB] Q | {"sql":"SELECT * FROM players WHERE telegram_id=?","rows":1,"ms":143}
+[2026-04-21T20:03:59.925Z] [DB] Q | {"sql":"SELECT * FROM players WHERE telegram_id=?","rows":1,"ms":137}
+[2026-04-21T20:03:59.936Z] [DB] Q | {"sql":"SELECT * FROM players WHERE telegram_id=?","rows":1,"ms":21}
+[2026-04-21T20:03:59.939Z] [DB] Q | {"sql":"SELECT winner_game_team, COUNT(*) AS wins\n         FROM rounds\n         WHERE game_id=? AND status='","rows":2,"ms":21}
+[2026-04-21T20:03:59.964Z] [DB] Q | {"sql":"SELECT winner_game_team, COUNT(*) AS wins\n         FROM rounds\n         WHERE game_id=? AND status='","rows":2,"ms":23}
+[2026-04-21T20:03:59.972Z] [DB] Q | {"sql":"SELECT id FROM players WHERE telegram_id = ?","rows":1,"ms":47}
+[2026-04-21T20:03:59.979Z] [DB] Q | {"sql":"SELECT id, created_at\n       FROM player_feedback_surveys\n       WHERE player_id=? AND survey_key=?\n","rows":0,"ms":54}
+[2026-04-21T20:03:59.985Z] [DB] Q | {"sql":"SELECT rating FROM players WHERE id=?","rows":1,"ms":48}
+[2026-04-21T20:03:59.989Z] [DB] Q | {"sql":"SELECT COUNT(*) AS c\n       FROM round_players rp\n       JOIN rounds r ON r.id = rp.round_id\n       ","rows":1,"ms":21}
+[2026-04-21T20:04:00.014Z] [DB] Q | {"sql":"SELECT COUNT(*) AS c\n       FROM round_players rp\n       JOIN rounds r ON r.id = rp.round_id\n       ","rows":1,"ms":21}
+[2026-04-21T20:04:00.019Z] [DB] Q | {"sql":"SELECT p.id, p.nickname, p.callsign, p.rating\n       FROM friends f\n       JOIN players p ON p.id = ","rows":2,"ms":47}
+[2026-04-21T20:04:00.039Z] [DB] Q | {"sql":"SELECT * FROM player_spins WHERE player_id=?","rows":1,"ms":52}
+[2026-04-21T20:04:00.042Z] [DB] Q | {"sql":"SELECT p.id, p.nickname, p.callsign, p.rating\n       FROM friends f\n       JOIN players p ON p.id = ","rows":2,"ms":26}
+[2026-04-21T20:04:00.052Z] [INFO] Profile API | {"tgId":412606522,"isAdmin":true,"admins":[412606522]}
+[2026-04-21T20:04:00.079Z] [DB] Q | {"sql":"SELECT f.id, p.nickname, p.callsign, p.rating\n       FROM friends f\n       JOIN players p ON p.id = ","rows":0,"ms":59}
+[2026-04-21T20:04:00.087Z] [DEBUG] API GET /friends | {"body":{}}
+[2026-04-21T20:04:00.088Z] [WARN] DEV AUTH BYPASS | {"userId":412606522}
+[2026-04-21T20:04:00.101Z] [DB] Q | {"sql":"SELECT id, reward_key, rarity, image_url, status, source, game_id, created_at FROM player_loot_rewar","rows":3,"ms":60}
+[2026-04-21T20:04:00.116Z] [DB] Q | {"sql":"SELECT * FROM players WHERE telegram_id=?","rows":1,"ms":27}
+[2026-04-21T20:04:00.120Z] [DEBUG] API GET /loot/state | {"body":{}}
+[2026-04-21T20:04:00.124Z] [WARN] DEV AUTH BYPASS | {"userId":412606522}
+[2026-04-21T20:04:00.140Z] [DB] Q | {"sql":"SELECT id FROM players WHERE telegram_id = ?","rows":1,"ms":21}
+[2026-04-21T20:04:00.148Z] [DB] Q | {"sql":"SELECT * FROM players WHERE telegram_id=?","rows":1,"ms":24}
+[2026-04-21T20:04:00.164Z] [DB] Q | {"sql":"SELECT p.id, p.nickname, p.callsign, p.rating\n       FROM friends f\n       JOIN players p ON p.id = ","rows":2,"ms":20}
+[2026-04-21T20:04:00.181Z] [DB] Q | {"sql":"SELECT * FROM players WHERE telegram_id=?","rows":1,"ms":31}
+[2026-04-21T20:04:00.188Z] [DB] Q | {"sql":"SELECT f.id, p.nickname, p.callsign, p.rating\n       FROM friends f\n       JOIN players p ON p.id = ","rows":0,"ms":24}
+[2026-04-21T20:04:00.209Z] [DB] Q | {"sql":"SELECT rating FROM players WHERE id=?","rows":1,"ms":27}
+[2026-04-21T20:04:00.235Z] [DB] Q | {"sql":"SELECT * FROM player_spins WHERE player_id=?","rows":1,"ms":25}
+[2026-04-21T20:04:00.257Z] [DB] Q | {"sql":"SELECT id, reward_key, rarity, image_url, status, source, game_id, created_at FROM player_loot_rewar","rows":3,"ms":20}

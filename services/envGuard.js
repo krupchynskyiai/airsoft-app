@@ -66,6 +66,12 @@ async function verifyBotIdentity(bot) {
   }
   config.BOT_USERNAME = me.username;
 
+  if (!config.IS_PROD && config.STAGING_BOT_USERNAME && me.username !== config.STAGING_BOT_USERNAME) {
+    throw new Error(
+      `APP_ENV=${config.APP_ENV}: BOT_TOKEN belongs to @${me.username}, ` +
+        `but STAGING_BOT_USERNAME is @${config.STAGING_BOT_USERNAME}.`,
+    );
+  }
   if (!config.IS_PROD && me.username === config.PROD_BOT_USERNAME) {
     throw new Error(
       `APP_ENV=${config.APP_ENV} is running with the production bot @${me.username}. ` +

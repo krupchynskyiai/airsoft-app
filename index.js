@@ -15,12 +15,14 @@ const { handleTextSteps } = require("./handlers/admin");
 const { createServer } = require("./api/server");
 const { startKeepWarm } = require("./services/keepWarm");
 const { installOutboundGuard, installAnnouncementTopic, verifyBotIdentity } = require("./services/envGuard");
+const { installNotificationGuard } = require("./utils/notificationGuard");
 const apiBot = require("./api/bot");
 
 // ---- Create bot ----
 const bot = new Bot(config.BOT_TOKEN);
 installAnnouncementTopic(bot);
 installOutboundGuard(bot);
+installNotificationGuard(bot, "main-bot");
 
 // Marks bot replies outside production so staging chats are easy to tell apart
 const envTag = config.IS_PROD ? "" : `🧪 *${esc(config.APP_ENV.toUpperCase())}*\n\n`;

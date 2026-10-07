@@ -172,8 +172,12 @@ export const disbandTeam = (teamId) =>
 export const getLootState = () => api("/loot/state");
 export const spinLoot = () =>
   api("/loot/spin", { method: "POST" });
-export const requestUseLootReward = (rewardId) =>
-  api(`/loot/rewards/${rewardId}/request-use`, { method: "POST" });
+export const getLootEligibleGames = () => api("/loot/eligible-games");
+export const requestUseLootReward = (rewardId, opts = {}) =>
+  api(`/loot/rewards/${rewardId}/request-use`, {
+    method: "POST",
+    body: opts.gameId != null ? { game_id: opts.gameId } : {},
+  });
 
 // ---- Admin loot ----
 export const adminGetLootRequests = () =>
