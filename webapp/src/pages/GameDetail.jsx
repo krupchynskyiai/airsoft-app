@@ -964,18 +964,18 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
             <ActionButton
               onClick={openJoinEquipmentModal}
               loading={actionLoading}
-              icon="📝"
+              icon={<PenLine className="w-5 h-5" strokeWidth={2} />}
               label="Записатись на гру"
-              className="bg-gradient-to-r from-emerald-600 to-teal-600"
+              className="bg-emerald-400 text-slate-950"
             />
           )}
           {!myRegistration && myWaitlist && (
             <ActionButton
               onClick={() => {}}
               loading={false}
-              icon="🕒"
+              icon={<Hourglass className="w-5 h-5" strokeWidth={2} />}
               label="Ти у листі очікування"
-              className="bg-slate-700/70"
+              className="bg-slate-800 border border-slate-600/60 text-gray-200"
             />
           )}
           {myRegistration && (g.status === "upcoming" || g.status === "checkin") && (
@@ -986,9 +986,9 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
                 doAction(() => cancelJoinGame(gameId), "Запис скасовано");
               }}
               loading={actionLoading}
-              icon="❌"
+              icon={<X className="w-5 h-5" strokeWidth={2} />}
               label="Скасувати запис"
-              className="bg-gradient-to-r from-slate-700 to-red-700"
+              className="bg-red-500/15 border border-red-400/40 text-red-300"
             />
           )}
           {myRegistration?.attendance === "registered" &&
@@ -1002,9 +1002,9 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
                 doAction(() => checkinGame(gameId));
               }}
               loading={actionLoading}
-              icon="📍"
+              icon={<MapPin className="w-5 h-5" strokeWidth={2} />}
               label="Check-in — я на місці"
-              className="bg-gradient-to-r from-amber-600 to-orange-600"
+              className="bg-amber-400 text-slate-950"
             />
           )}
           {g.status === "active" && hasActiveRound && myRegistration?.attendance === "checked_in" && (
@@ -1017,25 +1017,28 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
                 doAction(() => reportDead(gameId));
               }}
               loading={actionLoading}
-              icon="💀"
+              icon={<Skull className="w-5 h-5" strokeWidth={2} />}
               label="Мене вбили"
-              className="bg-gradient-to-r from-red-700 to-red-800"
+              className="bg-red-500/15 border border-red-400/40 text-red-300"
             />
           )}
         </div>
       )}
 
       {myRegistration && Array.isArray(myEquipment) && myEquipment.length > 0 && (
-        <div className="bg-slate-800/60 backdrop-blur-sm rounded-2xl p-4 mb-5 border border-slate-700/40">
+        <div className="bg-slate-900/80 border border-slate-700/50 rounded-2xl p-4 mb-5">
           <div className="flex items-center justify-between mb-2">
-            <h3 className="text-sm font-bold text-gray-300 uppercase tracking-wider">Моє спорядження</h3>
+            <div className="flex items-center gap-2">
+              <Wrench className="w-5 h-5 text-emerald-300" strokeWidth={2} />
+              <h3 className="text-xs font-bold text-gray-300 uppercase tracking-wider">Моє спорядження</h3>
+            </div>
             <span className="text-xs text-emerald-300 font-semibold">+{myEquipmentTotal || 0} грн</span>
           </div>
           <div className="space-y-1.5">
             {myEquipment.map((rw, idx) => {
               const def = equipmentItems.find((it) => it.item_key === rw.item_key);
               return (
-                <div key={`${rw.item_key}_${idx}`} className="flex items-center justify-between text-xs bg-slate-900/50 border border-slate-700/40 rounded-xl px-3 py-2">
+                <div key={`${rw.item_key}_${idx}`} className="flex items-center justify-between text-xs bg-slate-950/40 border border-slate-700/50 rounded-lg px-3 py-2">
                   <span className="text-gray-200">{def?.title || rw.item_key}</span>
                   <span className="text-gray-400">
                     {rw.quantity} × {rw.unit_price ?? 0} ={" "}
@@ -1050,11 +1053,11 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
 
       {/* ---- Rides / Logistics ---- */}
       {myRegistration && g.status !== "finished" && g.status !== "cancelled" && (
-        <div className="bg-slate-800/60 backdrop-blur-sm rounded-2xl p-4 mb-5 border border-slate-700/40">
+        <div className="bg-slate-900/80 border border-slate-700/50 rounded-2xl p-4 mb-5">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
-              <span>🚗</span>
-              <h3 className="text-sm font-bold text-gray-300 uppercase tracking-wider">
+              <Car className="w-5 h-5 text-emerald-300" strokeWidth={2} />
+              <h3 className="text-xs font-bold text-gray-300 uppercase tracking-wider">
                 Поїздки
               </h3>
             </div>
@@ -1071,7 +1074,7 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
                 }));
                 setShowRideModal(true);
               }}
-              className="px-3 py-1.5 rounded-xl bg-emerald-600/20 border border-emerald-500/30 text-[11px] font-bold text-emerald-300 active:scale-95 transition-transform"
+              className="px-3 py-1.5 rounded-lg bg-emerald-400 text-slate-950 text-[11px] font-bold active:scale-[0.98] transition-transform"
             >
               Запропонувати
             </button>
@@ -1089,23 +1092,27 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
                 const seatsFree = Math.max(0, r.seats_total - r.seats_accepted);
                 const mineReq = r.myRequest?.status;
                 return (
-                  <div key={r.id} className="bg-slate-900/40 border border-slate-700/40 rounded-2xl p-3">
+                  <div key={r.id} className="bg-slate-950/40 border border-slate-700/50 rounded-lg p-3">
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0">
                         <div className="text-xs text-gray-400">
                           Водій: <span className="font-semibold text-gray-200">{formatNick(r.owner_nickname)}</span>
                         </div>
-                        <div className="text-xs text-gray-400 mt-1">
-                          👥 Місць: <span className="font-semibold text-gray-200">{seatsFree}</span> / {r.seats_total}
+                        <div className="flex items-center gap-1.5 text-xs text-gray-400 mt-1">
+                          <Users className="w-3.5 h-3.5 text-gray-500" strokeWidth={2} />
+                          Місць: <span className="font-semibold text-gray-200">{seatsFree}</span> / {r.seats_total}
                         </div>
-                        <div className="text-xs text-gray-400 mt-1">
-                          📍 {r.depart_location}
+                        <div className="flex items-center gap-1.5 text-xs text-gray-400 mt-1">
+                          <MapPin className="w-3.5 h-3.5 text-gray-500 shrink-0" strokeWidth={2} />
+                          {r.depart_location}
                         </div>
-                        <div className="text-xs text-gray-400 mt-1">
-                          ⏰ {r.depart_time}
+                        <div className="flex items-center gap-1.5 text-xs text-gray-400 mt-1">
+                          <Clock className="w-3.5 h-3.5 text-gray-500 shrink-0" strokeWidth={2} />
+                          {r.depart_time}
                         </div>
-                        <div className="text-xs text-gray-500 mt-1">
-                          🚗 {r.car_make}, {r.car_color}
+                        <div className="flex items-center gap-1.5 text-xs text-gray-500 mt-1">
+                          <Car className="w-3.5 h-3.5 text-gray-500 shrink-0" strokeWidth={2} />
+                          {r.car_make}, {r.car_color}
                         </div>
                         {r.updated_at && (
                           <div className="text-[10px] text-gray-600 mt-1">
@@ -1130,7 +1137,7 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
                                 setShowRideModal(true);
                               }}
                               disabled={actionLoading}
-                              className="px-2.5 py-1 rounded-lg bg-slate-700/40 border border-slate-600/40 text-[10px] font-bold text-gray-200 active:scale-95 disabled:opacity-50"
+                              className="px-2.5 py-1 rounded-lg bg-slate-800 border border-slate-600/60 text-gray-200 text-[10px] font-bold active:scale-95 disabled:opacity-50"
                             >
                               Редагувати
                             </button>
@@ -1141,13 +1148,13 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
                                 doAction(() => deleteRide(gameId, r.id), "Поїздку скасовано");
                               }}
                               disabled={actionLoading}
-                              className="px-2.5 py-1 rounded-lg bg-red-700/30 border border-red-600/30 text-[10px] font-bold text-red-200 active:scale-95 disabled:opacity-50"
+                              className="px-2.5 py-1 rounded-lg bg-red-500/15 border border-red-400/40 text-red-300 text-[10px] font-bold active:scale-95 disabled:opacity-50"
                             >
                               Скасувати
                             </button>
                           </>
                         ) : mineReq ? (
-                          <span className="text-[10px] font-bold text-gray-400">
+                          <span className="rounded border px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-wider text-gray-300 border-slate-600/50 bg-slate-800/60">
                             {mineReq === "pending"
                               ? "Очікує підтвердження"
                               : mineReq === "accepted"
@@ -1163,7 +1170,7 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
                               setRequestRideModal({ rideId: r.id, ownerNickname: r.owner_nickname });
                             }}
                             disabled={actionLoading || seatsFree <= 0}
-                            className="px-2.5 py-1 rounded-lg bg-emerald-600/30 border border-emerald-500/30 text-[10px] font-bold text-emerald-200 active:scale-95 disabled:opacity-50"
+                            className="px-2.5 py-1 rounded-lg bg-emerald-400 text-slate-950 text-[10px] font-bold active:scale-95 disabled:opacity-50"
                           >
                             Запит місця
                           </button>
@@ -1178,7 +1185,7 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
                         </div>
                         <div className="space-y-1.5">
                           {r.pendingRequests.map((pr) => (
-                            <div key={pr.request_id} className="flex items-center justify-between bg-slate-800/60 border border-slate-700/40 rounded-xl px-2 py-1.5">
+                            <div key={pr.request_id} className="flex items-center justify-between bg-slate-800/60 border border-slate-700/50 rounded-lg px-2 py-1.5">
                               <div className="text-[11px] text-gray-200">
                                 {formatNick(pr.requester_nickname)} • <span className="text-gray-400">місць:</span>{" "}
                                 <span className="font-semibold">{pr.seats_requested}</span>
@@ -1187,7 +1194,7 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
                                 <button
                                   onClick={() => doAction(() => respondRideRequest(gameId, r.id, pr.request_id, "accept"), "Запит прийнято")}
                                   disabled={actionLoading}
-                                  className="px-2 py-1 rounded-lg bg-emerald-600/60 text-[10px] font-bold text-white active:scale-95 disabled:opacity-50"
+                                  className="px-2 py-1 rounded-lg bg-emerald-400 text-slate-950 text-[10px] font-bold active:scale-95 disabled:opacity-50"
                                 >
                                   Так
                                 </button>
@@ -1201,7 +1208,7 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
                                     );
                                   }}
                                   disabled={actionLoading}
-                                  className="px-2 py-1 rounded-lg bg-red-700/60 text-[10px] font-bold text-white active:scale-95 disabled:opacity-50"
+                                  className="px-2 py-1 rounded-lg bg-red-500/15 border border-red-400/40 text-red-300 text-[10px] font-bold active:scale-95 disabled:opacity-50"
                                 >
                                   Ні
                                 </button>
@@ -1219,7 +1226,7 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
                         </div>
                         <div className="space-y-1.5">
                           {r.acceptedRequests.map((ar) => (
-                            <div key={ar.request_id} className="flex items-center justify-between bg-slate-800/40 border border-slate-700/40 rounded-xl px-2 py-1.5">
+                            <div key={ar.request_id} className="flex items-center justify-between bg-slate-800/40 border border-slate-700/50 rounded-lg px-2 py-1.5">
                               <div className="text-[11px] text-gray-200">
                                 {formatNick(ar.requester_nickname)} • <span className="text-gray-400">місць:</span>{" "}
                                 <span className="font-semibold">{ar.seats_requested}</span>
@@ -1239,7 +1246,7 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
                                   );
                                 }}
                                 disabled={actionLoading}
-                                className="px-2 py-1 rounded-lg bg-red-700/40 border border-red-600/30 text-[10px] font-bold text-red-200 active:scale-95 disabled:opacity-50"
+                                className="px-2 py-1 rounded-lg bg-red-500/15 border border-red-400/40 text-red-300 text-[10px] font-bold active:scale-95 disabled:opacity-50"
                               >
                                 Kick
                               </button>
@@ -1259,11 +1266,14 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
       {/* ---- Ride create modal ---- */}
       {showRideModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowRideModal(false)} />
-          <div className="relative w-full max-w-md bg-slate-900/95 border border-emerald-500/30 rounded-3xl p-4">
+          <div className="absolute inset-0 bg-black/70" onClick={() => setShowRideModal(false)} />
+          <div className="relative w-full max-w-md bg-slate-900 border border-slate-600/60 rounded-2xl p-4">
             <div className="flex items-center justify-between mb-3">
-              <div className="text-sm font-black text-emerald-300">Запропонувати поїздку</div>
-              <button onClick={() => setShowRideModal(false)} className="text-gray-400 text-sm px-2 py-1">✕</button>
+              <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-gray-300">
+                <Car className="w-5 h-5 text-emerald-300" strokeWidth={2} />
+                Запропонувати поїздку
+              </div>
+              <button onClick={() => setShowRideModal(false)} className="text-gray-400 px-2 py-1" aria-label="Закрити"><X className="w-4 h-4" strokeWidth={2} /></button>
             </div>
 
             <div className="space-y-2">
@@ -1274,7 +1284,7 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
                   min={1}
                   value={rideForm.seats_total}
                   onChange={(e) => setRideForm((s) => ({ ...s, seats_total: parseInt(e.target.value || 1) }))}
-                  className="mt-1 w-full bg-slate-800/70 border border-slate-700/50 rounded-xl px-3 py-2 text-sm"
+                  className="mt-1 w-full bg-slate-800/70 border border-slate-700/50 rounded-lg px-3 py-2 text-sm"
                 />
               </label>
               <label className="block text-[11px] text-gray-400">
@@ -1282,7 +1292,7 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
                 <input
                   value={rideForm.depart_location}
                   onChange={(e) => setRideForm((s) => ({ ...s, depart_location: e.target.value }))}
-                  className="mt-1 w-full bg-slate-800/70 border border-slate-700/50 rounded-xl px-3 py-2 text-sm"
+                  className="mt-1 w-full bg-slate-800/70 border border-slate-700/50 rounded-lg px-3 py-2 text-sm"
                   placeholder="Напр. метро / парковка / адреса"
                 />
               </label>
@@ -1291,7 +1301,7 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
                 <input
                   value={rideForm.depart_time}
                   onChange={(e) => setRideForm((s) => ({ ...s, depart_time: e.target.value }))}
-                  className="mt-1 w-full bg-slate-800/70 border border-slate-700/50 rounded-xl px-3 py-2 text-sm"
+                  className="mt-1 w-full bg-slate-800/70 border border-slate-700/50 rounded-lg px-3 py-2 text-sm"
                   placeholder="Напр. 08:30"
                 />
               </label>
@@ -1301,7 +1311,7 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
                   <input
                     value={rideForm.car_make}
                     onChange={(e) => setRideForm((s) => ({ ...s, car_make: e.target.value }))}
-                    className="mt-1 w-full bg-slate-800/70 border border-slate-700/50 rounded-xl px-3 py-2 text-sm"
+                    className="mt-1 w-full bg-slate-800/70 border border-slate-700/50 rounded-lg px-3 py-2 text-sm"
                     placeholder="VW Golf"
                   />
                 </label>
@@ -1310,7 +1320,7 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
                   <input
                     value={rideForm.car_color}
                     onChange={(e) => setRideForm((s) => ({ ...s, car_color: e.target.value }))}
-                    className="mt-1 w-full bg-slate-800/70 border border-slate-700/50 rounded-xl px-3 py-2 text-sm"
+                    className="mt-1 w-full bg-slate-800/70 border border-slate-700/50 rounded-lg px-3 py-2 text-sm"
                     placeholder="сірий"
                   />
                 </label>
@@ -1333,7 +1343,7 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
                 })
               }
               disabled={actionLoading}
-              className="mt-3 w-full bg-gradient-to-r from-emerald-600 to-teal-600 py-3 rounded-2xl font-bold text-[14px] active:scale-[0.98] disabled:opacity-50"
+              className="mt-3 w-full bg-emerald-400 text-slate-950 py-3 rounded-lg font-bold text-[14px] active:scale-[0.98] disabled:opacity-50"
             >
               {actionLoading ? <Spinner /> : "Зберегти"}
             </button>
@@ -1344,13 +1354,13 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
       {/* ---- Request seats modal ---- */}
       {requestRideModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setRequestRideModal(null)} />
-          <div className="relative w-full max-w-md bg-slate-900/95 border border-emerald-500/30 rounded-3xl p-4">
+          <div className="absolute inset-0 bg-black/70" onClick={() => setRequestRideModal(null)} />
+          <div className="relative w-full max-w-md bg-slate-900 border border-slate-600/60 rounded-2xl p-4">
             <div className="flex items-center justify-between mb-3">
-              <div className="text-sm font-black text-emerald-300">
+              <div className="text-sm font-bold text-gray-100">
                 Запит місць у {formatNick(requestRideModal.ownerNickname)}
               </div>
-              <button onClick={() => setRequestRideModal(null)} className="text-gray-400 text-sm px-2 py-1">✕</button>
+              <button onClick={() => setRequestRideModal(null)} className="text-gray-400 px-2 py-1" aria-label="Закрити"><X className="w-4 h-4" strokeWidth={2} /></button>
             </div>
             <label className="block text-[11px] text-gray-400">
               Скільки місць потрібно?
@@ -1359,7 +1369,7 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
                 min={1}
                 value={requestSeats}
                 onChange={(e) => setRequestSeats(parseInt(e.target.value || 1))}
-                className="mt-1 w-full bg-slate-800/70 border border-slate-700/50 rounded-xl px-3 py-2 text-sm"
+                className="mt-1 w-full bg-slate-800/70 border border-slate-700/50 rounded-lg px-3 py-2 text-sm"
               />
             </label>
             <button
@@ -1370,7 +1380,7 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
                 ).then(() => setRequestRideModal(null))
               }
               disabled={actionLoading}
-              className="mt-3 w-full bg-gradient-to-r from-emerald-600 to-teal-600 py-3 rounded-2xl font-bold text-[14px] active:scale-[0.98] disabled:opacity-50"
+              className="mt-3 w-full bg-emerald-400 text-slate-950 py-3 rounded-lg font-bold text-[14px] active:scale-[0.98] disabled:opacity-50"
             >
               {actionLoading ? <Spinner /> : "Відправити запит"}
             </button>
@@ -1381,37 +1391,38 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
       {showJoinEquipmentModal && !myRegistration && (
         <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
           <div
-            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            className="absolute inset-0 bg-black/70"
             onClick={() => setShowJoinEquipmentModal(false)}
           />
-          <div className="relative w-full max-w-2xl max-h-[88vh] overflow-y-auto bg-slate-900/95 border border-emerald-500/30 rounded-3xl p-4 pb-28">
+          <div className="relative w-full max-w-2xl max-h-[88vh] overflow-y-auto bg-slate-900 border border-slate-600/60 rounded-2xl p-4 pb-28">
             <div className="flex items-start justify-between gap-3 mb-3">
               <div>
-                <div className="text-[11px] text-gray-400">Запис на гру #{g.id}</div>
-                <div className="text-sm font-black text-emerald-200">
+                <div className="font-mono text-[11px] uppercase tracking-wider text-gray-500">Запис на гру #{g.id}</div>
+                <div className="text-sm font-bold text-gray-100">
                   Обери спорядження та одразу побач суму
                 </div>
               </div>
               <button
                 onClick={() => setShowJoinEquipmentModal(false)}
-                className="text-gray-400 text-sm px-2 py-1"
+                className="text-gray-400 px-2 py-1"
+                aria-label="Закрити"
               >
-                ✕
+                <X className="w-4 h-4" strokeWidth={2} />
               </button>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-3">
-              <div className="rounded-2xl border border-slate-700/50 bg-slate-800/50 p-3">
+              <div className="rounded-lg border border-slate-700/50 bg-slate-800/50 p-3">
                 <div className="text-[10px] text-gray-400 uppercase tracking-wider">База</div>
-                <div className="text-lg font-black text-white">{g.payment || 0} грн</div>
+                <div className="text-lg font-bold text-gray-100">{g.payment || 0} грн</div>
               </div>
-              <div className="rounded-2xl border border-emerald-700/40 bg-emerald-900/20 p-3">
+              <div className="rounded-lg border border-emerald-400/30 bg-emerald-400/10 p-3">
                 <div className="text-[10px] text-emerald-300 uppercase tracking-wider">Додатково</div>
-                <div className="text-lg font-black text-emerald-200">{joinAdditionalCost} грн</div>
+                <div className="text-lg font-bold text-emerald-200">{joinAdditionalCost} грн</div>
               </div>
-              <div className="rounded-2xl border border-amber-700/40 bg-amber-900/20 p-3">
+              <div className="rounded-lg border border-amber-400/30 bg-amber-400/10 p-3">
                 <div className="text-[10px] text-amber-300 uppercase tracking-wider">Разом</div>
-                <div className="text-lg font-black text-amber-200">{joinTotalCost} грн</div>
+                <div className="text-lg font-bold text-amber-200">{joinTotalCost} грн</div>
               </div>
             </div>
 
@@ -1439,12 +1450,12 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
                   qty <= 0;
                 const incDisabled = disabled || qty >= maxQty || primaryLocked;
                 return (
-                  <div key={it.item_key} className="flex items-center gap-2 rounded-2xl border border-slate-700/40 bg-slate-800/50 p-2.5">
+                  <div key={it.item_key} className="flex items-center gap-2 rounded-lg border border-slate-700/50 bg-slate-800/50 p-2.5">
                     <div className="w-12 h-10 rounded-lg bg-slate-900/80 overflow-hidden flex items-center justify-center border border-slate-700/40">
                       {it.image_url ? (
                         <img src={it.image_url} alt={it.title} className="w-full h-full object-contain" />
                       ) : (
-                        <span>🎯</span>
+                        <Crosshair className="w-4 h-4 text-gray-500" strokeWidth={2} />
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
@@ -1464,7 +1475,7 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
                           }))
                         }
                         disabled={decDisabled}
-                        className="w-7 h-7 rounded-lg bg-slate-700/70 text-gray-200 text-sm font-bold disabled:opacity-40"
+                        className="w-7 h-7 rounded-lg bg-slate-800 border border-slate-600/60 text-gray-200 text-sm font-bold disabled:opacity-40"
                       >
                         −
                       </button>
@@ -1478,7 +1489,7 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
                           }))
                         }
                         disabled={incDisabled}
-                        className="w-7 h-7 rounded-lg bg-emerald-600/80 text-black text-sm font-black disabled:opacity-40"
+                        className="w-7 h-7 rounded-lg bg-emerald-400 text-slate-950 text-sm font-bold disabled:opacity-40"
                       >
                         +
                       </button>
@@ -1488,7 +1499,7 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
               })}
             </div>
 
-            <div className="sticky bottom-0 pt-3 bg-gradient-to-t from-slate-900 via-slate-900/95 to-transparent">
+            <div className="sticky bottom-0 pt-3 bg-slate-900 border-t border-slate-700/50">
               <button
                 onClick={() =>
                   doAction(async () => {
@@ -1505,7 +1516,7 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
                   })
                 }
                 disabled={actionLoading}
-                className="w-full bg-gradient-to-r from-emerald-600 to-teal-600 py-3 rounded-2xl font-bold text-[14px] active:scale-[0.98] disabled:opacity-50"
+                className="w-full bg-emerald-400 text-slate-950 py-3 rounded-lg font-bold text-[14px] active:scale-[0.98] disabled:opacity-50"
               >
                 {actionLoading ? <Spinner /> : "Підтвердити запис"}
               </button>
@@ -1519,16 +1530,17 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
       {isAdmin && isBetweenRounds && mvpPickOpen && mvpState && (
         <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
           <div
-            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            className="absolute inset-0 bg-black/70"
             onClick={() => setMvpPickOpen(false)}
           />
-          <div className="relative w-full max-w-md bg-slate-900/95 border border-amber-500/30 rounded-3xl p-4">
+          <div className="relative w-full max-w-md bg-slate-900 border border-slate-600/60 rounded-2xl p-4">
             <div className="flex items-start justify-between gap-3 mb-3">
               <div>
-                <div className="text-[11px] text-gray-400">
+                <div className="flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-wider text-amber-300">
+                  <Star className="w-3.5 h-3.5" strokeWidth={2} />
                   MVP Раунду {mvpState.round_number}
                 </div>
-                <div className="text-sm font-black text-amber-200">
+                <div className="text-sm font-bold text-gray-100">
                   Кого команда переможців визначає як MVP?
                 </div>
                 <div className="text-[11px] text-gray-400 mt-1">
@@ -1537,9 +1549,10 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
               </div>
               <button
                 onClick={() => setMvpPickOpen(false)}
-                className="text-gray-400 text-sm px-2 py-1"
+                className="text-gray-400 px-2 py-1"
+                aria-label="Закрити"
               >
-                ✕
+                <X className="w-4 h-4" strokeWidth={2} />
               </button>
             </div>
 
@@ -1554,14 +1567,18 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
                       haptic("impact");
                       setMvpPickSelected(c.player_id);
                     }}
-                    className={`w-full flex items-center justify-between py-2 px-3 rounded-2xl border transition-all active:scale-[0.99] ${
+                    className={`w-full flex items-center justify-between py-2 px-3 rounded-lg border transition-all active:scale-[0.99] ${
                       selected
-                        ? "border-amber-500/60 bg-amber-500/10"
-                        : "border-slate-700/40 bg-slate-800/50 hover:bg-slate-700/50"
+                        ? "border-emerald-400/50 bg-emerald-400/10"
+                        : "border-slate-700/50 bg-slate-800/50 hover:bg-slate-700/50"
                     }`}
                   >
                     <div className="flex items-center gap-2">
-                      <span className="text-base">{selected ? "✅" : "🪖"}</span>
+                      {selected ? (
+                        <CheckCircle2 className="w-4 h-4 text-emerald-300" strokeWidth={2} />
+                      ) : (
+                        <UserRound className="w-4 h-4 text-gray-500" strokeWidth={2} />
+                      )}
                       <span className="text-sm font-semibold">
                         {formatNick(c.nickname)}
                       </span>
@@ -1580,7 +1597,7 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
             <div className="grid grid-cols-2 gap-2 mt-3">
               <button
                 onClick={() => setMvpPickOpen(false)}
-                className="py-3 rounded-2xl bg-slate-800/70 border border-slate-700/40 text-sm font-bold text-gray-200 active:scale-[0.98]"
+                className="py-3 rounded-lg bg-slate-800 border border-slate-600/60 text-gray-200 text-sm font-bold active:scale-[0.98]"
               >
                 Пізніше
               </button>
@@ -1611,7 +1628,7 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
                   setMvpPickSelected(null);
                 }}
                 disabled={actionLoading || !mvpPickSelected}
-                className="py-3 rounded-2xl bg-gradient-to-r from-amber-500 to-yellow-400 text-sm font-black text-black shadow-lg shadow-amber-900/30 active:scale-[0.98] disabled:opacity-50"
+                className="py-3 rounded-lg bg-emerald-400 text-slate-950 text-sm font-bold active:scale-[0.98] disabled:opacity-50"
               >
                 Підтвердити
               </button>
