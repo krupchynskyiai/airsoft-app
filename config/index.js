@@ -5,8 +5,13 @@ const dotenv = require("dotenv");
 // APP_ENV: production | staging | development
 // Env files: `.env.<APP_ENV>` (if present) is loaded first, then `.env` as a fallback.
 // Real environment variables (e.g. set in Render) always win over files.
-const APP_ENV = String(process.env.APP_ENV || "production").trim().toLowerCase();
 const rootDir = path.join(__dirname, "..");
+function envFromDotenvFile() {
+  const p = path.join(rootDir, ".env");
+  if (!fs.existsSync(p)) return "";
+  return dotenv.parse(fs.readFileSync(p)).APP_ENV || "";
+}
+const APP_ENV = String(process.env.APP_ENV || envFromDotenvFile() || "production").trim().toLowerCase();
 for (const file of [`.env.${APP_ENV}`, ".env"]) {
   const p = path.join(rootDir, file);
   if (fs.existsSync(p)) dotenv.config({ path: p });

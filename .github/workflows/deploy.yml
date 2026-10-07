@@ -1,0 +1,74 @@
+name: Deploy
+
+# main    -> production (airsoft.tangle.care)
+# staging -> staging    (airsoft-staging.tangle.care)
+on:
+  push:
+    branches: [main, staging]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-${{ github.ref_name }}
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    if: github.ref_name == 'main' || github.ref_name == 'staging'
+    runs-on: ubuntu-latest
+    environment: ${{ github.ref_name == 'main' && 'production' || 'staging' }}
+    env:
+      APP_ENV: ${{ github.ref_name == 'main' && 'production' || 'staging' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            webapp/package-lock.json
+
+      - name: Install & check backend
+        run: |
+          npm ci
+          find . -name '*.js' -not -path './node_modules/*' -not -path './webapp/*' -print0 | xargs -0 -n1 node --check
+
+      - name: Build webapp
+        working-directory: webapp
+        run: |
+          npm ci
+          npm run build
+
+      - name: Set up SSH
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          SSH_KNOWN_HOSTS: ${{ secrets.SSH_KNOWN_HOSTS }}
+        run: |
+          install -m 700 -d ~/.ssh
+          echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_deploy
+          chmod 600 ~/.ssh/id_deploy
+          echo "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
+
+      - name: Upload code
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+        run: |
+          rsync -az --delete \
+            -e "ssh -i ~/.ssh/id_deploy" \
+            --include '.env.*.example' \
+            --exclude '.env' --exclude '.env.*' \
+            --exclude '.git/' \
+            --exclude '.github/' \
+            --exclude 'node_modules/' \
+            --exclude 'logs/' \
+            ./ "$SSH_USER@$SSH_HOST:/srv/airsoft/$APP_ENV/"
+
+      - name: Install deps & restart
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+        run: |
+          ssh -i ~/.ssh/id_deploy "$SSH_USER@$SSH_HOST" \
+            "bash /srv/airsoft/$APP_ENV/deploy/remote-deploy.sh $APP_ENV ${GITHUB_SHA::7}"
