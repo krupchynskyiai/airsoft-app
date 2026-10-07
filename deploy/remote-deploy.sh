@@ -36,6 +36,14 @@ cat > webapp/dist/.htaccess <<HTACCESS
   Require all denied
 </FilesMatch>
 
+# index.html must never be cached by the panel's proxy cache / browsers,
+# otherwise a new deploy is not visible. Hashed assets can be cached.
+<IfModule mod_headers.c>
+  <FilesMatch "\.html\$">
+    Header set Cache-Control "no-cache, no-store, must-revalidate"
+  </FilesMatch>
+</IfModule>
+
 RewriteEngine On
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteRule ^(.*)\$ http://127.0.0.1:$PORT/\$1 [P,L]

@@ -9,6 +9,13 @@ function createServer() {
 
   app.use(express.json());
 
+  // Never let a proxy cache API responses (they are per-user) or the SPA shell.
+  const noStore = (res) => res.set("Cache-Control", "no-cache, no-store, must-revalidate");
+  app.use("/api", (req, res, next) => {
+    noStore(res);
+    next();
+  });
+
   // Lightweight health endpoint (no auth)
   app.get("/api/health", async (req, res) => {
     res.json({
@@ -46,7 +53,13 @@ function createServer() {
 
   // Serve React build (production)
   const webappDist = path.join(__dirname, "..", "webapp", "dist");
-  app.use(express.static(webappDist));
+  app.use(
+    express.static(webappDist, {
+      setHeaders: (res, filePath) => {
+        if (filePath.endsWith(".html")) noStore(res);
+      },
+    }),
+  );
 
   // Static gifts for loot wheel
   const giftsDir = path.join(__dirname, "..", "constants", "gifts");
@@ -54,6 +67,7 @@ function createServer() {
   const equipmentDir = path.join(__dirname, "..", "constants", "equipment");
   app.use("/equipment", express.static(equipmentDir));
   app.get("*", (req, res) => {
+    noStore(res);
     res.sendFile(path.join(webappDist, "index.html"));
   });
 
