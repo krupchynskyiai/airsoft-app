@@ -1252,7 +1252,7 @@ export default function Profile({ profile, onReload }) {
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               <span className="text-base">🎮</span>
-              <h3 className="text-sm font-bold text-gray-300 uppercase tracking-wider">Історія ігор</h3>
+              <h3 className="text-xs font-bold text-gray-300 uppercase tracking-wider">Історія ігор</h3>
             </div>
             <span className="text-xs text-gray-500">{profile.recentGames.length} ігор</span>
           </div>

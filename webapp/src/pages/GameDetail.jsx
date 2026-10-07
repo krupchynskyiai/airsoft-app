@@ -1639,10 +1639,10 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
 
       {/* ---- Admin panel ---- */}
       {isAdmin && g.status !== "finished" && g.status !== "cancelled" && (
-        <div className="bg-orange-950/20 border border-orange-800/30 rounded-2xl p-4 mb-5 space-y-3">
+        <div className="bg-slate-900/80 border border-amber-500/25 rounded-2xl p-4 mb-5 space-y-3">
           <div className="flex items-center gap-2 mb-1.5">
-            <span className="text-base">⚙️</span>
-            <h3 className="text-sm font-bold text-orange-400 uppercase tracking-wider">
+            <Settings className="w-5 h-5 text-amber-300" strokeWidth={2} />
+            <h3 className="text-xs font-bold text-gray-300 uppercase tracking-wider">
               Адмін
             </h3>
           </div>
@@ -1656,7 +1656,7 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
                   if (!ok) return;
                   doAction(() => adminSetGameStatus(gameId, "checkin"));
                 }}
-                icon="📍"
+                icon={<MapPin className="w-4 h-4" strokeWidth={2} />}
                 label="Відкрити Check-in"
                 color="amber"
               />
@@ -1670,7 +1670,7 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
                   if (!ok) return;
                   doAction(() => adminSetGameStatus(gameId, "active"));
                 }}
-                icon="▶️"
+                icon={<Play className="w-4 h-4" strokeWidth={2} />}
                 label="Почати гру"
                 color="red"
               />
@@ -1690,7 +1690,7 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
                         : "🏁 Гру завершено!",
                   );
                 }}
-                icon="🏁"
+                icon={<Flag className="w-4 h-4" strokeWidth={2} />}
                 label="Завершити гру"
                 color="red"
               />
@@ -1699,7 +1699,7 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
 
           {/* Cancel game — keep far from frequent actions */}
           {g.status !== "finished" && g.status !== "cancelled" && (
-            <div className="pt-2 mt-1 border-t border-orange-900/30">
+            <div className="pt-2 mt-1 border-t border-slate-700/50">
               <button
                 type="button"
                 onClick={async () => {
@@ -1713,9 +1713,10 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
                   );
                 }}
                 disabled={actionLoading}
-                className="w-full py-3 rounded-2xl bg-slate-800/60 border border-red-700/30 text-sm font-bold text-red-200 active:scale-[0.99] disabled:opacity-50"
+                className="w-full flex items-center justify-center gap-2 py-3 rounded-lg bg-red-500/15 border border-red-400/40 text-red-300 text-sm font-bold active:scale-[0.98] disabled:opacity-50"
               >
-                ❌ Скасувати гру
+                <XCircle className="w-4 h-4" strokeWidth={2} />
+                Скасувати гру
               </button>
               <p className="mt-2 text-[10px] text-gray-500">
                 Рекомендується використовувати лише в екстрених випадках.
@@ -1726,10 +1727,10 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
           {/* Гравці ще без чек-іну (адмін може відмітити без телефону) */}
           {(g.status === "checkin" || g.status === "active") &&
             players.some((p) => p.attendance === "registered") && (
-              <div className="mt-3 bg-slate-900/40 border border-slate-600/40 rounded-2xl p-3">
+              <div className="mt-3 bg-slate-950/40 border border-slate-700/50 rounded-lg p-3">
                 <div className="flex items-center gap-2 mb-2">
-                  <span className="text-sm">🪖</span>
-                  <p className="text-xs font-semibold text-gray-300 uppercase tracking-wider">
+                  <HardHat className="w-4 h-4 text-emerald-300" strokeWidth={2} />
+                  <p className="text-xs font-bold text-gray-300 uppercase tracking-wider">
                     Записані, ще без check-in
                   </p>
                 </div>
@@ -1742,7 +1743,7 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
                     .map((p) => (
                       <div
                         key={`reg-${p.player_id}`}
-                        className="flex items-center justify-between py-1.5 px-2 rounded-xl bg-slate-800/70"
+                        className="flex items-center justify-between py-1.5 px-2 rounded-lg bg-slate-800/70"
                       >
                         <span className="text-xs font-medium">{formatNick(p.nickname)}</span>
                         <button
@@ -1754,7 +1755,7 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
                               "Гравця відмічено на місці",
                             )
                           }
-                          className="px-2 py-1 rounded-lg bg-emerald-600/70 text-[10px] font-bold text-white active:scale-95"
+                          className="flex items-center gap-1 px-2 py-1 rounded-lg bg-emerald-400 text-slate-950 text-[10px] font-bold active:scale-95"
                         >
                           Чекін
                         </button>
@@ -1767,10 +1768,10 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
           {/* Pending check-ins list */}
           {g.status === "checkin" &&
             players.some((p) => p.attendance === "checkin_pending") && (
-              <div className="mt-3 bg-slate-900/40 border border-amber-700/40 rounded-2xl p-3">
+              <div className="mt-3 bg-slate-950/40 border border-amber-400/30 rounded-lg p-3">
                 <div className="flex items-center gap-2 mb-2">
-                  <span className="text-sm">📍</span>
-                  <p className="text-xs font-semibold text-amber-300 uppercase tracking-wider">
+                  <MapPin className="w-4 h-4 text-amber-300" strokeWidth={2} />
+                  <p className="text-xs font-bold text-amber-300 uppercase tracking-wider">
                     Check-in очікують підтвердження
                   </p>
                 </div>
@@ -1780,7 +1781,7 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
                     .map((p) => (
                       <div
                         key={p.player_id}
-                        className="flex items-center justify-between py-1.5 px-2 rounded-xl bg-slate-800/70"
+                        className="flex items-center justify-between py-1.5 px-2 rounded-lg bg-slate-800/70"
                       >
                         <div className="flex items-center gap-2">
                           <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
@@ -1801,9 +1802,10 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
                                 "Check-in підтверджено",
                               )
                             }
-                            className="px-2 py-1 rounded-lg bg-emerald-600/70 text-[10px] font-bold text-white active:scale-95"
+                            className="flex items-center gap-1 px-2 py-1 rounded-lg bg-emerald-400 text-slate-950 text-[10px] font-bold active:scale-95"
                           >
-                            ✅ Так
+                            <Check className="w-3 h-3" strokeWidth={2} />
+                            Так
                           </button>
                           <button
                             onClick={async () => {
@@ -1821,9 +1823,10 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
                                 "Check-in скасовано",
                               );
                             }}
-                            className="px-2 py-1 rounded-lg bg-red-700/70 text-[10px] font-bold text-white active:scale-95"
+                            className="flex items-center gap-1 px-2 py-1 rounded-lg bg-red-500/15 border border-red-400/40 text-red-300 text-[10px] font-bold active:scale-95"
                           >
-                            ✕ Ні
+                            <X className="w-3 h-3" strokeWidth={2} />
+                            Ні
                           </button>
                         </div>
                       </div>
@@ -1833,10 +1836,10 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
             )}
 
           {/* Add players by Telegram @username (phone/surprise registrations) */}
-          <div className="mt-2 bg-slate-900/40 border border-slate-700/40 rounded-2xl p-3">
+          <div className="mt-2 bg-slate-950/40 border border-slate-700/50 rounded-lg p-3">
             <div className="flex items-center gap-2 mb-2">
-              <span className="text-sm">➕</span>
-              <p className="text-xs font-semibold text-gray-300 uppercase tracking-wider">
+              <UserPlus className="w-4 h-4 text-emerald-300" strokeWidth={2} />
+              <p className="text-xs font-bold text-gray-300 uppercase tracking-wider">
                 Додати по @username (з телефону)
               </p>
             </div>
@@ -1845,7 +1848,7 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
               onChange={(e) => setAddUsersText(e.target.value)}
               rows={3}
               placeholder="@user1\nhttps://t.me/user2\nuser3"
-              className="w-full bg-slate-800/60 border border-slate-700/40 rounded-xl p-2 text-xs text-gray-200 placeholder:text-gray-500 focus:outline-none focus:border-emerald-500/40"
+              className="w-full bg-slate-800/60 border border-slate-700/50 rounded-lg p-2 text-xs text-gray-200 placeholder:text-gray-500 focus:outline-none focus:border-emerald-500/40"
             />
             <button
               onClick={async () => {
@@ -1866,17 +1869,17 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
                 }
               }}
               disabled={actionLoading || addUsersText.trim().length === 0}
-              className="mt-2 w-full bg-emerald-700/40 border border-emerald-600/30 py-2.5 rounded-xl text-sm font-bold text-emerald-200 active:scale-95 transition-transform disabled:opacity-50"
+              className="mt-2 w-full flex items-center justify-center gap-2 bg-emerald-400 text-slate-950 py-2.5 rounded-lg text-sm font-bold active:scale-[0.98] transition-transform disabled:opacity-50"
             >
-              {actionLoading ? <Spinner /> : "➕ Додати в гру"}
+              {actionLoading ? <Spinner /> : <><UserPlus className="w-4 h-4" strokeWidth={2} />Додати в гру</>}
             </button>
           </div>
 
-          <div className="mt-2 bg-slate-900/40 border border-slate-700/40 rounded-2xl p-3">
+          <div className="mt-2 bg-slate-950/40 border border-slate-700/50 rounded-lg p-3">
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2">
-                <span className="text-sm">🧰</span>
-                <p className="text-xs font-semibold text-gray-300 uppercase tracking-wider">
+                <Wrench className="w-4 h-4 text-emerald-300" strokeWidth={2} />
+                <p className="text-xs font-bold text-gray-300 uppercase tracking-wider">
                   Наявність спорядження
                 </p>
               </div>
@@ -1893,14 +1896,15 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
                     setAdminEqLoading(false);
                   }
                 }}
-                className="px-2 py-1 rounded-lg bg-slate-800/70 text-[10px] font-bold text-gray-300"
+                className="flex items-center gap-1 px-2 py-1 rounded-lg bg-slate-800 border border-slate-600/60 text-gray-200 text-[10px] font-bold"
               >
+                <RotateCw className="w-3 h-3" strokeWidth={2} />
                 Оновити
               </button>
             </div>
             <div className="space-y-1.5 max-h-56 overflow-y-auto overflow-x-hidden pr-1">
               {(adminEquipmentItems || []).map((it) => (
-                <div key={it.item_key} className="rounded-xl border border-slate-700/40 bg-slate-800/60 p-2">
+                <div key={it.item_key} className="rounded-lg border border-slate-700/50 bg-slate-800/60 p-2">
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <div className="min-w-0">
                       <div className="text-xs font-semibold text-gray-200 truncate">{it.title}</div>
@@ -1963,7 +1967,7 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
                       type="button"
                       onClick={() => saveAdminEquipmentItem(it)}
                       disabled={adminEqLoading}
-                      className="w-full sm:w-auto px-2 py-1 rounded-lg bg-emerald-600/70 text-[10px] font-bold text-black disabled:opacity-50"
+                      className="w-full sm:w-auto px-2 py-1 rounded-lg bg-emerald-400 text-slate-950 text-[10px] font-bold disabled:opacity-50"
                     >
                       Зберегти
                     </button>
@@ -1977,11 +1981,11 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
 
       {/* ---- Organizer/Admin billing (game child module) ---- */}
       {canManageBilling && g.status !== "cancelled" && (
-        <div className="bg-fuchsia-950/15 border border-fuchsia-800/30 rounded-2xl p-4 mb-5">
+        <div className="bg-slate-900/80 border border-slate-700/50 rounded-2xl p-4 mb-5">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
-              <span className="text-base">🧾</span>
-              <h3 className="text-sm font-bold text-fuchsia-300 uppercase tracking-wider">
+              <Receipt className="w-5 h-5 text-emerald-300" strokeWidth={2} />
+              <h3 className="text-xs font-bold text-gray-300 uppercase tracking-wider">
                 Розрахунок по грі
               </h3>
             </div>
@@ -1991,8 +1995,9 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
                 await loadBillingData();
                 await loadSettlementData();
               }}
-              className="px-2 py-1 rounded-lg bg-slate-800/70 border border-slate-700/40 text-[10px] font-bold text-gray-300"
+              className="flex items-center gap-1 px-2 py-1 rounded-lg bg-slate-800 border border-slate-600/60 text-gray-200 text-[10px] font-bold"
             >
+              <RotateCw className="w-3 h-3" strokeWidth={2} />
               Оновити
             </button>
           </div>
@@ -2006,16 +2011,18 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
               <button
                 type="button"
                 onClick={() => downloadBilling("admin_public")}
-                className="py-2 rounded-xl bg-emerald-700/40 border border-emerald-600/40 text-xs font-bold text-emerald-200"
+                className="flex items-center justify-center gap-2 py-2 rounded-lg bg-slate-800 border border-slate-600/60 text-gray-200 text-xs font-bold"
               >
+                <Download className="w-4 h-4 text-gray-400" strokeWidth={2} />
                 XLSX Публічний список оплат
               </button>
             )}
             <button
               type="button"
               onClick={() => downloadBilling("organizer")}
-              className="py-2 rounded-xl bg-sky-700/40 border border-sky-600/40 text-xs font-bold text-sky-200"
+              className="flex items-center justify-center gap-2 py-2 rounded-lg bg-slate-800 border border-slate-600/60 text-gray-200 text-xs font-bold"
             >
+              <Download className="w-4 h-4 text-gray-400" strokeWidth={2} />
               XLSX Організаторський розрахунок
             </button>
           </div>
@@ -2028,7 +2035,7 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
                 {(billingData?.players || []).map((p) => (
                   <div
                     key={`bill-${p.player_id}`}
-                    className="flex items-center justify-between py-1.5 px-2 rounded-xl bg-slate-800/60 border border-slate-700/30"
+                    className="flex items-center justify-between py-1.5 px-2 rounded-lg bg-slate-800/60 border border-slate-700/50"
                   >
                     <div className="min-w-0">
                       <div className="text-xs font-semibold text-gray-200 truncate">
@@ -2041,7 +2048,7 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
                     <button
                       type="button"
                       onClick={() => openBillingEditor(p)}
-                      className="px-2 py-1 rounded-lg bg-fuchsia-700/40 border border-fuchsia-600/40 text-[10px] font-bold text-fuchsia-200"
+                      className="px-2 py-1 rounded-lg bg-slate-800 border border-slate-600/60 text-gray-200 text-[10px] font-bold"
                     >
                       Редагувати
                     </button>
@@ -2052,7 +2059,7 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
                 )}
               </div>
 
-              <div className="mt-3 rounded-2xl border border-slate-700/40 bg-slate-900/40 p-2">
+              <div className="mt-3 rounded-lg border border-slate-700/50 bg-slate-950/40 p-2">
                 <div className="flex items-center justify-between gap-2 mb-2">
                   <p className="text-[11px] font-semibold uppercase tracking-wider text-gray-300">
                     Оплати та борги
@@ -2063,8 +2070,8 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
                       onClick={() => setUnpaidOnly((v) => !v)}
                       className={`px-2 py-1 rounded-lg text-[10px] font-bold border ${
                         unpaidOnly
-                          ? "bg-amber-600/30 border-amber-500/50 text-amber-200"
-                          : "bg-slate-800/70 border-slate-700/40 text-gray-300"
+                          ? "bg-amber-400/10 border-amber-400/40 text-amber-300"
+                          : "bg-slate-800 border-slate-600/60 text-gray-300"
                       }`}
                     >
                       {unpaidOnly ? "Тільки боржники" : "Всі гравці"}
@@ -2073,7 +2080,7 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
                       type="button"
                       onClick={notifyAllDebtors}
                       disabled={settlementSavingKey === "notify-mass"}
-                      className="px-2 py-1 rounded-lg bg-indigo-700/40 border border-indigo-600/40 text-[10px] font-bold text-indigo-200 disabled:opacity-40"
+                      className="px-2 py-1 rounded-lg bg-slate-800 border border-slate-600/60 text-gray-200 text-[10px] font-bold disabled:opacity-40"
                     >
                       DM боржникам
                     </button>
@@ -2117,7 +2124,7 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
               </div>
 
               {!!billingPreviewRows.length && (
-                <div className="mt-3 rounded-2xl border border-slate-700/40 bg-slate-900/40 p-2">
+                <div className="mt-3 rounded-lg border border-slate-700/50 bg-slate-950/40 p-2">
                   <div className="flex items-center justify-between gap-2 mb-2">
                     <p className="text-[11px] font-semibold uppercase tracking-wider text-gray-300">
                       Preview таблиці
@@ -2128,8 +2135,8 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
                         onClick={() => setBillingPreviewBasePrice(700)}
                         className={`px-2 py-1 rounded-lg text-[10px] font-bold border ${
                           billingPreviewBasePrice === 700
-                            ? "bg-emerald-600/30 border-emerald-500/50 text-emerald-200"
-                            : "bg-slate-800/70 border-slate-700/40 text-gray-300"
+                            ? "bg-emerald-400 border-emerald-400 text-slate-950"
+                            : "bg-slate-800 border-slate-600/60 text-gray-300"
                         }`}
                       >
                         700
@@ -2139,8 +2146,8 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
                         onClick={() => setBillingPreviewBasePrice(500)}
                         className={`px-2 py-1 rounded-lg text-[10px] font-bold border ${
                           billingPreviewBasePrice === 500
-                            ? "bg-sky-600/30 border-sky-500/50 text-sky-200"
-                            : "bg-slate-800/70 border-slate-700/40 text-gray-300"
+                            ? "bg-emerald-400 border-emerald-400 text-slate-950"
+                            : "bg-slate-800 border-slate-600/60 text-gray-300"
                         }`}
                       >
                         500
@@ -2223,12 +2230,12 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
         <div className="space-y-3 mb-5">
           {/* MVP voting block */}
           {mvpState && (
-            <div className="bg-slate-900/50 border border-amber-700/40 rounded-2xl p-4">
+            <div className="bg-slate-900/80 border border-amber-500/30 rounded-2xl p-4">
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2">
-                  <span className="text-lg">⭐</span>
+                  <Star className="w-5 h-5 text-amber-300" strokeWidth={2} />
                   <div>
-                    <h3 className="text-sm font-bold text-amber-300 uppercase tracking-wider">
+                    <h3 className="text-xs font-bold text-gray-300 uppercase tracking-wider">
                       MVP Раунду {mvpState.round_number}
                     </h3>
                     <p className="text-[11px] text-gray-400">
@@ -2263,12 +2270,16 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
                             "full",
                           );
                         }}
-                        className={`flex items-center justify-between py-1.5 px-2 rounded-xl bg-slate-800/60 ${
+                        className={`flex items-center justify-between py-1.5 px-2 rounded-lg bg-slate-800/60 ${
                           isAdmin && !isMine ? "cursor-pointer hover:bg-slate-700/60" : ""
-                        } ${isMine ? "bg-emerald-900/20" : ""}`}
+                        } ${isMine ? "bg-emerald-400/10 border border-emerald-400/30" : ""}`}
                       >
                         <div className="flex items-center gap-2">
-                          <span className="text-sm">{isMine ? "✅" : "🪖"}</span>
+                          {isMine ? (
+                            <CheckCircle2 className="w-4 h-4 text-emerald-300" strokeWidth={2} />
+                          ) : (
+                            <UserRound className="w-4 h-4 text-gray-500" strokeWidth={2} />
+                          )}
                           <span className="text-xs font-medium">
                             {formatNick(c.nickname)}
                           </span>
@@ -2281,7 +2292,7 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
                             </span>
                           </span>
                           {isAdmin && isMine && (
-                            <span className="px-2 py-1 rounded-lg text-[10px] font-bold bg-slate-700/60 text-gray-200 opacity-90">
+                            <span className="rounded border px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-wider text-emerald-300 border-emerald-400/30 bg-emerald-400/10">
                               Обраний
                             </span>
                           )}
@@ -2296,9 +2307,9 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
 
           {/* Admin: start next round */}
           {isAdmin && (
-            <div className="bg-emerald-950/20 border border-emerald-800/30 rounded-2xl p-5 text-center">
-              <div className="text-3xl mb-2">⏸</div>
-              <h3 className="text-lg font-black mb-1">Перерва між раундами</h3>
+            <div className="bg-slate-900/80 border border-slate-700/50 rounded-2xl p-5 text-center">
+              <Pause className="w-8 h-8 mx-auto mb-2 text-emerald-300" strokeWidth={2} />
+              <h3 className="font-display text-xl font-bold uppercase tracking-wide mb-1">Перерва між раундами</h3>
               <p className="text-sm text-gray-400 mb-4">
                 Раундів зіграно:{" "}
                 {rounds.filter((r) => r.status === "finished").length}
@@ -2321,9 +2332,9 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
                     );
                   }}
                   disabled={actionLoading}
-                  className="w-full mb-2 bg-slate-700/70 border border-slate-600/40 py-3 rounded-2xl font-bold text-[14px] transition-all active:scale-[0.98] disabled:opacity-50"
+                  className="w-full mb-2 flex items-center justify-center gap-2 bg-slate-800 border border-slate-600/60 text-gray-200 py-3 rounded-lg font-bold text-[14px] transition-all active:scale-[0.98] disabled:opacity-50"
                 >
-                  {actionLoading ? <Spinner /> : "🔀 Випадково перемішати команди"}
+                  {actionLoading ? <Spinner /> : <><Shuffle className="w-4 h-4" strokeWidth={2} />Випадково перемішати команди</>}
                 </button>
               )}
               <button
@@ -2333,9 +2344,9 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
                   doAction(() => adminStartRound(gameId));
                 }}
                 disabled={actionLoading || adminNeedsMvp}
-                className="w-full bg-gradient-to-r from-emerald-600 to-teal-600 py-4 rounded-2xl font-bold text-[15px] shadow-lg transition-all active:scale-[0.98] disabled:opacity-50"
+                className="w-full flex items-center justify-center gap-2 bg-emerald-400 text-slate-950 py-4 rounded-lg font-bold text-[15px] transition-all active:scale-[0.98] disabled:opacity-50"
               >
-                {actionLoading ? <Spinner /> : "▶️ Почати наступний раунд"}
+                {actionLoading ? <Spinner /> : <><Play className="w-5 h-5" strokeWidth={2} />Почати наступний раунд</>}
               </button>
             </div>
           )}
@@ -2344,18 +2355,18 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
 
       {/* ---- Live round panel ---- */}
       {g.status === "active" && hasActiveRound && (
-        <div className="bg-red-950/15 border border-red-800/30 rounded-2xl p-4 mb-5">
+        <div className="bg-slate-900/80 border border-red-500/40 rounded-2xl p-4 mb-5">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 rounded-full bg-red-400 animate-pulse" />
-              <h3 className="text-sm font-bold text-red-400 uppercase tracking-wider">
+              <h3 className="text-xs font-bold text-red-300 uppercase tracking-wider">
                 Раунд {g.current_round}
               </h3>
             </div>
             <div className="flex items-center gap-2">
               <span className="text-sm font-mono font-bold text-gray-300">{timerValue}</span>
-              <button onClick={load} className="text-xs text-gray-500 bg-slate-800/60 px-2 py-1 rounded-lg active:scale-95 transition-transform">
-                🔄
+              <button onClick={load} className="text-gray-400 bg-slate-800 border border-slate-600/60 text-gray-200 px-2 py-1 rounded-lg active:scale-95 transition-transform" aria-label="Оновити">
+                <RotateCw className="w-3.5 h-3.5" strokeWidth={2} />
               </button>
             </div>
           </div>
@@ -2378,10 +2389,10 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
                   {g.game_mode !== "ffa" && (
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-2">
-                        <div className={`w-2 h-2 rounded-full ${tc.dot}`} />
-                        <span className={`text-sm font-bold ${tc.text}`}>{tc.label}</span>
+                        <div className={`w-2 h-2 rounded-sm ${tc.dot}`} />
+                        <span className={`font-mono text-[11px] font-bold uppercase tracking-wider ${tc.text}`}>{tc.label}</span>
                       </div>
-                      <span className="text-xs text-gray-500">{alive}/{tPlayers.length} alive</span>
+                      <span className="font-mono text-[11px] text-gray-500">{alive}/{tPlayers.length} alive</span>
                     </div>
                   )}
                   <div className="space-y-1">
@@ -2391,17 +2402,21 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
                       return (
                         <div
                           key={p.player_id}
-                          className={`flex items-center justify-between p-2.5 rounded-xl transition-all ${
+                          className={`flex items-center justify-between p-2.5 rounded-lg transition-all ${
                             markedDead ? "bg-slate-800/30 border border-slate-800/30 opacity-50" : `${tc.bg} border ${tc.border}`
                           }`}
                         >
                           <div className="flex items-center gap-2.5">
-                            <span className="text-lg">{markedDead ? "💀" : "💚"}</span>
+                            {markedDead ? (
+                              <Skull className="w-4 h-4 text-gray-500" strokeWidth={2} />
+                            ) : (
+                              <HeartPulse className="w-4 h-4 text-emerald-300" strokeWidth={2} />
+                            )}
                             <span className={`text-sm font-semibold ${markedDead ? "line-through text-gray-500" : ""}`}>
                               {formatNick(p.nickname)}
                             </span>
                             {pendingDeadSet.has(p.player_id) && p.is_alive && (
-                              <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-700/40 text-amber-200">
+                              <span className="rounded border px-1.5 py-0.5 font-mono text-[10px] font-bold uppercase tracking-wider text-amber-300 border-amber-400/30 bg-amber-400/10">
                                 pending
                               </span>
                             )}
@@ -2409,13 +2424,17 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
                           {canToggleDead && (
                             <button
                               onClick={() => toggleRoundPendingDead(p.player_id, p.is_alive)}
-                              className={`text-xs px-3 py-1.5 rounded-lg font-semibold active:scale-95 transition-all ${
+                              className={`flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg font-semibold active:scale-95 transition-all ${
                                 pendingDeadSet.has(p.player_id)
-                                  ? "bg-slate-700/70 border border-slate-600/50 text-gray-200"
-                                  : "bg-red-800/60 hover:bg-red-700/60"
+                                  ? "bg-slate-800 border border-slate-600/60 text-gray-200"
+                                  : "bg-red-500/15 border border-red-400/40 text-red-300"
                               }`}
                             >
-                              {pendingDeadSet.has(p.player_id) ? "↩️ Відмінити" : "💀 Вбитий"}
+                              {pendingDeadSet.has(p.player_id) ? (
+                                <><Undo2 className="w-3.5 h-3.5" strokeWidth={2} />Відмінити</>
+                              ) : (
+                                <><Skull className="w-3.5 h-3.5" strokeWidth={2} />Вбитий</>
+                              )}
                             </button>
                           )}
                         </div>
@@ -2429,7 +2448,7 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
 
           {/* End round buttons */}
           {isAdmin && (
-            <div className="mt-4 pt-3 border-t border-red-900/30">
+            <div className="mt-4 pt-3 border-t border-slate-700/50">
               {g.game_mode !== "ffa" ? (
                 <>
                   <p className="text-xs text-gray-500 mb-2 font-medium">Завершити раунд — хто виграв?</p>
@@ -2440,24 +2459,27 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
                     <button
                       onClick={() => submitRoundOutcome("A")}
                       disabled={actionLoading}
-                      className="flex-1 bg-amber-700/35 border border-amber-600/35 py-2.5 rounded-xl text-sm font-bold text-amber-200 active:scale-95 transition-transform"
+                      className="flex-1 flex items-center justify-center gap-2 bg-amber-400/10 border border-amber-400/40 py-2.5 rounded-lg text-sm font-bold text-amber-300 active:scale-[0.98] transition-transform"
                     >
-                      🟡 Team A
+                      <span className="w-2 h-2 rounded-sm bg-amber-400" />
+                      Team A
                     </button>
                     <button
                       onClick={() => submitRoundOutcome("B")}
                       disabled={actionLoading}
-                      className="flex-1 bg-blue-700/40 border border-blue-600/30 py-2.5 rounded-xl text-sm font-bold text-blue-300 active:scale-95 transition-transform"
+                      className="flex-1 flex items-center justify-center gap-2 bg-blue-400/10 border border-blue-400/40 py-2.5 rounded-lg text-sm font-bold text-blue-300 active:scale-[0.98] transition-transform"
                     >
-                      🔵 Team B
+                      <span className="w-2 h-2 rounded-sm bg-blue-400" />
+                      Team B
                     </button>
                   </div>
                   <button
                     onClick={() => submitRoundOutcome(null)}
                     disabled={actionLoading}
-                    className="mt-2 w-full bg-slate-700/50 border border-slate-500/30 py-2.5 rounded-xl text-sm font-bold text-gray-300 active:scale-95 transition-transform"
+                    className="mt-2 w-full flex items-center justify-center gap-2 bg-slate-800 border border-slate-600/60 text-gray-200 py-2.5 rounded-lg text-sm font-bold active:scale-[0.98] transition-transform"
                   >
-                    ⚖ Нічия
+                    <Scale className="w-4 h-4" strokeWidth={2} />
+                    Нічия
                   </button>
                 </>
               ) : (
@@ -2468,9 +2490,10 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
                   <button
                     onClick={() => submitRoundOutcome(null)}
                     disabled={actionLoading}
-                    className="w-full bg-slate-700/60 border border-slate-600/30 py-2.5 rounded-xl text-sm font-bold text-gray-300 active:scale-95 transition-transform"
+                    className="w-full flex items-center justify-center gap-2 bg-slate-800 border border-slate-600/60 text-gray-200 py-2.5 rounded-lg text-sm font-bold active:scale-[0.98] transition-transform"
                   >
-                    ⏹ Завершити раунд
+                    <Square className="w-4 h-4" strokeWidth={2} />
+                    Завершити раунд
                   </button>
                 </>
               )}
@@ -2480,13 +2503,13 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
       )}
 
       {/* ---- Players list ---- */}
-      <div className="bg-slate-800/60 backdrop-blur-sm rounded-2xl p-4 mb-4 border border-slate-700/40">
+      <div className="bg-slate-900/80 border border-slate-700/50 rounded-2xl p-4 mb-4">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
-            <span>👥</span>
-            <h3 className="text-sm font-bold text-gray-300 uppercase tracking-wider">Гравці</h3>
+            <Users className="w-5 h-5 text-emerald-300" strokeWidth={2} />
+            <h3 className="text-xs font-bold text-gray-300 uppercase tracking-wider">Гравці</h3>
           </div>
-          <span className="text-xs text-gray-500 bg-slate-700/60 px-2 py-0.5 rounded-full">{players.length}</span>
+          <span className="rounded border px-2 py-0.5 font-mono text-[10px] font-bold text-gray-300 border-slate-600/50 bg-slate-800/60">{players.length}</span>
         </div>
         <div className="space-y-1">
           {players.map((p) => (
@@ -2495,7 +2518,7 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
               onClick={() => {
                 if (isAdmin) openPlayerActions(p);
               }}
-              className={`flex items-center justify-between py-2.5 px-2 rounded-xl transition-colors ${
+              className={`flex items-center justify-between py-2.5 px-2 rounded-lg transition-colors ${
                 isAdmin ? "hover:bg-slate-700/20 cursor-pointer" : "hover:bg-slate-700/20"
               }`}
             >
@@ -2546,7 +2569,10 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
                     {p.team_name}
                   </span>
                 )}
-                <span className="text-[10px] text-gray-600">⭐{p.rating}</span>
+                <span className="flex items-center gap-0.5 font-mono text-[10px] text-gray-500">
+                  <Star className="w-3 h-3" strokeWidth={2} />
+                  {p.rating}
+                </span>
                 {isAdmin &&
                   (g.status === "checkin" || g.status === "active") &&
                   g.game_mode !== "ffa" &&
@@ -2564,8 +2590,8 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
                         }}
                         className={`px-2 py-1 rounded-lg text-[10px] font-semibold active:scale-95 transition-all ${
                           p.game_team === "A"
-                            ? "bg-amber-600 text-white"
-                            : "bg-slate-700 text-gray-200"
+                            ? "bg-amber-400 text-slate-950"
+                            : "bg-slate-800 border border-slate-600/60 text-gray-200"
                         }`}
                       >
                         A
@@ -2582,8 +2608,8 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
                         }}
                         className={`px-2 py-1 rounded-lg text-[10px] font-semibold active:scale-95 transition-all ${
                           p.game_team === "B"
-                            ? "bg-blue-600 text-white"
-                            : "bg-slate-700 text-gray-200"
+                            ? "bg-blue-400 text-slate-950"
+                            : "bg-slate-800 border border-slate-600/60 text-gray-200"
                         }`}
                       >
                         B
@@ -2606,7 +2632,7 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
                           "Гравця видалено з гри",
                         );
                       }}
-                      className="ml-1 px-2 py-1 rounded-lg bg-red-800/60 text-[10px] font-semibold text-red-100 active:scale-95"
+                      className="ml-1 px-2 py-1 rounded-lg bg-red-500/15 border border-red-400/40 text-red-300 text-[10px] font-semibold active:scale-95"
                     >
                       Kick
                     </button>
@@ -2619,10 +2645,10 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
 
       {/* ---- Rounds history ---- */}
       {rounds.length > 0 && (
-        <div className="bg-slate-800/60 backdrop-blur-sm rounded-2xl p-4 border border-slate-700/40">
+        <div className="bg-slate-900/80 border border-slate-700/50 rounded-2xl p-4">
           <div className="flex items-center gap-2 mb-3">
-            <span>🔄</span>
-            <h3 className="text-sm font-bold text-gray-300 uppercase tracking-wider">Раунди</h3>
+            <RotateCw className="w-5 h-5 text-emerald-300" strokeWidth={2} />
+            <h3 className="text-xs font-bold text-gray-300 uppercase tracking-wider">Раунди</h3>
           </div>
           <div className="space-y-2">
             {rounds.map((r) => {
@@ -2639,30 +2665,30 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
                 : r.status === "active" ? timerValue : "";
               const outcomeLabel = r.winner_game_team
                 ? r.winner_game_team === "A"
-                  ? "🟡 A"
-                  : "🔵 B"
+                  ? <span className="inline-flex items-center gap-1.5"><span className="w-2 h-2 rounded-sm bg-amber-400" />A</span>
+                  : <span className="inline-flex items-center gap-1.5"><span className="w-2 h-2 rounded-sm bg-blue-400" />B</span>
                 : r.status === "active"
-                  ? "⏳"
+                  ? <Hourglass className="w-4 h-4" strokeWidth={2} />
                   : r.status === "finished"
-                    ? "⚖ Нічия"
+                    ? <span className="inline-flex items-center gap-1.5"><Scale className="w-4 h-4" strokeWidth={2} />Нічия</span>
                     : "—";
               return (
-                <div key={r.id} className="flex items-center justify-between py-2 px-3 rounded-xl bg-slate-700/20">
+                <div key={r.id} className="flex items-center justify-between py-2 px-3 rounded-lg bg-slate-950/40 border border-slate-700/40">
                   <div className="flex items-center gap-2">
-                    <span className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs font-black ${
-                      r.status === "active" ? "bg-red-500/20 text-red-400" : r.status === "finished" ? "bg-emerald-500/15 text-emerald-400" : "bg-slate-700 text-gray-500"
+                    <span className={`w-7 h-7 rounded flex items-center justify-center font-mono text-xs font-bold ${
+                      r.status === "active" ? "bg-red-400/10 border border-red-400/40 text-red-300" : r.status === "finished" ? "bg-emerald-400/10 border border-emerald-400/30 text-emerald-300" : "bg-slate-800 border border-slate-700/50 text-gray-500"
                     }`}>{r.round_number}</span>
                     <span className="text-sm font-medium">Раунд {r.round_number}</span>
                     {r.status === "active" && (
-                      <div className="flex items-center gap-1 bg-red-500/20 px-2 py-0.5 rounded-full">
+                      <div className="flex items-center gap-1 rounded border border-red-400/40 bg-red-400/10 px-2 py-0.5">
                         <div className="w-1 h-1 rounded-full bg-red-400 animate-pulse" />
-                        <span className="text-[10px] font-bold text-red-400">LIVE</span>
+                        <span className="font-mono text-[10px] font-bold uppercase tracking-wider text-red-300">LIVE</span>
                       </div>
                     )}
                   </div>
                   <div className="flex items-center gap-2">
                     {duration && <span className="text-[11px] text-gray-500 font-mono">{duration}</span>}
-                    <span className={`text-sm font-bold ${winColor}`}>
+                    <span className={`flex items-center text-sm font-bold ${winColor}`}>
                       {outcomeLabel}
                     </span>
                   </div>
