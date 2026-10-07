@@ -1,16 +1,44 @@
-require("dotenv").config();
+const fs = require("fs");
+const path = require("path");
+const dotenv = require("dotenv");
 
-module.exports = {
-  BOT_TOKEN: process.env.BOT_TOKEN,
-  ADMINS: (process.env.ADMIN_IDS || "").split(",").map(Number),
-  ORGANIZERS: (
-    process.env.ORGANIZER_IDS || "7499967163,365598083"
-  )
+// APP_ENV: production | staging | development
+// Env files: `.env.<APP_ENV>` (if present) is loaded first, then `.env` as a fallback.
+// Real environment variables (e.g. set in Render) always win over files.
+const APP_ENV = String(process.env.APP_ENV || "production").trim().toLowerCase();
+const rootDir = path.join(__dirname, "..");
+for (const file of [`.env.${APP_ENV}`, ".env"]) {
+  const p = path.join(rootDir, file);
+  if (fs.existsSync(p)) dotenv.config({ path: p });
+}
+
+const IS_PROD = APP_ENV === "production";
+
+function parseIds(raw) {
+  return String(raw || "")
     .split(",")
     .map((x) => Number(String(x).trim()))
-    .filter((x) => Number.isInteger(x) && x > 0),
+    .filter((x) => Number.isInteger(x) && x !== 0);
+}
+
+module.exports = {
+  APP_ENV,
+  IS_PROD,
+  BOT_TOKEN: process.env.BOT_TOKEN,
+  ADMINS: (process.env.ADMIN_IDS || "").split(",").map(Number),
+  ORGANIZERS: parseIds(
+    process.env.ORGANIZER_IDS || (IS_PROD ? "7499967163,365598083" : ""),
+  ),
   CHANNEL_ID: process.env.CHANNEL_ID,
-  BOT_USERNAME: process.env.BOT_USERNAME || "banana_airsoft_app_bot",
+  // Overwritten at startup with the real username from getMe(), so deep links
+  // always point to the bot this instance is running as.
+  BOT_USERNAME: process.env.BOT_USERNAME || (IS_PROD ? "banana_airsoft_app_bot" : ""),
+  // Username of the production bot. Non-production instances refuse to start with it.
+  PROD_BOT_USERNAME: process.env.PROD_BOT_USERNAME || "banana_airsoft_app_bot",
+  // Production channel id. Non-production instances refuse to post into it.
+  PROD_CHANNEL_ID: process.env.PROD_CHANNEL_ID || "",
+  // Non-production only: if set, the bot may message only these chats (plus CHANNEL_ID).
+  TEST_CHAT_IDS: parseIds(process.env.TEST_CHAT_IDS),
   PAYMENT_CARD_NUMBER: process.env.PAYMENT_CARD_NUMBER || "4441114452431495",
   LOG_LEVEL: process.env.LOG_LEVEL || "info",
   WEBAPP_URL: process.env.WEBAPP_URL,

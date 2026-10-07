@@ -2,6 +2,7 @@ const express = require("express");
 const path = require("path");
 const { authMiddleware } = require("./middleware/auth");
 const log = require("../utils/logger");
+const config = require("../config");
 
 function createServer() {
   const app = express();
@@ -12,6 +13,7 @@ function createServer() {
   app.get("/api/health", async (req, res) => {
     res.json({
       ok: true,
+      env: config.APP_ENV,
       ts: new Date().toISOString(),
     });
   });
