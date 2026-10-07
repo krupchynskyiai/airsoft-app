@@ -2,8 +2,25 @@ import React, { useState, useEffect, useCallback, useRef } from "react";
 import { getLeaderboard, getTeamsLeaderboard, getSeasonStats } from "../api";
 import { useTelegram } from "../hooks/useTelegram";
 import { getAvatarForLevel, getPlayerLevelState } from "../utils/playerLevel";
+import { UserRound, Shield, CalendarDays, Trophy } from "lucide-react";
 
-const MEDALS = ["🥇", "🥈", "🥉"];
+// Top-3 rank chip tones: brass / steel-gray / rust.
+const RANK_TONES = [
+  "text-amber-300 border-amber-400/40 bg-amber-400/10",
+  "text-gray-200 border-gray-400/40 bg-gray-400/10",
+  "text-orange-300 border-orange-500/40 bg-orange-500/10",
+];
+
+function RankChip({ rank, size = "w-7 h-7" }) {
+  const tone = rank <= 3
+    ? RANK_TONES[rank - 1]
+    : "text-gray-500 border-slate-700/60 bg-slate-800/40";
+  return (
+    <div className={`${size} shrink-0 rounded border flex items-center justify-center font-mono text-xs font-bold ${tone}`}>
+      {rank}
+    </div>
+  );
+}
 const displayName = (p) => p?.callsign || p?.nickname || "—";
 const getPlayerAvatar = (rating) =>
   getAvatarForLevel(getPlayerLevelState(Number(rating) || 0).level);
@@ -74,41 +91,44 @@ export default function Leaderboard() {
   }, [tab, loadMorePlayers, players.length, playersHasMore, playersLoadingMore, loading]);
 
   const tabs = [
-    { id: "players", label: "Гравці", icon: "👤" },
-    { id: "teams", label: "Команди", icon: "🏠" },
-    { id: "season", label: "Сезон", icon: "📅" },
+    { id: "players", label: "Гравці", icon: UserRound },
+    { id: "teams", label: "Команди", icon: Shield },
+    { id: "season", label: "Сезон", icon: CalendarDays },
   ];
 
   return (
     <div className="pb-4">
       {/* Header */}
       <div className="mb-5">
-        <h2 className="text-2xl font-black">Рейтинг</h2>
-        <p className="text-sm text-gray-500">Найкращі гравці та команди</p>
+        <h2 className="font-display text-3xl font-bold uppercase tracking-wide">Рейтинг</h2>
+        <p className="font-mono text-[11px] uppercase tracking-wider text-gray-500">Найкращі гравці та команди</p>
       </div>
 
       {/* Tab switcher */}
-      <div className="bg-slate-800/60 rounded-2xl p-1 flex gap-1 mb-5 border border-slate-700/40">
-        {tabs.map((t) => (
-          <button
-            key={t.id}
-            onClick={() => { haptic("impact"); setTab(t.id); }}
-            className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 ${
-              tab === t.id
-                ? "bg-emerald-500/20 text-emerald-400 shadow-lg shadow-emerald-900/10"
-                : "text-gray-400 hover:text-gray-300"
-            }`}
-          >
-            <span>{t.icon}</span>
-            {t.label}
-          </button>
-        ))}
+      <div className="grid grid-cols-3 gap-1 mb-5 p-1 rounded-lg bg-slate-900/80 border border-slate-700/50">
+        {tabs.map((t) => {
+          const Icon = t.icon;
+          return (
+            <button
+              key={t.id}
+              onClick={() => { haptic("impact"); setTab(t.id); }}
+              className={`flex items-center justify-center gap-1.5 py-2 rounded font-mono text-[11px] font-bold uppercase tracking-wider active:scale-95 ${
+                tab === t.id
+                  ? "bg-emerald-400 text-slate-950"
+                  : "text-gray-400"
+              }`}
+            >
+              <Icon className="w-3.5 h-3.5" strokeWidth={2} />
+              {t.label}
+            </button>
+          );
+        })}
       </div>
 
       {loading ? (
         <div className="space-y-3">
           {[1, 2, 3, 4, 5].map((i) => (
-            <div key={i} className="bg-slate-800/40 rounded-2xl p-4 animate-pulse">
+            <div key={i} className="bg-slate-900/60 border border-slate-700/40 rounded-2xl p-4 animate-pulse">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-slate-700 rounded-xl" />
                 <div className="flex-1">
@@ -141,13 +161,11 @@ export default function Leaderboard() {
                   return (
                     <div
                       key={p.id}
-                      className="flex items-center gap-3 p-3 rounded-2xl bg-slate-800/50 border border-slate-700/30 transition-all hover:border-slate-600/50"
+                      className="flex items-center gap-3 p-3 rounded-2xl bg-slate-900/80 border border-slate-700/50 transition-colors hover:border-slate-600/60"
                     >
-                      <div className="w-8 text-center">
-                        <span className="text-sm font-bold text-gray-500">{rank + 1}</span>
-                      </div>
+                      <RankChip rank={rank + 1} />
                       <div
-                        className={`w-10 h-10 rounded-xl bg-gradient-to-br ${avatar.bg} border border-white/10 flex items-center justify-center text-lg`}
+                        className={`w-10 h-10 rounded-lg bg-slate-950/70 bg-gradient-to-br ${avatar.bg} border border-white/10 flex items-center justify-center`}
                         style={{ boxShadow: `0 0 0 1px ${avatar.ring}55` }}
                       >
                         {avatar.emoji}
@@ -163,8 +181,8 @@ export default function Leaderboard() {
                         </div>
                       </div>
                       <div className="text-right">
-                        <div className="font-black text-emerald-400">{p.rating}</div>
-                        <div className="text-[10px] text-gray-600"> очок</div>
+                        <div className="font-mono font-bold text-emerald-300">{p.rating}</div>
+                        <div className="font-mono text-[10px] uppercase tracking-wider text-gray-600">очок</div>
                       </div>
                     </div>
                   );
@@ -175,7 +193,7 @@ export default function Leaderboard() {
                 <div className="text-center text-xs text-gray-500 py-2">Завантаження...</div>
               )}
 
-              {!players.length && <EmptyState emoji="🏆" text="Поки що порожньо" />}
+              {!players.length && <EmptyState icon={Trophy} text="Поки що порожньо" />}
             </div>
           )}
 
@@ -185,30 +203,26 @@ export default function Leaderboard() {
               {teams.map((t, i) => (
                 <div
                   key={t.id}
-                  className={`flex items-center gap-3 p-4 rounded-2xl border transition-all ${
+                  className={`flex items-center gap-3 p-4 rounded-2xl border ${
                     i < 3
-                      ? "bg-gradient-to-r from-slate-800/80 to-slate-700/40 border-slate-600/40"
-                      : "bg-slate-800/40 border-slate-700/30"
+                      ? "bg-slate-900/80 border-slate-600/60"
+                      : "bg-slate-900/60 border-slate-700/50"
                   }`}
                 >
-                  <div className="w-10 h-10 rounded-xl flex items-center justify-center text-xl">
-                    {i < 3 ? MEDALS[i] : (
-                      <span className="text-sm font-bold text-gray-500">{i + 1}</span>
-                    )}
-                  </div>
-                  <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-slate-600 to-slate-700 flex items-center justify-center text-xl">
-                    🏠
+                  <RankChip rank={i + 1} size="w-8 h-8" />
+                  <div className="w-10 h-10 rounded-lg bg-slate-800 border border-slate-600/60 flex items-center justify-center">
+                    <Shield className="w-5 h-5 text-emerald-300" strokeWidth={2} />
                   </div>
                   <div className="flex-1">
                     <div className="font-bold">{t.name}</div>
                   </div>
                   <div className="text-right">
-                    <div className="font-black text-emerald-400 text-lg">{t.rating}</div>
-                    <div className="text-[10px] text-gray-500">очок</div>
+                    <div className="font-mono font-bold text-emerald-300 text-lg">{t.rating}</div>
+                    <div className="font-mono text-[10px] uppercase tracking-wider text-gray-500">очок</div>
                   </div>
                 </div>
               ))}
-              {!teams.length && <EmptyState emoji="🏠" text="Немає команд" />}
+              {!teams.length && <EmptyState icon={Shield} text="Немає команд" />}
             </div>
           )}
 
@@ -218,12 +232,20 @@ export default function Leaderboard() {
               {season.season ? (
                 <>
                   {/* Season header */}
-                  <div className="relative rounded-2xl overflow-hidden mb-5">
-                    <div className="absolute inset-0 bg-gradient-to-br from-emerald-700/40 via-teal-800/20 to-slate-900" />
-                    <div className="relative p-5">
-                      <div className="text-3xl mb-2">🏆</div>
-                      <h3 className="text-xl font-black">{season.season.name}</h3>
-                      <p className="text-sm text-emerald-300/70">📆 Старт: {season.season.start_date}</p>
+                  <div className="relative rounded-2xl overflow-hidden mb-5 border border-slate-600/50">
+                    <div className="camo absolute inset-0" />
+                    <div className="absolute inset-0 bg-slate-950/70" />
+                    <div className="relative p-5 flex items-center gap-4">
+                      <div className="w-12 h-12 rounded-lg bg-slate-950/70 border border-amber-400/40 flex items-center justify-center shrink-0">
+                        <Trophy className="w-6 h-6 text-amber-300" strokeWidth={2} />
+                      </div>
+                      <div className="min-w-0">
+                        <h3 className="font-display text-2xl font-bold uppercase tracking-wide truncate">{season.season.name}</h3>
+                        <p className="flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-wider text-gray-300">
+                          <CalendarDays className="w-3.5 h-3.5 text-gray-500" strokeWidth={2} />
+                          Старт: {season.season.start_date}
+                        </p>
+                      </div>
                     </div>
                   </div>
 
@@ -236,38 +258,36 @@ export default function Leaderboard() {
                           key={i}
                           className={`flex items-center gap-3 p-3 rounded-2xl border ${
                             i < 3
-                              ? "bg-gradient-to-r from-slate-800/80 to-slate-700/40 border-slate-600/40"
-                              : "bg-slate-800/40 border-slate-700/30"
+                              ? "bg-slate-900/80 border-slate-600/60"
+                              : "bg-slate-900/60 border-slate-700/50"
                           }`}
                         >
-                          <div className="w-9 text-center text-lg">
-                            {i < 3 ? MEDALS[i] : <span className="text-sm text-gray-500">{i + 1}</span>}
-                          </div>
+                          <RankChip rank={i + 1} />
                           <div
-                            className={`w-9 h-9 rounded-xl bg-gradient-to-br ${avatar.bg} border border-white/10 flex items-center justify-center text-base`}
+                            className={`w-9 h-9 rounded-lg bg-slate-950/70 bg-gradient-to-br ${avatar.bg} border border-white/10 flex items-center justify-center`}
                             style={{ boxShadow: `0 0 0 1px ${avatar.ring}55` }}
                           >
                             {avatar.emoji}
                           </div>
                           <div className="flex-1 min-w-0">
                             <div className="font-bold text-sm truncate">{displayName(p)}</div>
-                            <div className="text-[11px] text-gray-500">
+                            <div className="font-mono text-[11px] text-gray-500">
                               {p.season_wins}W • {p.season_deaths || 0}D • {p.season_games}G
                             </div>
                           </div>
                           <div className="text-right">
-                            <div className="font-black text-emerald-400">{p.season_rating}</div>
-                            <div className="text-[10px] text-gray-600">очок</div>
+                            <div className="font-mono font-bold text-emerald-300">{p.season_rating}</div>
+                            <div className="font-mono text-[10px] uppercase tracking-wider text-gray-600">очок</div>
                           </div>
                         </div>
                       );
                     })}
                   </div>
 
-                  {!season.players.length && <EmptyState emoji="📅" text="Сезон тільки почався" />}
+                  {!season.players.length && <EmptyState icon={CalendarDays} text="Сезон тільки почався" />}
                 </>
               ) : (
-                <EmptyState emoji="📅" text="Немає активного сезону" />
+                <EmptyState icon={CalendarDays} text="Немає активного сезону" />
               )}
             </div>
           )}
@@ -280,43 +300,42 @@ export default function Leaderboard() {
 // ---- Podium card for top 3 ----
 function PodiumCard({ player, place }) {
   const avatar = getPlayerAvatar(player?.rating);
-  const heights = { 1: "h-32", 2: "h-24", 3: "h-20" };
-  const sizes = { 1: "w-16 h-16 text-2xl", 2: "w-13 h-13 text-xl", 3: "w-13 h-13 text-xl" };
-  const borders = { 1: "border-amber-500/40 ring-2 ring-amber-500/20", 2: "border-slate-400/40", 3: "border-orange-700/40" };
-  const bgGradients = {
-    1: "from-amber-900/30 to-amber-950/20 border-amber-700/30",
-    2: "from-slate-700/30 to-slate-800/20 border-slate-600/30",
-    3: "from-orange-900/20 to-orange-950/10 border-orange-800/20",
+  const heights = { 1: "h-28", 2: "h-20", 3: "h-16" };
+  const sizes = { 1: "w-16 h-16", 2: "w-[52px] h-[52px]", 3: "w-[52px] h-[52px]" };
+  const borders = { 1: "border-amber-400/60", 2: "border-gray-400/50", 3: "border-orange-500/50" };
+  const blocks = {
+    1: "bg-slate-900/90 border-amber-400/40",
+    2: "bg-slate-900/80 border-slate-600/60",
+    3: "bg-slate-900/70 border-slate-700/60",
   };
+  const stripe = { 1: "bg-amber-400", 2: "bg-gray-400", 3: "bg-orange-500" };
 
   return (
     <div className={`flex flex-col items-center ${place === 1 ? "order-2" : place === 2 ? "order-1" : "order-3"}`}>
       {/* Avatar */}
       <div
-        className={`rounded-2xl bg-gradient-to-br ${avatar.bg} flex items-center justify-center mb-2 border-2 ${sizes[place]} ${borders[place]}`}
-        style={{ boxShadow: `0 0 0 1px ${avatar.ring}66` }}
+        className={`rounded-lg bg-slate-950/70 bg-gradient-to-br ${avatar.bg} flex items-center justify-center mb-2 border-2 ${sizes[place]} ${borders[place]}`}
       >
         {avatar.emoji}
       </div>
 
-      {/* Medal */}
-      <div className="text-xl mb-1">{MEDALS[place - 1]}</div>
-
       {/* Name */}
-      <div className="text-xs font-bold text-center truncate max-w-[80px]">{displayName(player)}</div>
+      <div className="text-xs font-bold text-center truncate max-w-[84px]">{displayName(player)}</div>
 
-      {/* Rating bar */}
-      <div className={`${heights[place]} w-20 mt-2 rounded-t-xl bg-gradient-to-t ${bgGradients[place]} border flex items-start justify-center pt-2`}>
-        <span className="font-black text-emerald-400 text-sm">{player.rating}</span>
+      {/* Podium block */}
+      <div className={`relative ${heights[place]} w-20 mt-2 rounded-t border border-b-0 overflow-hidden ${blocks[place]} flex flex-col items-center justify-start pt-2 gap-1`}>
+        <span className={`absolute inset-x-0 top-0 h-[3px] ${stripe[place]}`} />
+        <RankChip rank={place} size="w-6 h-6" />
+        <span className="font-mono font-bold text-emerald-300 text-sm">{player.rating}</span>
       </div>
     </div>
   );
 }
 
-function EmptyState({ emoji, text }) {
+function EmptyState({ icon: Icon, text }) {
   return (
     <div className="text-center py-16">
-      <div className="text-5xl mb-4">{emoji}</div>
+      <Icon className="w-12 h-12 mx-auto mb-4 text-slate-500" strokeWidth={1.5} />
       <p className="text-gray-400 font-medium">{text}</p>
     </div>
   );

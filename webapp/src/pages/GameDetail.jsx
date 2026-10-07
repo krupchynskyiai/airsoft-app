@@ -35,11 +35,51 @@ import {
   adminUpdateGameEquipmentStock,
 } from "../api";
 import { useTelegram } from "../hooks/useTelegram";
+import {
+  CalendarDays,
+  Clock,
+  MapPin,
+  Crosshair,
+  ClipboardList,
+  Timer,
+  Users,
+  Wallet,
+  CreditCard,
+  Receipt,
+  Gift,
+  RotateCw,
+  PenLine,
+  Hourglass,
+  X,
+  XCircle,
+  Skull,
+  HeartPulse,
+  Car,
+  Check,
+  CheckCircle2,
+  UserRound,
+  UserPlus,
+  HardHat,
+  Settings,
+  Play,
+  Flag,
+  Wrench,
+  Star,
+  Pause,
+  Shuffle,
+  Scale,
+  Square,
+  Undo2,
+  Hand,
+  Meh,
+  ChevronLeft,
+  Download,
+} from "lucide-react";
 
 const MODE = { team_vs_team: "Team vs Team", random_teams: "Random Teams", ffa: "FFA" };
 const TEAM_COLORS = {
-  A: { bg: "bg-amber-500/15", border: "border-amber-500/35", text: "text-amber-300", label: "🟡 Team A", dot: "bg-amber-400" },
-  B: { bg: "bg-blue-500/15", border: "border-blue-500/30", text: "text-blue-400", label: "🔵 Team B", dot: "bg-blue-400" },
+  A: { bg: "bg-amber-500/15", border: "border-amber-500/35", text: "text-amber-300", label: "Team A", dot: "bg-amber-400" },
+  B: { bg: "bg-blue-500/15", border: "border-blue-500/30", text: "text-blue-400", label: "Team B", dot: "bg-blue-400" },
 };
 const BILLING_FIELDS = [
   { key: "extra_weapon", label: "Доп зброя та спорядження" },
@@ -676,9 +716,12 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
   if (!data) {
     return (
       <div className="text-center py-16">
-        <div className="text-4xl mb-3">😕</div>
+        <Meh className="w-12 h-12 mx-auto mb-4 text-slate-500" strokeWidth={1.5} />
         <p className="text-gray-400">Гру не знайдено</p>
-        <button onClick={onBack} className="text-emerald-400 text-sm mt-4">← Назад</button>
+        <button onClick={onBack} className="inline-flex items-center gap-1 text-emerald-300 text-sm mt-4">
+          <ChevronLeft className="w-4 h-4" strokeWidth={2} />
+          Назад
+        </button>
       </div>
     );
   }
