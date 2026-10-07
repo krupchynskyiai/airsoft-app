@@ -23,3 +23,11 @@ pm2 ls
 pm2 logs airsoft-staging
 pm2 restart airsoft-production
 ```
+
+## Домен → Node
+
+Код лежить у публічній папці сайту, тому в корені сайту і в `airsoft-app/` має бути `.htaccess`
+з `deploy/htaccess.example` (порт 3000 для проду, 3001 для staging). Він проксує запити в Node
+і забороняє віддавати `.env` / `.git`. Деплой цей файл не чіпає (він не в git).
+
+Перевірка: `https://<домен>/api/health` → правильний `env`, `https://<домен>/.env` → 403.

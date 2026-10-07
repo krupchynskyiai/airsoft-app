@@ -1,0 +1,12 @@
+# Put into the site's web root (and the airsoft-app folder if it is web-reachable).
+# Replace PORT: 3000 = production, 3001 = staging.
+
+# Never serve dotfiles (.env, .git)
+<FilesMatch "^\.">
+  Require all denied
+</FilesMatch>
+RedirectMatch 404 /\.git
+
+# Everything goes to the Node app
+RewriteEngine On
+RewriteRule ^(.*)$ http://127.0.0.1:PORT/$1 [P,L]
