@@ -38,6 +38,22 @@ function installOutboundGuard(bot) {
   });
 }
 
+// Route announcements to a forum topic when CHANNEL_ID is a group with topics.
+function installAnnouncementTopic(bot) {
+  if (!config.CHANNEL_ID || !config.CHANNEL_THREAD_ID) return;
+  bot.api.config.use((prev, method, payload, signal) => {
+    if (
+      OUTBOUND_METHODS.has(method) &&
+      payload &&
+      String(payload.chat_id) === String(config.CHANNEL_ID) &&
+      payload.message_thread_id == null
+    ) {
+      payload = { ...payload, message_thread_id: config.CHANNEL_THREAD_ID };
+    }
+    return prev(method, payload, signal);
+  });
+}
+
 // Resolve the real bot username and make sure a non-production instance
 // is not running with the production bot token.
 async function verifyBotIdentity(bot) {
@@ -63,4 +79,4 @@ async function verifyBotIdentity(bot) {
   return me;
 }
 
-module.exports = { installOutboundGuard, verifyBotIdentity };
+module.exports = { installOutboundGuard, installAnnouncementTopic, verifyBotIdentity };

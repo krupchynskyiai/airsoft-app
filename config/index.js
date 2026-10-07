@@ -34,7 +34,10 @@ module.exports = {
   ORGANIZERS: parseIds(
     process.env.ORGANIZER_IDS || (IS_PROD ? "7499967163,365598083" : ""),
   ),
+  // Channel or group for announcements. For a group with topics, CHANNEL_THREAD_ID
+  // is the topic id the bot posts into (empty = General).
   CHANNEL_ID: process.env.CHANNEL_ID,
+  CHANNEL_THREAD_ID: parseInt(process.env.CHANNEL_THREAD_ID || "", 10) || null,
   // Overwritten at startup with the real username from getMe(), so deep links
   // always point to the bot this instance is running as.
   BOT_USERNAME: process.env.BOT_USERNAME || (IS_PROD ? "banana_airsoft_app_bot" : ""),

@@ -14,11 +14,12 @@ const { handleGeoCheckin, handleGameGeo } = require("./handlers/games");
 const { handleTextSteps } = require("./handlers/admin");
 const { createServer } = require("./api/server");
 const { startKeepWarm } = require("./services/keepWarm");
-const { installOutboundGuard, verifyBotIdentity } = require("./services/envGuard");
+const { installOutboundGuard, installAnnouncementTopic, verifyBotIdentity } = require("./services/envGuard");
 const apiBot = require("./api/bot");
 
 // ---- Create bot ----
 const bot = new Bot(config.BOT_TOKEN);
+installAnnouncementTopic(bot);
 installOutboundGuard(bot);
 
 // Marks bot replies outside production so staging chats are easy to tell apart
