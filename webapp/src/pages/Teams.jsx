@@ -16,6 +16,17 @@ import {
 } from "../api";
 import { useTelegram } from "../hooks/useTelegram";
 import PlayerSearch from "../components/PlayerSearch";
+import {
+  Crown, Shield, Users, Star, Mail, ClipboardList, PenLine, Hourglass, LogOut,
+  Check, X, AlertTriangle, Search, Plus, ChevronLeft, Trash2, ChevronRight,
+} from "lucide-react";
+
+const BTN_PRIMARY = "bg-emerald-400 text-slate-950 font-bold rounded-lg active:scale-[0.98] transition-transform disabled:opacity-50";
+const BTN_SECONDARY = "bg-slate-800 border border-slate-600/60 text-gray-200 rounded-lg active:scale-[0.98] transition-transform";
+const BTN_DANGER = "bg-red-500/15 border border-red-400/40 text-red-300 rounded-lg active:scale-[0.98] transition-transform disabled:opacity-50";
+const CARD = "bg-slate-900/80 border border-slate-700/50 rounded-2xl";
+const CHIP = "rounded border px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-wider";
+const INPUT = "w-full bg-slate-900/80 border border-slate-600/60 rounded-lg text-sm focus:border-emerald-400/60 focus:outline-none placeholder:text-gray-600";
 
 export default function Teams({ onReloadProfile }) {
   const [teams, setTeams] = useState([]);
@@ -79,7 +90,7 @@ export default function Teams({ onReloadProfile }) {
   return (
     <div className="pb-4">
       <div className="mb-5">
-        <h2 className="text-2xl font-black">Команди</h2>
+        <h2 className="font-display text-3xl font-bold uppercase tracking-wide">Команди</h2>
         <p className="text-sm text-gray-500">Знайди свою команду або створи заявку</p>
       </div>
 
@@ -87,9 +98,9 @@ export default function Teams({ onReloadProfile }) {
       {invites.length > 0 && (
         <div className="mb-5">
           <div className="flex items-center gap-2 mb-3">
-            <span>📩</span>
-            <h3 className="text-sm font-bold text-amber-400 uppercase tracking-wider">Запрошення</h3>
-            <span className="bg-amber-500/20 text-amber-400 text-xs font-bold px-2 py-0.5 rounded-full">{invites.length}</span>
+            <Mail className="w-5 h-5 text-amber-300" strokeWidth={2} />
+            <h3 className="text-xs font-bold uppercase tracking-wider text-gray-300">Запрошення</h3>
+            <span className={`${CHIP} text-amber-300 border-amber-400/30 bg-amber-400/10`}>{invites.length}</span>
           </div>
           <div className="space-y-2">
             {invites.map((inv) => (
@@ -121,9 +132,9 @@ export default function Teams({ onReloadProfile }) {
       {/* Create team */}
       <div className="mb-5">
         {showLeaveWarningCreate ? (
-          <div className="bg-red-950/20 border border-red-800/30 rounded-2xl p-4">
+          <div className="bg-slate-900/80 border border-red-400/40 rounded-2xl p-4">
             <div className="text-center mb-3">
-              <div className="text-3xl mb-2">⚠️</div>
+              <AlertTriangle className="w-8 h-8 text-red-300 mx-auto mb-2" strokeWidth={1.5} />
               <h4 className="font-bold text-red-300">Ти вже в команді</h4>
               <p className="text-sm text-gray-400 mt-1">
                 При створенні нової команди ти автоматично покинеш поточну. Продовжити?
@@ -132,51 +143,55 @@ export default function Teams({ onReloadProfile }) {
             <div className="flex gap-2">
               <button
                 onClick={() => { setShowLeaveWarningCreate(false); setShowCreate(true); }}
-                className="flex-1 bg-red-700 py-3 rounded-xl font-bold text-sm active:scale-95"
+                className={`flex-1 py-3 font-bold text-sm ${BTN_DANGER}`}
               >
                 Так, створити нову
               </button>
               <button
                 onClick={() => setShowLeaveWarningCreate(false)}
-                className="flex-1 bg-slate-700 py-3 rounded-xl font-bold text-sm text-gray-400 active:scale-95"
+                className={`flex-1 py-3 font-bold text-sm ${BTN_SECONDARY}`}
               >
                 Скасувати
               </button>
             </div>
           </div>
         ) : showCreate ? (
-          <div className="bg-slate-800/60 border border-slate-700/40 rounded-2xl p-4">
-            <h3 className="font-bold text-sm mb-3">Створити команду</h3>
+          <div className={`${CARD} p-4`}>
+            <div className="flex items-center gap-2 mb-3">
+              <Shield className="w-5 h-5 text-emerald-300" strokeWidth={2} />
+              <h3 className="text-xs font-bold uppercase tracking-wider text-gray-300">Створити команду</h3>
+            </div>
             <div className="relative mb-3">
               <input
                 value={newTeamName}
                 onChange={(e) => setNewTeamName(e.target.value)}
                 placeholder="Назва команди"
                 maxLength={30}
-                className="w-full bg-slate-700/40 border border-slate-600/30 rounded-xl px-4 py-3 text-sm focus:border-emerald-500 focus:outline-none"
+                className={`${INPUT} px-4 py-3`}
                 autoFocus
               />
               {newTeamName.length > 0 && (
-                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-gray-500">{newTeamName.length}/30</span>
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 font-mono text-[10px] text-gray-500">{newTeamName.length}/30</span>
               )}
             </div>
             <div className="flex gap-2">
               <button
                 onClick={handleCreateTeam}
                 disabled={createLoading || newTeamName.trim().length < 2}
-                className="flex-1 bg-gradient-to-r from-emerald-600 to-teal-600 py-3 rounded-xl font-bold text-sm active:scale-95 disabled:opacity-50"
+                className={`flex-1 py-3 text-sm flex items-center justify-center gap-2 ${BTN_PRIMARY}`}
               >
                 {createLoading ? (
-                  <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin inline-block" />
+                  <span className="w-4 h-4 border-2 border-slate-950/30 border-t-slate-950 rounded-full animate-spin inline-block" />
                 ) : (
-                  "✅ Створити"
+                  <><Check className="w-4 h-4" strokeWidth={2} /> Створити</>
                 )}
               </button>
               <button
                 onClick={() => { setShowCreate(false); setNewTeamName(""); }}
-                className="px-4 bg-slate-700 rounded-xl text-sm text-gray-400"
+                className={`px-4 flex items-center justify-center ${BTN_SECONDARY}`}
+                aria-label="Скасувати"
               >
-                ✕
+                <X className="w-4 h-4" strokeWidth={2} />
               </button>
             </div>
           </div>
@@ -190,9 +205,9 @@ export default function Teams({ onReloadProfile }) {
                 setShowCreate(true);
               }
             }}
-            className="w-full bg-slate-800/60 border-2 border-dashed border-slate-600/50 hover:border-emerald-500/40 py-4 rounded-2xl font-bold text-sm text-gray-400 hover:text-emerald-400 transition-all active:scale-[0.98] flex items-center justify-center gap-2"
+            className="w-full bg-slate-900/60 border border-dashed border-slate-600/60 hover:border-emerald-400/40 py-4 rounded-2xl font-bold text-sm text-gray-400 hover:text-emerald-300 transition-colors active:scale-[0.98] flex items-center justify-center gap-2"
           >
-            <span className="text-lg">+</span> Створити свою команду
+            <Plus className="w-4 h-4" strokeWidth={2} /> Створити свою команду
           </button>
         )}
       </div>
@@ -201,15 +216,15 @@ export default function Teams({ onReloadProfile }) {
       {loading ? (
         <div className="space-y-3">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="bg-slate-800/50 rounded-2xl p-5 animate-pulse">
-              <div className="h-5 bg-slate-700 rounded w-1/3 mb-2" />
-              <div className="h-3 bg-slate-700 rounded w-1/2" />
+            <div key={i} className={`${CARD} p-5 animate-pulse`}>
+              <div className="h-5 bg-slate-800 rounded w-1/3 mb-2" />
+              <div className="h-3 bg-slate-800 rounded w-1/2" />
             </div>
           ))}
         </div>
       ) : teams.length === 0 ? (
         <div className="text-center py-16">
-          <div className="text-5xl mb-4">🏠</div>
+          <Shield className="w-12 h-12 text-slate-500 mx-auto mb-4" strokeWidth={1.5} />
           <p className="text-gray-400 font-medium">Команд поки немає</p>
         </div>
       ) : (
@@ -218,28 +233,26 @@ export default function Teams({ onReloadProfile }) {
             <button
               key={t.id}
               onClick={() => { haptic("impact"); setSelectedTeam(t.id); }}
-              className="w-full text-left bg-slate-800/60 border border-slate-700/40 rounded-2xl p-4 hover:border-slate-500/50 transition-all active:scale-[0.98]"
+              className={`w-full text-left ${CARD} p-4 hover:border-slate-500/60 transition-colors active:scale-[0.98]`}
             >
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-slate-600 to-slate-700 flex items-center justify-center text-xl">
-                  🏠
+                <div className="w-12 h-12 rounded-lg bg-slate-800 border border-slate-700/50 flex items-center justify-center shrink-0">
+                  <Shield className="w-6 h-6 text-emerald-300" strokeWidth={2} />
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="font-bold truncate">{t.name}</div>
-                  <div className="text-xs text-gray-500 flex items-center gap-2">
-                    <span>👥 {t.member_count} гравців</span>
+                  <div className="text-xs text-gray-500 flex items-center gap-3 min-w-0">
+                    <span className="flex items-center gap-1 shrink-0"><Users className="w-3.5 h-3.5" strokeWidth={2} />{t.member_count} гравців</span>
                     {t.captain_name && (
-                      <>
-                        <span className="text-gray-700">•</span>
-                        <span>👑 {t.captain_name}</span>
-                      </>
+                      <span className="flex items-center gap-1 min-w-0"><Crown className="w-3.5 h-3.5 text-amber-300 shrink-0" strokeWidth={2} /><span className="truncate">{t.captain_name}</span></span>
                     )}
                   </div>
                 </div>
                 <div className="text-right">
-                  <div className="font-black text-emerald-400">{t.rating}</div>
-                  <div className="text-[10px] text-gray-600">очок</div>
+                  <div className="font-mono font-bold text-emerald-300">{t.rating}</div>
+                  <div className="text-[10px] text-gray-500 uppercase tracking-wider">очок</div>
                 </div>
+                <ChevronRight className="w-4 h-4 text-gray-600 shrink-0" strokeWidth={2} />
               </div>
             </button>
           ))}
@@ -286,14 +299,14 @@ function TeamDetail({ teamId, onBack, onReloadProfile }) {
   }
 
   if (loading) {
-    return <div className="animate-pulse"><div className="h-48 bg-slate-800 rounded-2xl" /></div>;
+    return <div className="animate-pulse"><div className="h-48 bg-slate-900/80 border border-slate-700/50 rounded-2xl" /></div>;
   }
 
   if (!data) {
     return (
       <div className="text-center py-16">
         <p className="text-gray-400">Команду не знайдено</p>
-        <button onClick={onBack} className="text-emerald-400 text-sm mt-4">← Назад</button>
+        <button onClick={onBack} className="text-emerald-300 text-sm mt-4 inline-flex items-center gap-1"><ChevronLeft className="w-4 h-4" strokeWidth={2} />Назад</button>
       </div>
     );
   }
@@ -304,30 +317,32 @@ function TeamDetail({ teamId, onBack, onReloadProfile }) {
 
   return (
     <div className="pb-6">
-      <button onClick={onBack} className="flex items-center gap-2 text-emerald-400 text-sm font-medium mb-4 active:opacity-60">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M15 18l-6-6 6-6" /></svg>
+      <button onClick={onBack} className="flex items-center gap-1.5 text-emerald-300 text-sm font-medium mb-4 active:opacity-60">
+        <ChevronLeft className="w-4 h-4" strokeWidth={2} />
         Назад
       </button>
 
       {/* Team header */}
-      <div className="relative rounded-2xl overflow-hidden mb-5">
-        <div className="absolute inset-0 bg-gradient-to-br from-indigo-700/30 via-slate-800/20 to-slate-900" />
+      <div className={`relative ${CARD} overflow-hidden mb-5`}>
+        <div className="camo absolute inset-x-0 top-0 h-1.5 opacity-70" />
         <div className="relative p-5">
           <div className="flex items-center gap-4 mb-4">
-            <div className="w-16 h-16 rounded-2xl bg-white/10 flex items-center justify-center text-3xl">🏠</div>
-            <div>
-              <h2 className="text-xl font-black">{team.name}</h2>
+            <div className="w-16 h-16 rounded-lg bg-slate-800 border border-slate-700/50 flex items-center justify-center shrink-0">
+              <Shield className="w-8 h-8 text-emerald-300" strokeWidth={1.75} />
+            </div>
+            <div className="min-w-0">
+              <h2 className="font-display text-3xl font-bold uppercase tracking-wide leading-tight break-words">{team.name}</h2>
               {team.captain_name && (
-                <p className="text-sm text-gray-400">👑 Капітан: {team.captain_name}</p>
+                <p className="text-sm text-gray-400 flex items-center gap-1.5"><Crown className="w-3.5 h-3.5 text-amber-300" strokeWidth={2} />Капітан: {team.captain_name}</p>
               )}
             </div>
           </div>
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-1.5">
-              <span>👥</span><span className="font-bold">{members.length}</span><span className="text-gray-400 text-sm">гравців</span>
+              <Users className="w-4 h-4 text-gray-500" strokeWidth={2} /><span className="font-mono font-bold">{members.length}</span><span className="text-gray-400 text-sm">гравців</span>
             </div>
             <div className="flex items-center gap-1.5">
-              <span>⭐</span><span className="font-bold text-emerald-400">{team.rating}</span><span className="text-gray-400 text-sm">очок</span>
+              <Star className="w-4 h-4 text-gray-500" strokeWidth={2} /><span className="font-mono font-bold text-emerald-300">{team.rating}</span><span className="text-gray-400 text-sm">очок</span>
             </div>
           </div>
         </div>
@@ -339,9 +354,9 @@ function TeamDetail({ teamId, onBack, onReloadProfile }) {
         {!myApplication && !isCaptain && !isMyTeam && (
           <>
             {showLeaveWarning ? (
-              <div className="bg-red-950/20 border border-red-800/30 rounded-2xl p-4">
+              <div className="bg-slate-900/80 border border-red-400/40 rounded-2xl p-4">
                 <div className="text-center mb-3">
-                  <div className="text-3xl mb-2">⚠️</div>
+                  <AlertTriangle className="w-8 h-8 text-red-300 mx-auto mb-2" strokeWidth={1.5} />
                   <h4 className="font-bold text-red-300">Ти вже в команді</h4>
                   <p className="text-sm text-gray-400 mt-1">
                     При подачі заявки ти автоматично покинеш свою поточну команду. Продовжити?
@@ -350,36 +365,36 @@ function TeamDetail({ teamId, onBack, onReloadProfile }) {
                 <div className="flex gap-2">
                   <button
                     onClick={() => { setShowLeaveWarning(false); setShowApplyForm(true); }}
-                    className="flex-1 bg-red-700 py-3 rounded-xl font-bold text-sm active:scale-95"
+                    className={`flex-1 py-3 font-bold text-sm ${BTN_DANGER}`}
                   >
                     Так, покинути і подати
                   </button>
                   <button
                     onClick={() => setShowLeaveWarning(false)}
-                    className="flex-1 bg-slate-700 py-3 rounded-xl font-bold text-sm text-gray-400 active:scale-95"
+                    className={`flex-1 py-3 font-bold text-sm ${BTN_SECONDARY}`}
                   >
                     Скасувати
                   </button>
                 </div>
               </div>
             ) : showApplyForm ? (
-              <div className="bg-slate-800/60 border border-slate-700/40 rounded-2xl p-4">
-                <p className="text-sm font-medium mb-2">Повідомлення для капітана (не обовʼязково):</p>
+              <div className={`${CARD} p-4`}>
+                <p className="text-sm font-medium text-gray-300 mb-2">Повідомлення для капітана (не обовʼязково):</p>
                 <textarea
                   value={applyMessage}
                   onChange={(e) => setApplyMessage(e.target.value)}
                   placeholder="Привіт! Хочу приєднатись..."
-                  className="w-full bg-slate-700/40 border border-slate-600/30 rounded-xl px-3 py-2 text-sm mb-3 resize-none h-20 focus:border-emerald-500 focus:outline-none"
+                  className={`${INPUT} px-3 py-2 mb-3 resize-none h-20`}
                 />
                 <div className="flex gap-2">
                   <button
                     onClick={() => doAction(() => applyToTeam(teamId, applyMessage), "✅ Заявку подано!")}
                     disabled={actionLoading}
-                    className="flex-1 bg-emerald-600 py-3 rounded-xl font-bold text-sm active:scale-95 disabled:opacity-50"
+                    className={`flex-1 py-3 text-sm flex items-center justify-center gap-2 ${BTN_PRIMARY}`}
                   >
-                    {actionLoading ? "..." : "📝 Подати заявку"}
+                    {actionLoading ? "..." : <><PenLine className="w-4 h-4" strokeWidth={2} /> Подати заявку</>}
                   </button>
-                  <button onClick={() => setShowApplyForm(false)} className="px-4 bg-slate-700 rounded-xl text-sm">✕</button>
+                  <button onClick={() => setShowApplyForm(false)} className={`px-4 flex items-center justify-center ${BTN_SECONDARY}`} aria-label="Скасувати"><X className="w-4 h-4" strokeWidth={2} /></button>
                 </div>
               </div>
             ) : (
@@ -392,9 +407,9 @@ function TeamDetail({ teamId, onBack, onReloadProfile }) {
                     setShowApplyForm(true);
                   }
                 }}
-                className="w-full bg-gradient-to-r from-emerald-600 to-teal-600 py-4 rounded-2xl font-bold text-[15px] active:scale-[0.98]"
+                className={`w-full py-4 text-[15px] flex items-center justify-center gap-2 ${BTN_PRIMARY}`}
               >
-                📝 Подати заявку в команду
+                <PenLine className="w-4 h-4" strokeWidth={2} /> Подати заявку в команду
               </button>
             )}
           </>
@@ -402,14 +417,14 @@ function TeamDetail({ teamId, onBack, onReloadProfile }) {
 
         {/* Pending application */}
         {myApplication && (
-          <div className="bg-amber-950/20 border border-amber-800/30 rounded-2xl p-4 flex items-center justify-between">
+          <div className="bg-slate-900/80 border border-amber-400/30 rounded-2xl p-4 flex items-center justify-between gap-3">
             <div>
-              <p className="text-sm font-bold text-amber-400">⏳ Заявка на розгляді</p>
+              <p className="text-sm font-bold text-amber-300 flex items-center gap-1.5"><Hourglass className="w-4 h-4" strokeWidth={2} />Заявка на розгляді</p>
               <p className="text-xs text-gray-500">Очікуй рішення капітана</p>
             </div>
             <button
               onClick={() => doAction(() => cancelApplication(teamId), "Заявку скасовано")}
-              className="text-xs bg-slate-700 px-3 py-1.5 rounded-lg text-gray-400 active:scale-95"
+              className={`text-xs font-semibold px-3 py-1.5 shrink-0 ${BTN_SECONDARY}`}
             >
               Скасувати
             </button>
@@ -421,16 +436,16 @@ function TeamDetail({ teamId, onBack, onReloadProfile }) {
           <button
             onClick={() => doAction(() => leaveTeam(), "Ти покинув команду")}
             disabled={actionLoading}
-            className="w-full bg-red-900/30 border border-red-800/30 py-3 rounded-2xl font-bold text-sm text-red-400 active:scale-[0.98]"
+            className={`w-full py-3 font-bold text-sm flex items-center justify-center gap-2 ${BTN_DANGER}`}
           >
-            🚪 Покинути команду
+            <LogOut className="w-4 h-4" strokeWidth={2} /> Покинути команду
           </button>
         )}
 
         {/* Captain: leave/disband options */}
         {isMyTeam && isCaptain && (
           showCaptainLeaveOptions ? (
-            <div className="bg-red-950/25 border border-red-800/40 rounded-2xl p-4 space-y-3">
+            <div className="bg-slate-900/80 border border-red-400/40 rounded-2xl p-4 space-y-3">
               <p className="text-sm font-semibold text-red-300">
                 Ти капітан. Щоб вийти, обери:
               </p>
@@ -439,22 +454,22 @@ function TeamDetail({ teamId, onBack, onReloadProfile }) {
                   <p className="text-xs text-gray-400">
                     1) Передати капітанство іншому гравцю і вийти з команди.
                   </p>
-                  <div className="bg-slate-900/60 rounded-xl p-2 max-h-32 overflow-y-auto">
+                  <div className="bg-slate-950/50 border border-slate-700/50 rounded-lg p-2 max-h-32 overflow-y-auto">
                     {members
                       .filter((m) => m.id !== myPlayerId)
                       .map((m) => (
                         <button
                           key={m.id}
                           onClick={() => setNewCaptainId(m.id)}
-                          className={`w-full flex items-center justify-between px-2 py-1.5 rounded-lg text-xs mb-1 last:mb-0 ${
+                          className={`w-full flex items-center justify-between px-2 py-1.5 rounded border text-xs mb-1 last:mb-0 ${
                             newCaptainId === m.id
-                              ? "bg-emerald-700/60 text-emerald-100"
-                              : "bg-slate-800/60 text-gray-200"
+                              ? "bg-emerald-400/10 border-emerald-400/40 text-emerald-200"
+                              : "bg-slate-800/60 border-transparent text-gray-200"
                           }`}
                         >
                           <span>{m.nickname}</span>
-                          <span className="text-[10px] text-gray-400">
-                            ⭐{m.rating}
+                          <span className="font-mono text-[10px] text-gray-400 flex items-center gap-1">
+                            <Star className="w-3 h-3" strokeWidth={2} />{m.rating}
                           </span>
                         </button>
                       ))}
@@ -472,9 +487,9 @@ function TeamDetail({ teamId, onBack, onReloadProfile }) {
                       onBack();
                     }}
                     disabled={actionLoading || !newCaptainId}
-                    className="w-full bg-emerald-600/80 py-2.5 rounded-xl text-xs font-bold active:scale-95 disabled:opacity-50"
+                    className={`w-full py-2.5 text-xs flex items-center justify-center gap-2 ${BTN_PRIMARY}`}
                   >
-                    👑 Передати капітанство і вийти
+                    <Crown className="w-4 h-4" strokeWidth={2} /> Передати капітанство і вийти
                   </button>
                 </div>
               )}
@@ -491,9 +506,9 @@ function TeamDetail({ teamId, onBack, onReloadProfile }) {
                     onBack();
                   }}
                   disabled={actionLoading}
-                  className="w-full bg-red-800/80 py-2.5 rounded-xl text-xs font-bold text-red-100 active:scale-95"
+                  className={`w-full py-2.5 text-xs font-bold flex items-center justify-center gap-2 ${BTN_DANGER}`}
                 >
-                  🏚 Розформувати команду
+                  <Trash2 className="w-4 h-4" strokeWidth={2} /> Розформувати команду
                 </button>
               </div>
               <button
@@ -501,7 +516,7 @@ function TeamDetail({ teamId, onBack, onReloadProfile }) {
                   setShowCaptainLeaveOptions(false);
                   setNewCaptainId(null);
                 }}
-                className="w-full bg-slate-800/80 py-2 rounded-xl text-xs font-medium text-gray-400 active:scale-95"
+                className={`w-full py-2 text-xs font-medium ${BTN_SECONDARY}`}
               >
                 Скасувати
               </button>
@@ -512,9 +527,9 @@ function TeamDetail({ teamId, onBack, onReloadProfile }) {
                 haptic("impact");
                 setShowCaptainLeaveOptions(true);
               }}
-              className="w-full bg-red-900/30 border border-red-800/30 py-3 rounded-2xl font-bold text-sm text-red-300 active:scale-[0.98]"
+              className={`w-full py-3 font-bold text-sm flex items-center justify-center gap-2 ${BTN_DANGER}`}
             >
-              🚪 Покинути / розформувати команду
+              <LogOut className="w-4 h-4" strokeWidth={2} /> Покинути / розформувати команду
             </button>
           )
         )}
@@ -522,34 +537,34 @@ function TeamDetail({ teamId, onBack, onReloadProfile }) {
 
       {/* Captain: Pending applications */}
       {isCaptain && pendingApps.length > 0 && (
-        <div className="bg-amber-950/15 border border-amber-800/30 rounded-2xl p-4 mb-5">
+        <div className="bg-slate-900/80 border border-amber-400/30 rounded-2xl p-4 mb-5">
           <div className="flex items-center gap-2 mb-3">
-            <span>📋</span>
-            <h3 className="text-sm font-bold text-amber-400 uppercase tracking-wider">Заявки</h3>
-            <span className="bg-amber-500/20 text-amber-400 text-xs font-bold px-2 py-0.5 rounded-full">{pendingApps.length}</span>
+            <ClipboardList className="w-5 h-5 text-amber-300" strokeWidth={2} />
+            <h3 className="text-xs font-bold uppercase tracking-wider text-gray-300">Заявки</h3>
+            <span className={`${CHIP} text-amber-300 border-amber-400/30 bg-amber-400/10`}>{pendingApps.length}</span>
           </div>
           <div className="space-y-2">
             {pendingApps.map((app) => (
-              <div key={app.id} className="bg-slate-800/40 rounded-xl p-3">
+              <div key={app.id} className="bg-slate-800/50 border border-slate-700/50 rounded-lg p-3">
                 <div className="flex items-center justify-between mb-2">
                   <div>
                     <span className="font-bold text-sm">{app.nickname}</span>
-                    <span className="text-xs text-gray-500 ml-2">⭐{app.rating} • {app.games_played}G</span>
+                    <span className="font-mono text-xs text-gray-500 ml-2 inline-flex items-center gap-1"><Star className="w-3 h-3" strokeWidth={2} />{app.rating} · {app.games_played}G</span>
                   </div>
                 </div>
                 {app.message && <p className="text-xs text-gray-400 mb-2 italic">"{app.message}"</p>}
                 <div className="flex gap-2">
                   <button
                     onClick={() => doAction(() => resolveApplication(teamId, app.id, "accept"), "✅ Прийнято!")}
-                    className="flex-1 bg-emerald-600/40 border border-emerald-600/30 py-2 rounded-lg text-sm font-bold text-emerald-300 active:scale-95"
+                    className={`flex-1 py-2 text-sm flex items-center justify-center gap-1.5 ${BTN_PRIMARY}`}
                   >
-                    ✅ Прийняти
+                    <Check className="w-4 h-4" strokeWidth={2} /> Прийняти
                   </button>
                   <button
                     onClick={() => doAction(() => resolveApplication(teamId, app.id, "reject"))}
-                    className="flex-1 bg-red-700/30 border border-red-700/30 py-2 rounded-lg text-sm font-bold text-red-400 active:scale-95"
+                    className={`flex-1 py-2 text-sm font-bold flex items-center justify-center gap-1.5 ${BTN_DANGER}`}
                   >
-                    ❌ Відхилити
+                    <X className="w-4 h-4" strokeWidth={2} /> Відхилити
                   </button>
                 </div>
               </div>
@@ -562,44 +577,44 @@ function TeamDetail({ teamId, onBack, onReloadProfile }) {
       {isCaptain && (
         <div className="mb-5">
           {showInviteForm ? (
-            <div className="bg-slate-800/60 border border-slate-700/40 rounded-2xl p-4">
+            <div className={`${CARD} p-4`}>
               <PlayerSearch
                 value={inviteNick}
                 onChange={(v) => setInviteNick(v)}
                 onSelect={(p) => setInviteNick(p.nickname)}
                 placeholder="Знайди гравця"
-                icon="🔍"
+                icon={Search}
               />
               <div className="flex gap-2 mt-3">
                 <button
                   onClick={() => doAction(() => inviteToTeam(teamId, inviteNick), "✅ Запрошення надіслано!")}
                   disabled={actionLoading || !inviteNick.trim()}
-                  className="flex-1 bg-blue-600 py-3 rounded-xl font-bold text-sm active:scale-95 disabled:opacity-50"
+                  className={`flex-1 py-3 text-sm flex items-center justify-center gap-2 ${BTN_PRIMARY}`}
                 >
-                  📩 Запросити
+                  <Mail className="w-4 h-4" strokeWidth={2} /> Запросити
                 </button>
-                <button onClick={() => { setShowInviteForm(false); setInviteNick(""); }} className="px-4 bg-slate-700 rounded-xl text-sm text-gray-400">✕</button>
+                <button onClick={() => { setShowInviteForm(false); setInviteNick(""); }} className={`px-4 flex items-center justify-center ${BTN_SECONDARY}`} aria-label="Скасувати"><X className="w-4 h-4" strokeWidth={2} /></button>
               </div>
             </div>
           ) : (
             <button
               onClick={() => { haptic("impact"); setShowInviteForm(true); }}
-              className="w-full bg-blue-600/20 border border-blue-600/30 py-3 rounded-2xl font-bold text-sm text-blue-300 active:scale-[0.98]"
+              className={`w-full py-3 font-bold text-sm flex items-center justify-center gap-2 ${BTN_SECONDARY}`}
             >
-              📩 Запросити гравця в команду
+              <Mail className="w-4 h-4 text-emerald-300" strokeWidth={2} /> Запросити гравця в команду
             </button>
           )}
         </div>
       )}
 
       {/* Members list */}
-      <div className="bg-slate-800/60 backdrop-blur-sm rounded-2xl p-4 border border-slate-700/40">
+      <div className={`${CARD} p-4`}>
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
-            <span>👥</span>
-            <h3 className="text-sm font-bold text-gray-300 uppercase tracking-wider">Склад</h3>
+            <Users className="w-5 h-5 text-emerald-300" strokeWidth={2} />
+            <h3 className="text-xs font-bold uppercase tracking-wider text-gray-300">Склад</h3>
           </div>
-          <span className="text-xs text-gray-500 bg-slate-700/60 px-2 py-0.5 rounded-full">{members.length}</span>
+          <span className={`${CHIP} text-gray-400 border-slate-600/50 bg-slate-700/30`}>{members.length}</span>
         </div>
         {members.length === 0 ? (
           <p className="text-center text-gray-500 py-4 text-sm">Команда порожня</p>
@@ -608,16 +623,18 @@ function TeamDetail({ teamId, onBack, onReloadProfile }) {
             {members.map((m) => (
               <div
                 key={m.id}
-                className="flex items-center justify-between py-2.5 px-2 rounded-xl hover:bg-slate-700/20 transition-colors"
+                className="flex items-center justify-between py-2.5 px-2 rounded-lg hover:bg-slate-800/50 transition-colors"
               >
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-slate-700/60 flex items-center justify-center text-sm">
-                    {team.captain_id === m.id ? "👑" : "🪖"}
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className={`w-8 h-8 rounded border flex items-center justify-center shrink-0 ${team.captain_id === m.id ? "bg-amber-400/10 border-amber-400/30" : "bg-slate-800 border-slate-700/50"}`}>
+                    {team.captain_id === m.id
+                      ? <Crown className="w-4 h-4 text-amber-300" strokeWidth={2} />
+                      : <Shield className="w-4 h-4 text-gray-500" strokeWidth={2} />}
                   </div>
-                  <div>
-                    <span className="text-sm font-medium">{m.nickname}</span>
+                  <div className="min-w-0 flex items-center">
+                    <span className="text-sm font-medium truncate">{m.nickname}</span>
                     {team.captain_id === m.id && (
-                      <span className="text-[10px] text-amber-400 ml-1.5">
+                      <span className={`${CHIP} ml-1.5 text-amber-300 border-amber-400/30 bg-amber-400/10`}>
                         Captain
                       </span>
                     )}
@@ -625,10 +642,10 @@ function TeamDetail({ teamId, onBack, onReloadProfile }) {
                 </div>
                 <div className="flex items-center gap-2">
                   <div className="text-right">
-                    <div className="text-sm font-bold text-emerald-400">
+                    <div className="font-mono text-sm font-bold text-emerald-300">
                       {m.rating}
                     </div>
-                    <div className="text-[10px] text-gray-600">
+                    <div className="text-[10px] text-gray-500">
                       {m.wins} перемог / {m.games_played} ігор
                     </div>
                   </div>
@@ -640,7 +657,7 @@ function TeamDetail({ teamId, onBack, onReloadProfile }) {
                           "Гравця вигнано з команди",
                         )
                       }
-                      className="ml-1 px-3 py-1.5 rounded-lg bg-red-800/60 text-[11px] font-semibold text-red-200 active:scale-95"
+                      className={`ml-1 px-3 py-1.5 text-[11px] font-semibold ${BTN_DANGER}`}
                     >
                       Вигнати
                     </button>
@@ -657,17 +674,19 @@ function TeamDetail({ teamId, onBack, onReloadProfile }) {
 
 function InviteCard({ invite, onAccept, onReject }) {
   return (
-    <div className="bg-amber-950/15 border border-amber-800/30 rounded-2xl p-4">
+    <div className="bg-slate-900/80 border border-amber-400/30 rounded-2xl p-4">
       <div className="flex items-center gap-3 mb-3">
-        <div className="w-10 h-10 rounded-xl bg-amber-600/20 flex items-center justify-center text-lg">📩</div>
+        <div className="w-10 h-10 rounded-lg bg-amber-400/10 border border-amber-400/30 flex items-center justify-center shrink-0">
+          <Mail className="w-5 h-5 text-amber-300" strokeWidth={2} />
+        </div>
         <div>
           <p className="font-bold text-sm">{invite.team_name}</p>
           <p className="text-xs text-gray-500">Від: {invite.invited_by_name}</p>
         </div>
       </div>
       <div className="flex gap-2">
-        <button onClick={onAccept} className="flex-1 bg-emerald-600 py-2.5 rounded-xl text-sm font-bold active:scale-95">✅ Прийняти</button>
-        <button onClick={onReject} className="flex-1 bg-slate-700 py-2.5 rounded-xl text-sm font-bold text-gray-400 active:scale-95">❌ Ні</button>
+        <button onClick={onAccept} className={`flex-1 py-2.5 text-sm flex items-center justify-center gap-1.5 ${BTN_PRIMARY}`}><Check className="w-4 h-4" strokeWidth={2} /> Прийняти</button>
+        <button onClick={onReject} className={`flex-1 py-2.5 text-sm font-bold flex items-center justify-center gap-1.5 ${BTN_SECONDARY}`}><X className="w-4 h-4" strokeWidth={2} /> Ні</button>
       </div>
     </div>
   );

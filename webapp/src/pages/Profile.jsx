@@ -41,6 +41,14 @@ import {
   Users,
   Zap,
   Hexagon,
+  Gift,
+  Send,
+  Mail,
+  UserPlus,
+  Handshake,
+  HardHat,
+  Gamepad2,
+  Dices,
 } from "lucide-react";
 
 const BADGE_ICONS = {
@@ -75,7 +83,6 @@ const BADGE_ICONS = {
   Hexagon,
 };
 
-// ---- Animated background particles (decorative) ----
 function ProgressRing({ value, max, size = 72, stroke = 5, color = "#a3b35a" }) {
   const radius = (size - stroke) / 2;
   const circumference = 2 * Math.PI * radius;
@@ -143,7 +150,7 @@ export default function Profile({ profile, onReload }) {
             onClick={() => {
               onReload();
             }}
-            className="px-6 py-3 rounded-xl bg-emerald-700/50 border border-emerald-600/40 text-emerald-100 text-sm font-semibold active:scale-95"
+            className="px-6 py-3 rounded-lg bg-emerald-400 text-slate-950 text-sm font-bold active:scale-[0.98]"
           >
             Спробувати знову
           </button>
@@ -169,7 +176,7 @@ export default function Profile({ profile, onReload }) {
         <button
           type="button"
           onClick={() => onReload()}
-          className="px-6 py-3 rounded-xl bg-emerald-700/50 border border-emerald-600/40 text-emerald-100 text-sm font-semibold active:scale-95"
+          className="px-6 py-3 rounded-lg bg-emerald-400 text-slate-950 text-sm font-bold active:scale-[0.98]"
         >
           Оновити
         </button>
@@ -350,6 +357,7 @@ export default function Profile({ profile, onReload }) {
           name: badge?.badge_name || firstNew,
           color: badge?.badge_color || "#ddb85e",
           description: badge?.badge_description || "",
+          icon: badge?.badge_icon || "",
         });
 
         const updated = Array.from(new Set([...seen, ...newNames]));
@@ -378,99 +386,69 @@ export default function Profile({ profile, onReload }) {
       {/* ---- Badge celebration popup ---- */}
       {badgeCelebration && (
         <div className="fixed inset-0 z-40 flex items-center justify-center">
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+          <div className="absolute inset-0 bg-black/70" />
+          <style>{`
+            @keyframes badgeReveal {
+              0% { transform: scale(0.6); opacity: 0; }
+              60% { transform: scale(1.06); opacity: 1; }
+              100% { transform: scale(1); opacity: 1; }
+            }
+          `}</style>
 
-          {/* Confetti */}
-          <div className="absolute inset-0 pointer-events-none overflow-hidden">
-            {[...Array(30)].map((_, i) => {
-              const fromLeft = i % 2 === 0;
-              const delay = (i % 10) * 0.15;
-              const top = 5 + (i * 7) % 90;
-              const size = 6 + (i % 4) * 2;
-              return (
-                <span
-                  key={i}
-                  className="absolute rounded-full opacity-90"
-                  style={{
-                    width: `${size}px`,
-                    height: `${size * 0.4}px`,
-                    background:
-                      i % 3 === 0
-                        ? "#a3b35a"
-                        : i % 3 === 1
-                          ? "#c9b67e"
-                          : "#cf9f3e",
-                    top: `${top}%`,
-                    left: fromLeft ? "-5%" : "105%",
-                    animation: `${fromLeft ? "confettiLeft" : "confettiRight"} 1.6s ease-out ${delay}s forwards`,
-                  }}
-                />
-              );
-            })}
-            <style>{`
-              @keyframes confettiLeft {
-                0% { transform: translateX(0) rotate(0deg); opacity: 1; }
-                100% { transform: translateX(140vw) rotate(420deg); opacity: 0; }
-              }
-              @keyframes confettiRight {
-                0% { transform: translateX(0) rotate(0deg); opacity: 1; }
-                100% { transform: translateX(-140vw) rotate(-420deg); opacity: 0; }
-              }
-            `}</style>
-          </div>
-
-          <div className="relative z-50 w-[84%] max-w-sm px-5 py-6 rounded-3xl bg-slate-900/95 border border-emerald-400/40 shadow-2xl shadow-emerald-900/60 text-center">
-            <div className="mb-2 text-4xl">🎉</div>
-            <h3 className="text-sm font-bold text-emerald-300 uppercase tracking-[0.2em] mb-2">
-              Новий бейдж
-            </h3>
-            <div
-              className="inline-flex items-center justify-center px-4 py-2 rounded-2xl mb-3"
-              style={{
-                background: `linear-gradient(135deg, ${badgeCelebration.color}33, ${badgeCelebration.color}11)`,
-                border: `1px solid ${badgeCelebration.color}66`,
-              }}
-            >
-              <span className="text-base mr-2">🏅</span>
-              <span className="text-sm font-semibold">{badgeCelebration.name}</span>
+          <div className="relative z-50 w-[84%] max-w-sm overflow-hidden rounded-2xl bg-slate-900 border border-slate-600/60 text-center">
+            <span className="absolute inset-x-0 top-0 h-[3px]" style={{ backgroundColor: badgeCelebration.color }} />
+            <div className="px-5 pt-6 pb-5">
+              <div className="font-mono text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-4">
+                Новий бейдж
+              </div>
+              {(() => {
+                const CelebrationIcon = BADGE_ICONS[badgeCelebration.icon] || Award;
+                return (
+                  <div
+                    className="mx-auto mb-4 w-20 h-20 rounded-lg flex items-center justify-center border-2 bg-slate-950/70"
+                    style={{
+                      borderColor: badgeCelebration.color,
+                      animation: "badgeReveal 0.5s cubic-bezier(0.22, 1, 0.36, 1) both",
+                    }}
+                  >
+                    <CelebrationIcon size={36} color={badgeCelebration.color} strokeWidth={2} />
+                  </div>
+                );
+              })()}
+              <h3 className="font-display text-2xl font-bold uppercase tracking-wide text-gray-100 mb-2">
+                {badgeCelebration.name}
+              </h3>
+              {badgeCelebration.description ? (
+                <p className="text-xs text-gray-300 mb-5 leading-relaxed px-1">
+                  {badgeCelebration.description}
+                </p>
+              ) : (
+                <p className="text-xs text-gray-400 mb-5">
+                  Продовжуй у тому ж дусі, щоб відкрити ще більше нагород.
+                </p>
+              )}
+              <button
+                onClick={() => setBadgeCelebration(null)}
+                className="w-full py-2.5 rounded-lg bg-emerald-400 text-slate-950 text-xs font-bold uppercase tracking-wider active:scale-[0.98] transition-transform"
+              >
+                Круто!
+              </button>
             </div>
-            {badgeCelebration.description ? (
-              <p className="text-xs text-gray-300 mb-4 leading-relaxed px-1">
-                {badgeCelebration.description}
-              </p>
-            ) : (
-              <p className="text-xs text-gray-400 mb-4">
-                Продовжуй у тому ж дусі, щоб відкрити ще більше нагород.
-              </p>
-            )}
-            <button
-              onClick={() => setBadgeCelebration(null)}
-              className="px-5 py-2 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-500 text-xs font-bold tracking-wide text-black shadow-lg shadow-emerald-900/40 active:scale-95 transition-transform"
-            >
-              Круто!
-            </button>
           </div>
         </div>
       )}
       {/* ---- Loot win modal ---- */}
       {lootWinModal && (
         <div className="fixed inset-0 z-40 flex items-center justify-center">
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
-          <div className="relative z-50 w-[84%] max-w-sm px-5 py-6 rounded-3xl bg-slate-900/95 border border-emerald-400/40 shadow-2xl shadow-emerald-900/60 text-center">
-            <div className="mb-2 text-4xl">🎉</div>
-            <h3 className="text-sm font-bold text-emerald-300 uppercase tracking-[0.2em] mb-2">
+          <div className="absolute inset-0 bg-black/70" />
+          <div className="relative z-50 w-[84%] max-w-sm px-5 py-6 rounded-2xl bg-slate-900 border border-slate-600/60 text-center">
+            <div className="font-mono text-[10px] font-bold uppercase tracking-wider text-emerald-300 mb-3">
               Вітаємо з виграшем!
-            </h3>
+            </div>
 
-            <div
-              className="inline-flex items-center justify-center px-4 py-2 rounded-2xl mb-3"
-              style={{
-                background: "linear-gradient(135deg, rgba(16,185,129,0.20), rgba(16,185,129,0.08))",
-                border: "1px solid rgba(16,185,129,0.45)",
-              }}
-            >
+            <div className="flex items-center gap-3 px-3 py-2.5 rounded-lg mb-3 bg-slate-950/60 border border-slate-700/60 text-left">
               <div
-                className="w-16 h-12 rounded-xl bg-slate-900/80 mr-2 overflow-hidden flex items-center justify-center border"
+                className="w-16 h-12 rounded bg-slate-900/80 shrink-0 overflow-hidden flex items-center justify-center border"
                 style={{
                   borderColor: lootWinModal.color || "rgba(148,163,184,0.5)",
                 }}
@@ -482,10 +460,10 @@ export default function Profile({ profile, onReload }) {
                     className="w-full h-full object-contain"
                   />
                 ) : (
-                  <span>🎁</span>
+                  <Gift className="w-5 h-5 text-gray-500" strokeWidth={2} />
                 )}
               </div>
-              <span className="text-sm font-semibold text-gray-100">
+              <span className="font-display text-lg font-bold uppercase tracking-wide text-gray-100">
                 {lootWinModal.title}
               </span>
             </div>
@@ -502,7 +480,7 @@ export default function Profile({ profile, onReload }) {
 
             <button
               onClick={closeLootWinModal}
-              className="px-5 py-2 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-500 text-xs font-bold tracking-wide text-black shadow-lg shadow-emerald-900/40 active:scale-95 transition-transform"
+              className="w-full py-2.5 rounded-lg bg-emerald-400 text-slate-950 text-xs font-bold uppercase tracking-wider active:scale-[0.98] transition-transform"
             >
               Забрати
             </button>
@@ -522,22 +500,24 @@ export default function Profile({ profile, onReload }) {
           (!requiresGame || (requestUseGameId && !eligibleGamesLoading));
         return (
           <div className="fixed inset-0 z-40 flex items-center justify-center px-4">
-            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
-            <div className="relative z-50 w-full max-w-sm rounded-3xl bg-slate-900/95 border border-sky-400/40 p-5 text-center shadow-2xl shadow-sky-900/30">
-              <div className="text-3xl mb-2">📨</div>
-              <h3 className="text-sm font-bold text-sky-300 uppercase tracking-[0.15em] mb-2">
+            <div className="absolute inset-0 bg-black/70" />
+            <div className="relative z-50 w-full max-w-sm rounded-2xl bg-slate-900 border border-slate-600/60 p-5 text-center">
+              <div className="mx-auto mb-3 w-10 h-10 rounded-lg bg-emerald-400/10 border border-emerald-400/30 flex items-center justify-center">
+                <Send className="w-5 h-5 text-emerald-300" strokeWidth={2} />
+              </div>
+              <h3 className="font-display text-xl font-bold uppercase tracking-wide text-gray-100 mb-2">
                 Запит на використання
               </h3>
               <p className="text-xs text-gray-300 mb-1">
                 Надіслати адміну запит для бонуса:
               </p>
-              <p className="text-sm font-semibold text-gray-100 mb-4">
+              <p className="text-sm font-bold text-emerald-300 mb-4">
                 {def?.title || requestUseModalReward.reward_key}
               </p>
 
               {requiresGame && (
                 <div className="text-left mb-4">
-                  <div className="text-[11px] font-semibold uppercase tracking-wider text-sky-300 mb-2">
+                  <div className="text-[11px] font-bold uppercase tracking-wider text-gray-300 mb-2">
                     Обери гру
                   </div>
                   {eligibleGamesLoading ? (
@@ -556,10 +536,10 @@ export default function Profile({ profile, onReload }) {
                             key={g.id}
                             type="button"
                             onClick={() => setRequestUseGameId(g.id)}
-                            className={`w-full flex items-center justify-between gap-2 px-3 py-2 rounded-xl border text-left ${
+                            className={`w-full flex items-center justify-between gap-2 px-3 py-2 rounded-lg border text-left ${
                               active
-                                ? "bg-sky-500/20 border-sky-400/50 text-sky-100"
-                                : "bg-slate-800/70 border-slate-700/40 text-gray-200"
+                                ? "bg-emerald-400/10 border-emerald-400/50 text-emerald-200"
+                                : "bg-slate-800/70 border-slate-700/50 text-gray-200"
                             }`}
                           >
                             <div className="min-w-0">
@@ -570,7 +550,7 @@ export default function Profile({ profile, onReload }) {
                                 {g.location || "—"}
                               </div>
                             </div>
-                            <div className="text-[10px] text-gray-400 shrink-0">
+                            <div className="font-mono text-[10px] uppercase tracking-wider text-gray-400 shrink-0">
                               {g.status}
                             </div>
                           </button>
@@ -589,7 +569,7 @@ export default function Profile({ profile, onReload }) {
                     setRequestUseGameId(null);
                     setEligibleGames([]);
                   }}
-                  className="py-2 rounded-xl bg-slate-800 border border-slate-700 text-xs font-semibold"
+                  className="py-2.5 rounded-lg bg-slate-800 border border-slate-600/60 text-gray-200 text-xs font-semibold active:scale-[0.98]"
                 >
                   Скасувати
                 </button>
@@ -597,7 +577,7 @@ export default function Profile({ profile, onReload }) {
                   type="button"
                   onClick={() => handleRequestUseReward(requestUseModalReward)}
                   disabled={!canSubmit}
-                  className="py-2 rounded-xl bg-sky-600 text-black text-xs font-bold disabled:opacity-50"
+                  className="py-2.5 rounded-lg bg-emerald-400 text-slate-950 text-xs font-bold active:scale-[0.98] disabled:opacity-50"
                 >
                   {requestingRewardId ? "Надсилання..." : "Надіслати"}
                 </button>
@@ -608,14 +588,14 @@ export default function Profile({ profile, onReload }) {
       })()}
       {requestUseResultModal && (
         <div className="fixed inset-0 z-40 flex items-center justify-center px-4">
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
-          <div className="relative z-50 w-full max-w-sm rounded-3xl bg-slate-900/95 border border-slate-700 p-5 text-center shadow-2xl">
-            <h3 className="text-sm font-bold text-gray-100 mb-2">{requestUseResultModal.title}</h3>
+          <div className="absolute inset-0 bg-black/70" />
+          <div className="relative z-50 w-full max-w-sm rounded-2xl bg-slate-900 border border-slate-600/60 p-5 text-center">
+            <h3 className="font-display text-xl font-bold uppercase tracking-wide text-gray-100 mb-2">{requestUseResultModal.title}</h3>
             <p className="text-xs text-gray-400 mb-4">{requestUseResultModal.message}</p>
             <button
               type="button"
               onClick={() => setRequestUseResultModal(null)}
-              className="px-4 py-2 rounded-xl bg-emerald-600 text-black text-xs font-bold"
+              className="w-full py-2.5 rounded-lg bg-emerald-400 text-slate-950 text-xs font-bold active:scale-[0.98]"
             >
               ОК
             </button>
@@ -675,38 +655,38 @@ export default function Profile({ profile, onReload }) {
       <div className="grid grid-cols-4 gap-2 mb-5">
         <QuickStat value={p.games_played} label="Ігор" />
         <QuickStat value={p.wins} label="Перемог" accent />
-        <QuickStat value={`${winRate}%`} label="Перемог" />
+        <QuickStat value={`${winRate}%`} label="Вінрейт" />
         <QuickStat value={p.mvp_count} label="MVP" accent />
       </div>
 
       {/* ---- Combat stats card ---- */}
-      <div className="bg-slate-800/80 backdrop-blur-sm rounded-2xl p-4 mb-4 border border-slate-700/50">
+      <div className="bg-slate-900/80 rounded-2xl p-4 mb-4 border border-slate-700/50">
         <div className="flex items-center gap-2 mb-4">
           <Swords className="w-4 h-4 text-emerald-300" />
           <h3 className="text-xs font-bold text-gray-300 uppercase tracking-wider">Статистика боїв</h3>
         </div>
 
         <div className="grid grid-cols-2 gap-3 mb-4">
-          <CombatStat icon="💀" value={p.total_deaths} label="Смертей" color="text-red-400" />
-          <CombatStat icon="🛡" value={`${survivalRate}%`} label="Виживань" color="text-emerald-400" />
+          <CombatStat icon={Skull} value={p.total_deaths} label="Смертей" color="text-red-300" />
+          <CombatStat icon={Shield} value={`${survivalRate}%`} label="Виживань" color="text-emerald-300" />
         </div>
 
         {/* Survival Rate bar */}
         <div className="mt-1 mb-1">
-          <div className="flex justify-between text-[10px] text-gray-500 mb-1.5">
+          <div className="flex justify-between font-mono text-[10px] uppercase tracking-wider text-gray-500 mb-1.5">
             <span className="font-semibold">Виживання, %</span>
             <span className={`font-bold ${
-              survivalRate >= 70 ? "text-emerald-400" : survivalRate >= 40 ? "text-amber-400" : "text-red-400"
+              survivalRate >= 70 ? "text-emerald-300" : survivalRate >= 40 ? "text-amber-300" : "text-red-300"
             }`}>{survivalRate}%</span>
           </div>
-          <div className="relative h-2 bg-slate-700/60 rounded-full overflow-hidden">
+          <div className="relative h-1.5 bg-slate-800 rounded-sm overflow-hidden">
             <div
-              className={`absolute inset-y-0 left-0 rounded-full transition-all duration-1000 ${
+              className={`absolute inset-y-0 left-0 rounded-sm transition-all duration-1000 ${
                 survivalRate >= 70
-                  ? "bg-gradient-to-r from-emerald-500 to-emerald-400"
+                  ? "bg-emerald-400"
                   : survivalRate >= 40
-                    ? "bg-gradient-to-r from-amber-500 to-amber-400"
-                    : "bg-gradient-to-r from-red-500 to-red-400"
+                    ? "bg-amber-400"
+                    : "bg-red-400"
               }`}
               style={{ width: `${survivalRate}%` }}
             />
@@ -716,21 +696,22 @@ export default function Profile({ profile, onReload }) {
 
       {/* ---- Badges ---- */}
       {profile.badges?.length > 0 && (
-        <div className="bg-slate-800/80 backdrop-blur-sm rounded-2xl p-4 mb-4 border border-slate-700/50">
+        <div className="bg-slate-900/80 rounded-2xl p-4 mb-4 border border-slate-700/50">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
-              <span className="text-base">🎖</span>
-              <h3 className="text-sm font-bold text-gray-300 uppercase tracking-wider">
+              <Medal className="w-5 h-5 text-emerald-300" strokeWidth={2} />
+              <h3 className="text-xs font-bold text-gray-300 uppercase tracking-wider">
                 Нагороди
               </h3>
             </div>
-            <span className="text-xs text-gray-500 bg-slate-700 px-2 py-0.5 rounded-full">
+            <span className="rounded border border-slate-600/50 bg-slate-800/60 px-2 py-0.5 font-mono text-[10px] font-bold text-gray-400">
               {profile.badges.length}
             </span>
           </div>
           <div className="flex flex-wrap gap-2">
             {profile.badges.map((b, i) => {
-              const IconComponent = BADGE_ICONS[b.badge_icon] || Award;
+              const LucideBadgeIcon = BADGE_ICONS[b.badge_icon] || null;
+              const IconComponent = LucideBadgeIcon || Award;
               const rawBadgeEmoji = (b.badge_emoji || "").trim();
               // Для старих записів badge_emoji інколи містить текст (напр. "Users"),
               // тому показуємо emoji лише якщо це не звичайний текстовий slug.
@@ -749,28 +730,27 @@ export default function Profile({ profile, onReload }) {
                     haptic("impact");
                     showAlert(`${b.badge_name}\n\n${desc}`);
                   }}
-                  className="group relative px-3 py-2 rounded-xl border transition-all duration-300 hover:scale-105 active:scale-95 text-left cursor-pointer"
+                  className="group relative pl-1 pr-3 py-1 rounded-lg border bg-slate-950/50 transition-colors active:scale-[0.98] text-left cursor-pointer"
                   style={{
-                    borderColor: `${b.badge_color}40`,
-                    background: `linear-gradient(135deg, ${b.badge_color}15, ${b.badge_color}08)`,
+                    borderColor: `${b.badge_color}55`,
                   }}
                 >
                   <div className="flex items-center gap-2">
                     <div
-                      className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0"
-                      style={{ backgroundColor: `${b.badge_color}25` }}
+                      className="w-7 h-7 rounded flex items-center justify-center shrink-0 border"
+                      style={{ backgroundColor: `${b.badge_color}1f`, borderColor: `${b.badge_color}40` }}
                     >
-                      {badgeEmoji ? (
+                      {badgeEmoji && !LucideBadgeIcon ? (
                         <span className="text-sm leading-none">{badgeEmoji}</span>
                       ) : (
                         <IconComponent
                           size={16}
                           color={b.badge_color}
-                          strokeWidth={2.5}
+                          strokeWidth={2}
                         />
                       )}
                     </div>
-                    <span className="text-xs font-semibold">
+                    <span className="text-xs font-semibold text-gray-200">
                       {b.badge_name}
                     </span>
                   </div>
@@ -784,27 +764,27 @@ export default function Profile({ profile, onReload }) {
 
       {/* ---- Колесо фортуни ---- */}
       {lootState && (
-        <div className="bg-slate-800/80 backdrop-blur-sm rounded-2xl p-4 mb-4 border border-slate-700/50">
+        <div className="bg-slate-900/80 rounded-2xl p-4 mb-4 border border-slate-700/50">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
-              <span className="text-base">🎰</span>
-              <h3 className="text-sm font-bold text-gray-300 uppercase tracking-wider">
+              <Dices className="w-5 h-5 text-emerald-300" strokeWidth={2} />
+              <h3 className="text-xs font-bold text-gray-300 uppercase tracking-wider">
                 Колесо фортуни
               </h3>
             </div>
-            <span className="text-xs text-gray-400">
+            <span className="font-mono text-[10px] uppercase tracking-wider text-gray-400">
               Доступні оберти:{" "}
-              <span className="font-semibold text-emerald-300">
+              <span className="font-bold text-emerald-300">
                 {lootState.remainingSpins}
               </span>
             </span>
           </div>
 
           {/* Смуга кейсів у стилі CS:GO */}
-          <div className="relative h-20 bg-slate-900/80 rounded-2xl overflow-hidden border border-slate-700/60 mb-3">
-            <div className="absolute inset-y-0 left-1/2 w-[2px] bg-emerald-400/80 shadow-[0_0_10px_rgba(16,185,129,0.8)] z-20" />
+          <div className="relative h-20 bg-slate-950/70 rounded-lg overflow-hidden border border-slate-700/60 mb-3">
+            <div className="absolute inset-y-0 left-1/2 w-[2px] bg-emerald-400 z-20" />
             {/* Контур активного айтема по центру */}
-            <div className="pointer-events-none absolute inset-y-1 left-1/2 -translate-x-1/2 w-[88px] rounded-xl border-2 border-emerald-400/80 shadow-[0_0_16px_rgba(16,185,129,0.8)] z-10" />
+            <div className="pointer-events-none absolute inset-y-1 left-1/2 -translate-x-1/2 w-[88px] rounded border-2 border-emerald-400/80 z-10" />
             <div
               className="absolute inset-y-0 left-1/2 flex items-center"
               style={{
@@ -880,10 +860,10 @@ export default function Profile({ profile, onReload }) {
                     return (
                       <div
                         key={`${rw.key || rw.reward_key}_${idx}`}
-                        className="w-20 h-16 rounded-xl flex flex-col items-center justify-center text-[10px] font-semibold text-gray-100 shadow-md bg-slate-800/80 border"
+                        className="w-20 h-16 rounded flex flex-col items-center justify-center text-[10px] font-semibold text-gray-100 bg-slate-800/80 border"
                         style={{ borderColor: rarityColor }}
                       >
-                        <div className="w-12 h-8 rounded-lg bg-slate-900/80 mb-1 overflow-hidden flex items-center justify-center">
+                        <div className="w-12 h-8 rounded-sm bg-slate-900/80 mb-1 overflow-hidden flex items-center justify-center">
                           {imgUrl ? (
                             <img
                               src={imgUrl}
@@ -891,7 +871,7 @@ export default function Profile({ profile, onReload }) {
                               className="w-full h-full object-contain"
                             />
                           ) : (
-                            <span>🎁</span>
+                            <Gift className="w-4 h-4 text-gray-500" strokeWidth={2} />
                           )}
                         </div>
                         <span className="truncate max-w-[70px]">
@@ -993,15 +973,18 @@ export default function Profile({ profile, onReload }) {
                 setLootLoading(false);
               }
             }}
-            className="w-full bg-gradient-to-r from-emerald-600 to-teal-600 py-3 rounded-2xl font-bold text-[14px] shadow-lg shadow-emerald-900/30 active:scale-[0.98] disabled:opacity-50"
+            className="w-full bg-emerald-400 text-slate-950 py-3 rounded-lg font-bold text-[14px] uppercase tracking-wider active:scale-[0.98] disabled:opacity-50"
           >
             {spinning || lootLoading ? (
               <span className="inline-flex items-center gap-2">
-                <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                <span className="w-4 h-4 border-2 border-slate-950/30 border-t-slate-950 rounded-full animate-spin" />
                 Крутиться...
               </span>
             ) : lootState.remainingSpins > 0 ? (
-              "🎰 Крутити"
+              <span className="inline-flex items-center gap-2">
+                <Dices className="w-4 h-4" strokeWidth={2} />
+                Крутити
+              </span>
             ) : (
               "Немає обертів"
             )}
@@ -1016,15 +999,15 @@ export default function Profile({ profile, onReload }) {
 
       {/* ---- Бонуси (виграні нагороди) ---- */}
       {lootState && (lootState.rewards || []).length > 0 && (
-        <div className="bg-slate-800/80 backdrop-blur-sm rounded-2xl p-4 mb-4 border border-slate-700/50">
+        <div className="bg-slate-900/80 rounded-2xl p-4 mb-4 border border-slate-700/50">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
-              <span>🎁</span>
-              <h3 className="text-sm font-bold text-gray-300 uppercase tracking-wider">
+              <Gift className="w-5 h-5 text-emerald-300" strokeWidth={2} />
+              <h3 className="text-xs font-bold text-gray-300 uppercase tracking-wider">
                 Бонуси
               </h3>
             </div>
-            <span className="text-xs text-gray-500 bg-slate-700 px-2 py-0.5 rounded-full">
+            <span className="rounded border border-slate-600/50 bg-slate-800/60 px-2 py-0.5 font-mono text-[10px] font-bold text-gray-400">
               {(lootState.rewards || []).length}
             </span>
           </div>
@@ -1049,14 +1032,13 @@ export default function Profile({ profile, onReload }) {
               return (
                 <div
                   key={rw.id}
-                  className="flex items-center justify-between py-1.5 px-2 rounded-xl bg-slate-900/70 border border-slate-700/60"
+                  className="flex items-center justify-between py-1.5 px-2 rounded-lg bg-slate-950/50 border border-slate-700/60"
                 >
                   <div className="flex items-center gap-2">
                     <div
-                      className="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold overflow-hidden"
+                      className="w-8 h-8 rounded flex items-center justify-center text-xs font-bold overflow-hidden bg-slate-900/80"
                       style={{
                         border: `1px solid ${rarityColor}`,
-                        background: "rgba(15,23,42,0.8)",
                       }}
                     >
                       {imageUrl ? (
@@ -1066,7 +1048,7 @@ export default function Profile({ profile, onReload }) {
                           className="w-full h-full object-contain"
                         />
                       ) : (
-                        <span>🎁</span>
+                        <Gift className="w-4 h-4 text-gray-500" strokeWidth={2} />
                       )}
                     </div>
                     <div className="flex flex-col">
@@ -1082,10 +1064,10 @@ export default function Profile({ profile, onReload }) {
                   </div>
                   <div className="flex flex-col items-end gap-1">
                     <span
-                      className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
+                      className={`rounded border px-1.5 py-0.5 font-mono text-[9px] font-bold uppercase tracking-wider ${
                         isActive
-                          ? "bg-emerald-600/20 text-emerald-300"
-                          : "bg-slate-700/60 text-gray-400"
+                          ? "text-emerald-300 border-emerald-400/30 bg-emerald-400/10"
+                          : "text-gray-400 border-slate-600/50 bg-slate-700/30"
                       }`}
                     >
                       {isActive ? "Активний" : "Використано"}
@@ -1098,10 +1080,10 @@ export default function Profile({ profile, onReload }) {
                         type="button"
                         onClick={() => openRequestUseModal(rw)}
                         disabled={!!requestingRewardId || isRequested}
-                        className={`text-[10px] font-semibold px-2 py-1 rounded-lg border active:scale-95 disabled:opacity-50 ${
+                        className={`text-[10px] font-bold px-2 py-1 rounded border active:scale-[0.98] disabled:opacity-50 ${
                           isRequested
-                            ? "bg-sky-500/15 text-sky-300 border-sky-400/30"
-                            : "bg-amber-500/20 text-amber-300 border-amber-400/30"
+                            ? "bg-slate-800 text-gray-400 border-slate-600/60"
+                            : "bg-amber-400/10 text-amber-300 border-amber-400/40"
                         }`}
                       >
                         {isRequested
@@ -1120,15 +1102,15 @@ export default function Profile({ profile, onReload }) {
       )}
 
       {/* ---- Friends ---- */}
-      <div className="bg-slate-800/80 backdrop-blur-sm rounded-2xl p-4 mb-4 border border-slate-700/50">
+      <div className="bg-slate-900/80 rounded-2xl p-4 mb-4 border border-slate-700/50">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
-            <span className="text-base">🤝</span>
-            <h3 className="text-sm font-bold text-gray-300 uppercase tracking-wider">
+            <Handshake className="w-5 h-5 text-emerald-300" strokeWidth={2} />
+            <h3 className="text-xs font-bold text-gray-300 uppercase tracking-wider">
               Друзі
             </h3>
           </div>
-          <span className="text-xs text-gray-500 bg-slate-700 px-2 py-0.5 rounded-full">
+          <span className="rounded border border-slate-600/50 bg-slate-800/60 px-2 py-0.5 font-mono text-[10px] font-bold text-gray-400">
             {friendsInfo.friends.length}
           </span>
         </div>
@@ -1137,13 +1119,13 @@ export default function Profile({ profile, onReload }) {
         <div className="mb-3">
           <PlayerSearch
             placeholder="Запросити друга"
-            icon="🤝"
+            icon={<UserPlus className="w-4 h-4 text-gray-500" strokeWidth={2} />}
             onSelect={async (player) => {
               try {
                 setFriendsError("");
                 await sendFriendRequest(player.nickname);
                 haptic("success");
-                showAlert(`✅ Запит у друзі надіслано для ${player.nickname}`);
+                showAlert(`Запит у друзі надіслано для ${player.nickname}`);
                 const data = await getFriends();
                 setFriendsInfo({
                   friends: data.friends || [],
@@ -1175,14 +1157,15 @@ export default function Profile({ profile, onReload }) {
             {friendsInfo.friends.map((f) => (
               <div
                 key={f.id}
-                className="flex items-center justify-between py-1.5 px-2 rounded-xl bg-slate-900/60"
+                className="flex items-center justify-between py-1.5 px-2 rounded-lg bg-slate-950/50 border border-slate-700/40"
               >
                 <div className="flex items-center gap-2">
-                  <span className="text-sm">🪖</span>
+                  <HardHat className="w-4 h-4 text-gray-500" strokeWidth={2} />
                   <span className="text-xs font-medium">{f.callsign || f.nickname}</span>
                 </div>
-                <span className="text-[10px] text-gray-500">
-                  ⭐{f.rating}
+                <span className="inline-flex items-center gap-1 font-mono text-[10px] text-gray-400">
+                  <Star className="w-3 h-3 text-amber-300" strokeWidth={2} />
+                  {f.rating}
                 </span>
               </div>
             ))}
@@ -1196,7 +1179,7 @@ export default function Profile({ profile, onReload }) {
               Вхідні запити
             </span>
             {friendsInfo.incoming.length > 0 && (
-              <span className="text-[10px] text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full">
+              <span className="rounded border border-emerald-400/30 bg-emerald-400/10 px-1.5 py-0.5 font-mono text-[10px] font-bold text-emerald-300">
                 {friendsInfo.incoming.length}
               </span>
             )}
@@ -1213,10 +1196,10 @@ export default function Profile({ profile, onReload }) {
               {friendsInfo.incoming.map((r) => (
                 <div
                   key={r.request_id || r.id}
-                  className="flex items-center justify-between py-1.5 px-2 rounded-xl bg-slate-900/60"
+                  className="flex items-center justify-between py-1.5 px-2 rounded-lg bg-slate-950/50 border border-slate-700/40"
                 >
                   <div className="flex items-center gap-2">
-                    <span className="text-sm">📩</span>
+                    <Mail className="w-4 h-4 text-gray-500" strokeWidth={2} />
                     <span className="text-xs font-medium">
                       {r.callsign || r.from_nickname || r.nickname}
                     </span>
@@ -1226,7 +1209,7 @@ export default function Profile({ profile, onReload }) {
                       onClick={() =>
                         handleRespondFriend(r.request_id || r.id, "accept")
                       }
-                      className="px-2 py-1 rounded-lg bg-emerald-600 text-[10px] font-bold text-black active:scale-95"
+                      className="px-2 py-1 rounded bg-emerald-400 text-[10px] font-bold text-slate-950 active:scale-[0.98]"
                     >
                       Прийняти
                     </button>
@@ -1234,7 +1217,7 @@ export default function Profile({ profile, onReload }) {
                       onClick={() =>
                         handleRespondFriend(r.request_id || r.id, "reject")
                       }
-                      className="px-2 py-1 rounded-lg bg-slate-700 text-[10px] font-bold text-gray-200 active:scale-95"
+                      className="px-2 py-1 rounded bg-slate-800 border border-slate-600/60 text-[10px] font-bold text-gray-200 active:scale-[0.98]"
                     >
                       Відхилити
                     </button>
@@ -1248,13 +1231,13 @@ export default function Profile({ profile, onReload }) {
 
       {/* ---- Recent games ---- */}
       {profile.recentGames?.length > 0 && (
-        <div className="bg-slate-800/80 backdrop-blur-sm rounded-2xl p-4 border border-slate-700/50">
+        <div className="bg-slate-900/80 rounded-2xl p-4 border border-slate-700/50">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
-              <span className="text-base">🎮</span>
-              <h3 className="text-sm font-bold text-gray-300 uppercase tracking-wider">Історія ігор</h3>
+              <Gamepad2 className="w-5 h-5 text-emerald-300" strokeWidth={2} />
+              <h3 className="text-xs font-bold text-gray-300 uppercase tracking-wider">Історія ігор</h3>
             </div>
-            <span className="text-xs text-gray-500">{profile.recentGames.length} ігор</span>
+            <span className="font-mono text-[10px] uppercase tracking-wider text-gray-500">{profile.recentGames.length} ігор</span>
           </div>
 
           <div className="space-y-2">
@@ -1267,23 +1250,23 @@ export default function Profile({ profile, onReload }) {
 
               const badgeBg = isFinished
                 ? isWin
-                  ? "bg-emerald-600/20 text-emerald-400"
+                  ? "text-emerald-300 border-emerald-400/30 bg-emerald-400/10"
                   : isLoss
-                  ? "bg-red-600/20 text-red-400"
+                  ? "text-red-300 border-red-400/30 bg-red-400/10"
                   : isDraw
-                  ? "bg-amber-600/20 text-amber-300"
-                  : "bg-slate-600/40 text-gray-300"
-                : "bg-slate-600/40 text-gray-300";
+                  ? "text-amber-300 border-amber-400/30 bg-amber-400/10"
+                  : "text-gray-300 border-slate-600/50 bg-slate-700/30"
+                : "text-gray-300 border-slate-600/50 bg-slate-700/30";
 
               const cardBg = isFinished
                 ? isWin
-                  ? "bg-emerald-950/30 border-emerald-800/30"
+                  ? "bg-slate-950/50 border-emerald-400/20"
                   : isLoss
-                  ? "bg-red-950/20 border-red-900/20"
+                  ? "bg-slate-950/50 border-red-400/20"
                   : isDraw
-                  ? "bg-amber-950/20 border-amber-900/30"
-                  : "bg-slate-900/40 border-slate-800/40"
-                : "bg-slate-900/40 border-slate-800/40";
+                  ? "bg-slate-950/50 border-amber-400/20"
+                  : "bg-slate-950/50 border-slate-700/50"
+                : "bg-slate-950/50 border-slate-700/50";
 
               let labelText = "В ПРОЦЕСІ";
               if (isFinished) {
@@ -1303,10 +1286,10 @@ export default function Profile({ profile, onReload }) {
               return (
                 <div
                   key={g.id}
-                  className={`flex items-center gap-3 p-3 rounded-xl border transition-all ${cardBg}`}
+                  className={`flex items-center gap-3 p-3 rounded-lg border ${cardBg}`}
                 >
                   <div
-                    className={`w-10 h-10 rounded-xl flex items-center justify-center text-sm font-black ${badgeBg}`}
+                    className={`w-10 h-10 rounded border flex items-center justify-center font-mono text-sm font-bold ${badgeBg}`}
                   >
                     {isFinished ? (isWin ? "W" : isLoss ? "L" : isDraw ? "D" : "—") : "•"}
                   </div>
@@ -1314,7 +1297,7 @@ export default function Profile({ profile, onReload }) {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
                       <span className="text-sm font-semibold">Гра #{g.id}</span>
-                      <span className="text-[10px] text-gray-500 bg-slate-700 px-1.5 py-0.5 rounded">
+                      <span className="rounded border border-slate-600/50 bg-slate-800/60 px-1.5 py-0.5 font-mono text-[10px] font-bold uppercase tracking-wider text-gray-400">
                         {g.game_mode === "team_vs_team"
                           ? "TvT"
                           : g.game_mode === "random_teams"
@@ -1322,11 +1305,11 @@ export default function Profile({ profile, onReload }) {
                           : "FFA"}
                       </span>
                     </div>
-                    <span className="text-xs text-gray-500">{g.date}</span>
+                    <span className="font-mono text-[11px] text-gray-500">{g.date}</span>
                   </div>
 
                   <div className="text-right">
-                    <span className="text-xs font-bold text-gray-300">
+                    <span className="font-mono text-[10px] font-bold uppercase tracking-wider text-gray-300">
                       {labelText}
                     </span>
                   </div>
@@ -1339,8 +1322,8 @@ export default function Profile({ profile, onReload }) {
 
       {/* ---- Empty state ---- */}
       {!profile.recentGames?.length && (
-        <div className="bg-slate-800/50 rounded-2xl p-8 text-center border border-slate-700/30 border-dashed">
-          <div className="text-4xl mb-3">🎯</div>
+        <div className="bg-slate-900/60 rounded-2xl p-8 text-center border border-slate-700/50 border-dashed">
+          <Crosshair className="w-10 h-10 mx-auto mb-3 text-slate-500" strokeWidth={1.5} />
           <p className="text-gray-400 text-sm">Ще немає ігор</p>
           <p className="text-gray-500 text-xs mt-1">Запишись на гру щоб почати</p>
         </div>
@@ -1353,8 +1336,8 @@ export default function Profile({ profile, onReload }) {
 
 function QuickStat({ value, label, accent }) {
   return (
-    <div className="bg-slate-800/80 backdrop-blur-sm rounded-xl p-2.5 text-center border border-slate-700/50">
-      <div className={`text-lg font-black ${accent ? "text-emerald-400" : "text-white"}`}>
+    <div className="bg-slate-900/80 rounded-lg p-2.5 text-center border border-slate-700/50">
+      <div className={`font-mono text-lg font-bold ${accent ? "text-emerald-300" : "text-gray-100"}`}>
         {value}
       </div>
       <div className="text-[10px] text-gray-500 uppercase tracking-wider font-medium">{label}</div>
@@ -1362,11 +1345,11 @@ function QuickStat({ value, label, accent }) {
   );
 }
 
-function CombatStat({ icon, value, label, color }) {
+function CombatStat({ icon: Icon, value, label, color }) {
   return (
-    <div className="text-center">
-      <div className="text-lg mb-0.5">{icon}</div>
-      <div className={`text-xl font-black ${color}`}>{value}</div>
+    <div className="text-center rounded-lg bg-slate-950/50 border border-slate-700/40 py-3">
+      <Icon className="w-5 h-5 mx-auto mb-1 text-gray-500" strokeWidth={2} />
+      <div className={`font-mono text-xl font-bold ${color}`}>{value}</div>
       <div className="text-[10px] text-gray-500 uppercase tracking-wider">{label}</div>
     </div>
   );

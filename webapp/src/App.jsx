@@ -8,7 +8,7 @@ import Leaderboard from "./pages/Leaderboard";
 import Teams from "./pages/Teams";
 import Admin from "./pages/Admin";
 import Contacts from "./pages/Contacts";
-import { UserRound, Crosshair, Shield, Radio, Trophy, SlidersHorizontal } from "lucide-react";
+import { UserRound, Crosshair, Shield, Radio, Trophy, SlidersHorizontal, IdCard, PenLine, Flame, ThumbsUp, ThumbsDown, Meh, X } from "lucide-react";
 
 const TABS = [
   { id: "profile", Icon: UserRound, label: "Профіль" },
@@ -224,7 +224,7 @@ export default function App() {
       setSurveyStatus({ submitted: true, submitted_at: new Date().toISOString() });
       setShowSurveyFormModal(false);
       setShowSurveyPromptModal(false);
-      showAlert("Дякуємо за фідбек! 💚");
+      showAlert("Дякуємо за фідбек!");
     } catch (e) {
       setSurveyError(e.message || "Не вдалося зберегти відповіді");
     } finally {
@@ -408,11 +408,13 @@ export default function App() {
 
       {showCallsignModal && (
         <div className="fixed inset-0 z-[70] flex items-center justify-center px-4">
-          <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
-          <div className="relative z-10 w-full max-w-sm rounded-3xl border border-emerald-500/40 bg-slate-900/95 p-5">
-            <div className="text-center mb-3">
-              <div className="text-3xl mb-1">📛</div>
-              <h3 className="text-sm font-black text-emerald-300 uppercase tracking-[0.15em]">
+          <div className="absolute inset-0 bg-black/70" />
+          <div className="relative z-10 w-full max-w-sm rounded-2xl border border-slate-600/60 bg-slate-900 p-5">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-lg bg-emerald-400/10 border border-emerald-400/30 flex items-center justify-center shrink-0">
+                <IdCard className="w-5 h-5 text-emerald-300" strokeWidth={2} />
+              </div>
+              <h3 className="font-display text-xl font-bold uppercase tracking-wide text-gray-100">
                 Позивний
               </h3>
             </div>
@@ -434,9 +436,9 @@ export default function App() {
                     if (callsignError) setCallsignError("");
                   }}
                   placeholder="Наприклад: GhostFox"
-                  className="w-full bg-slate-800/70 border border-slate-700/60 rounded-2xl px-3 py-2 text-sm focus:outline-none focus:border-emerald-500/50"
+                  className="w-full bg-slate-950/60 border border-slate-600/60 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-emerald-400/60"
                 />
-                <div className="mt-1 text-[10px] text-gray-500 text-right">
+                <div className="mt-1 font-mono text-[10px] text-gray-500 text-right">
                   {callsignDraft.trim().length}/24
                 </div>
                 {callsignError && (
@@ -453,7 +455,7 @@ export default function App() {
                     }
                     setCallsignStep("confirm");
                   }}
-                  className="mt-3 w-full py-2.5 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 text-sm font-bold active:scale-[0.98]"
+                  className="mt-3 w-full py-2.5 rounded-lg bg-emerald-400 text-slate-950 text-sm font-bold active:scale-[0.98]"
                 >
                   Продовжити
                 </button>
@@ -463,8 +465,8 @@ export default function App() {
                 <p className="text-xs text-gray-400 mb-2">
                   Перевір, чи немає помилки. Після підтвердження зміну робить тільки адмін.
                 </p>
-                <div className="mb-3 rounded-2xl border border-emerald-500/30 bg-emerald-900/20 px-3 py-2 text-center">
-                  <span className="text-base font-black text-emerald-200">
+                <div className="mb-3 rounded-lg border border-emerald-400/30 bg-emerald-400/10 px-3 py-2.5 text-center">
+                  <span className="font-display text-xl font-bold uppercase tracking-wide text-emerald-300">
                     {callsignDraft.trim()}
                   </span>
                 </div>
@@ -476,7 +478,7 @@ export default function App() {
                     type="button"
                     onClick={() => setCallsignStep("input")}
                     disabled={callsignSaving}
-                    className="py-2.5 rounded-2xl bg-slate-800 border border-slate-700 text-xs font-semibold disabled:opacity-50"
+                    className="py-2.5 rounded-lg bg-slate-800 border border-slate-600/60 text-gray-200 text-xs font-semibold active:scale-[0.98] disabled:opacity-50"
                   >
                     Назад
                   </button>
@@ -484,7 +486,7 @@ export default function App() {
                     type="button"
                     onClick={submitCallsign}
                     disabled={callsignSaving}
-                    className="py-2.5 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 text-black text-xs font-black disabled:opacity-50"
+                    className="py-2.5 rounded-lg bg-emerald-400 text-slate-950 text-xs font-bold active:scale-[0.98] disabled:opacity-50"
                   >
                     {callsignSaving ? "Збереження..." : "Підтвердити"}
                   </button>
@@ -497,22 +499,24 @@ export default function App() {
 
       {showSurveyPromptModal && !showSurveyFormModal && !surveyStatus?.submitted && (
         <div className="fixed inset-0 z-[68] flex items-center justify-center px-4">
-          <div className="absolute inset-0 bg-black/65 backdrop-blur-sm" />
-          <div className="relative z-10 w-full max-w-sm rounded-3xl border border-slate-700/60 bg-slate-900/95 p-5">
-            <div className="text-center mb-2">
-              <div className="text-3xl mb-1">📝</div>
-              <h3 className="text-sm font-black text-emerald-300 uppercase tracking-[0.15em]">
+          <div className="absolute inset-0 bg-black/70" />
+          <div className="relative z-10 w-full max-w-sm rounded-2xl border border-slate-600/60 bg-slate-900 p-5">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-10 h-10 rounded-lg bg-emerald-400/10 border border-emerald-400/30 flex items-center justify-center shrink-0">
+                <PenLine className="w-5 h-5 text-emerald-300" strokeWidth={2} />
+              </div>
+              <h3 className="font-display text-xl font-bold uppercase tracking-wide text-gray-100">
                 Опитування
               </h3>
             </div>
-            <p className="text-sm text-gray-300 text-center">
+            <p className="text-sm text-gray-300">
               Допоможи покращити ігри та додаток. Це займе 1-2 хвилини.
             </p>
             <div className="grid grid-cols-2 gap-2 mt-4">
               <button
                 type="button"
                 onClick={postponeSurveyForToday}
-                className="py-2.5 rounded-2xl bg-slate-800 border border-slate-700 text-xs font-semibold"
+                className="py-2.5 rounded-lg bg-slate-800 border border-slate-600/60 text-gray-200 text-xs font-semibold active:scale-[0.98]"
               >
                 Пізніше
               </button>
@@ -522,7 +526,7 @@ export default function App() {
                   setShowSurveyPromptModal(false);
                   setShowSurveyFormModal(true);
                 }}
-                className="py-2.5 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 text-black text-xs font-black"
+                className="py-2.5 rounded-lg bg-emerald-400 text-slate-950 text-xs font-bold active:scale-[0.98]"
               >
                 Пройти
               </button>
@@ -596,42 +600,47 @@ function SurveyFormModal({ submitting, error, onClose, onSubmit }) {
 
   return (
     <div className="fixed inset-0 z-[80] flex items-center justify-center px-3 py-4">
-      <div className="absolute inset-0 bg-black/75 backdrop-blur-sm" />
-      <div className="relative z-10 w-full max-w-xl max-h-[92vh] overflow-y-auto rounded-3xl border border-slate-700/50 bg-slate-900/95 p-4">
-        <div className="flex items-center justify-between mb-3">
-          <h3 className="text-sm font-black text-emerald-300 uppercase tracking-[0.15em]">
-            Опитування
-          </h3>
+      <div className="absolute inset-0 bg-black/70" />
+      <div className="relative z-10 w-full max-w-xl max-h-[92vh] overflow-y-auto rounded-2xl border border-slate-600/60 bg-slate-900 p-4">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <PenLine className="w-5 h-5 text-emerald-300" strokeWidth={2} />
+            <h3 className="font-display text-xl font-bold uppercase tracking-wide text-gray-100">
+              Опитування
+            </h3>
+          </div>
           <button
             type="button"
             onClick={onClose}
             disabled={submitting}
-            className="px-2 py-1 rounded-lg bg-slate-800 border border-slate-700 text-xs"
+            className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-slate-800 border border-slate-600/60 text-gray-200 text-xs active:scale-[0.98]"
           >
+            <X className="w-3.5 h-3.5" strokeWidth={2} />
             Закрити
           </button>
         </div>
 
         <div className="space-y-4">
           <div>
-            <p className="text-xs text-gray-400 mb-2">1. Як тобі останні ігри в цілому?</p>
+            <p className="text-xs font-semibold text-gray-300 mb-2">1. Як тобі останні ігри в цілому?</p>
             <div className="grid grid-cols-2 gap-2">
               {[
-                ["great", "🔥 Дуже кайф"],
-                ["ok", "👍 Норм"],
-                ["meh", "😐 Так собі"],
-                ["bad", "👎 Не зайшло"],
-              ].map(([id, label]) => (
+                ["great", "Дуже кайф", Flame],
+                ["ok", "Норм", ThumbsUp],
+                ["meh", "Так собі", Meh],
+                ["bad", "Не зайшло", ThumbsDown],
+              ].map(([id, label, Icon]) => (
                 <button
                   key={id}
                   type="button"
                   onClick={() => setOverall(id)}
-                  className={`py-2 rounded-xl border text-xs ${
+                  className={`flex items-center justify-center gap-1.5 py-2 rounded-lg border text-xs ${
                     overall === id
-                      ? "bg-emerald-600/20 border-emerald-500/50 text-emerald-200"
-                      : "bg-slate-800/50 border-slate-700/50 text-gray-300"
+                      ? "bg-emerald-400/10 border-emerald-400/50 text-emerald-300"
+                      : "bg-slate-800/60 border-slate-700/60 text-gray-300"
                   }`}
                 >
+                  <Icon className="w-4 h-4" strokeWidth={2} />
                   {label}
                 </button>
               ))}
@@ -639,17 +648,17 @@ function SurveyFormModal({ submitting, error, onClose, onSubmit }) {
           </div>
 
           <div>
-            <p className="text-xs text-gray-400 mb-2">2. Що тобі найбільше подобається? (мультивибір)</p>
+            <p className="text-xs font-semibold text-gray-300 mb-2">2. Що тобі найбільше подобається? (мультивибір)</p>
             <div className="grid grid-cols-2 gap-2">
               {likesOptions.map(([id, label]) => (
                 <button
                   key={id}
                   type="button"
                   onClick={() => toggleMulti(id, setLikes)}
-                  className={`py-2 rounded-xl border text-xs ${
+                  className={`py-2 rounded-lg border text-xs ${
                     likes.includes(id)
-                      ? "bg-emerald-600/20 border-emerald-500/50 text-emerald-200"
-                      : "bg-slate-800/50 border-slate-700/50 text-gray-300"
+                      ? "bg-emerald-400/10 border-emerald-400/50 text-emerald-300"
+                      : "bg-slate-800/60 border-slate-700/60 text-gray-300"
                   }`}
                 >
                   {label}
@@ -659,28 +668,28 @@ function SurveyFormModal({ submitting, error, onClose, onSubmit }) {
           </div>
 
           <div>
-            <p className="text-xs text-gray-400 mb-2">3. Що найбільше бісить або не подобається?</p>
+            <p className="text-xs font-semibold text-gray-300 mb-2">3. Що найбільше бісить або не подобається?</p>
             <textarea
               value={painPoints}
               onChange={(e) => setPainPoints(e.target.value)}
               rows={3}
-              className="w-full bg-slate-800/60 border border-slate-700/50 rounded-2xl p-2.5 text-sm"
+              className="w-full bg-slate-950/60 border border-slate-600/60 rounded-lg p-2.5 text-sm focus:outline-none focus:border-emerald-400/60"
               placeholder="Тут можна написати вільно"
             />
           </div>
 
           <div>
-            <p className="text-xs text-gray-400 mb-2">4. Що б ти хотів(ла) покращити в самій грі? (мультивибір)</p>
+            <p className="text-xs font-semibold text-gray-300 mb-2">4. Що б ти хотів(ла) покращити в самій грі? (мультивибір)</p>
             <div className="grid grid-cols-2 gap-2">
               {improvementsOptions.map(([id, label]) => (
                 <button
                   key={id}
                   type="button"
                   onClick={() => toggleMulti(id, setImprovements)}
-                  className={`py-2 rounded-xl border text-xs ${
+                  className={`py-2 rounded-lg border text-xs ${
                     improvements.includes(id)
-                      ? "bg-emerald-600/20 border-emerald-500/50 text-emerald-200"
-                      : "bg-slate-800/50 border-slate-700/50 text-gray-300"
+                      ? "bg-emerald-400/10 border-emerald-400/50 text-emerald-300"
+                      : "bg-slate-800/60 border-slate-700/60 text-gray-300"
                   }`}
                 >
                   {label}
@@ -690,7 +699,7 @@ function SurveyFormModal({ submitting, error, onClose, onSubmit }) {
           </div>
 
           <div>
-            <p className="text-xs text-gray-400 mb-2">5. Чи допомагає додаток у грі?</p>
+            <p className="text-xs font-semibold text-gray-300 mb-2">5. Чи допомагає додаток у грі?</p>
             <div className="grid grid-cols-2 gap-2">
               {[
                 ["helps_a_lot", "Дуже допомагає"],
@@ -702,10 +711,10 @@ function SurveyFormModal({ submitting, error, onClose, onSubmit }) {
                   key={id}
                   type="button"
                   onClick={() => setAppHelpfulness(id)}
-                  className={`py-2 rounded-xl border text-xs ${
+                  className={`py-2 rounded-lg border text-xs ${
                     appHelpfulness === id
-                      ? "bg-emerald-600/20 border-emerald-500/50 text-emerald-200"
-                      : "bg-slate-800/50 border-slate-700/50 text-gray-300"
+                      ? "bg-emerald-400/10 border-emerald-400/50 text-emerald-300"
+                      : "bg-slate-800/60 border-slate-700/60 text-gray-300"
                   }`}
                 >
                   {label}
@@ -715,12 +724,12 @@ function SurveyFormModal({ submitting, error, onClose, onSubmit }) {
           </div>
 
           <div>
-            <p className="text-xs text-gray-400 mb-2">6. Якої функції тобі не вистачає в додатку?</p>
+            <p className="text-xs font-semibold text-gray-300 mb-2">6. Якої функції тобі не вистачає в додатку?</p>
             <textarea
               value={missingFeature}
               onChange={(e) => setMissingFeature(e.target.value)}
               rows={3}
-              className="w-full bg-slate-800/60 border border-slate-700/50 rounded-2xl p-2.5 text-sm"
+              className="w-full bg-slate-950/60 border border-slate-600/60 rounded-lg p-2.5 text-sm focus:outline-none focus:border-emerald-400/60"
               placeholder="Напиши ідею"
             />
           </div>
@@ -733,7 +742,7 @@ function SurveyFormModal({ submitting, error, onClose, onSubmit }) {
             type="button"
             onClick={submit}
             disabled={submitting}
-            className="w-full py-3 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 text-black text-sm font-black disabled:opacity-50"
+            className="w-full py-3 rounded-lg bg-emerald-400 text-slate-950 text-sm font-bold active:scale-[0.98] disabled:opacity-50"
           >
             {submitting ? "Надсилання..." : "Відправити опитування"}
           </button>

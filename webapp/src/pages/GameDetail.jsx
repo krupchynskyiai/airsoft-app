@@ -35,11 +35,51 @@ import {
   adminUpdateGameEquipmentStock,
 } from "../api";
 import { useTelegram } from "../hooks/useTelegram";
+import {
+  CalendarDays,
+  Clock,
+  MapPin,
+  Crosshair,
+  ClipboardList,
+  Timer,
+  Users,
+  Wallet,
+  CreditCard,
+  Receipt,
+  Gift,
+  RotateCw,
+  PenLine,
+  Hourglass,
+  X,
+  XCircle,
+  Skull,
+  HeartPulse,
+  Car,
+  Check,
+  CheckCircle2,
+  UserRound,
+  UserPlus,
+  HardHat,
+  Settings,
+  Play,
+  Flag,
+  Wrench,
+  Star,
+  Pause,
+  Shuffle,
+  Scale,
+  Square,
+  Undo2,
+  Hand,
+  Meh,
+  ChevronLeft,
+  Download,
+} from "lucide-react";
 
 const MODE = { team_vs_team: "Team vs Team", random_teams: "Random Teams", ffa: "FFA" };
 const TEAM_COLORS = {
-  A: { bg: "bg-amber-500/15", border: "border-amber-500/35", text: "text-amber-300", label: "🟡 Team A", dot: "bg-amber-400" },
-  B: { bg: "bg-blue-500/15", border: "border-blue-500/30", text: "text-blue-400", label: "🔵 Team B", dot: "bg-blue-400" },
+  A: { bg: "bg-amber-500/15", border: "border-amber-500/35", text: "text-amber-300", label: "Team A", dot: "bg-amber-400" },
+  B: { bg: "bg-blue-500/15", border: "border-blue-500/30", text: "text-blue-400", label: "Team B", dot: "bg-blue-400" },
 };
 const BILLING_FIELDS = [
   { key: "extra_weapon", label: "Доп зброя та спорядження" },
@@ -666,7 +706,7 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
   if (loading) {
     return (
       <div className="space-y-4 animate-pulse">
-        <div className="h-8 bg-slate-800 rounded-xl w-1/4" />
+        <div className="h-8 bg-slate-800 rounded-lg w-1/4" />
         <div className="h-48 bg-slate-800 rounded-2xl" />
         <div className="h-32 bg-slate-800 rounded-2xl" />
       </div>
@@ -676,9 +716,12 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
   if (!data) {
     return (
       <div className="text-center py-16">
-        <div className="text-4xl mb-3">😕</div>
+        <Meh className="w-12 h-12 mx-auto mb-4 text-slate-500" strokeWidth={1.5} />
         <p className="text-gray-400">Гру не знайдено</p>
-        <button onClick={onBack} className="text-emerald-400 text-sm mt-4">← Назад</button>
+        <button onClick={onBack} className="inline-flex items-center gap-1 text-emerald-300 text-sm mt-4">
+          <ChevronLeft className="w-4 h-4" strokeWidth={2} />
+          Назад
+        </button>
       </div>
     );
   }
@@ -733,120 +776,165 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
   return (
     <div className="pb-6">
       {/* Back button */}
-      <button onClick={onBack} className="flex items-center gap-2 text-emerald-400 text-sm font-medium mb-4 active:opacity-60 transition-opacity">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M15 18l-6-6 6-6" /></svg>
+      <button onClick={onBack} className="flex items-center gap-1 text-emerald-300 font-mono text-[11px] font-bold uppercase tracking-wider mb-4 active:opacity-60 transition-opacity">
+        <ChevronLeft className="w-4 h-4" strokeWidth={2} />
         Назад до ігор
       </button>
 
-      {/* ---- Hero card ---- */}
-      <div className="relative rounded-2xl overflow-hidden mb-5">
-        <div className={`absolute inset-0 ${
-          g.status === "active" ? "bg-gradient-to-br from-red-700/40 via-orange-800/20 to-slate-900"
-            : g.status === "finished" ? "bg-gradient-to-br from-slate-700/40 to-slate-900"
-            : "bg-gradient-to-br from-emerald-700/30 via-teal-800/20 to-slate-900"
-        }`} />
-        <div className="relative p-5">
-          <div className="flex items-start justify-between mb-4">
-            <div>
-              <div className="flex items-center gap-2 mb-1">
-                <span className="text-gray-400 font-mono text-sm">#{g.id}</span>
-                {g.status === "active" && (
-                  <div className="flex items-center gap-1.5 bg-red-500/20 px-2.5 py-0.5 rounded-full">
-                    <div className="w-1.5 h-1.5 rounded-full bg-red-400 animate-pulse" />
-                    <span className="text-[11px] font-bold text-red-400">LIVE</span>
-                  </div>
-                )}
+      {/* ---- Hero card: mission brief ---- */}
+      <div
+        className={`relative rounded-2xl overflow-hidden mb-5 bg-slate-900/80 border ${
+          g.status === "active"
+            ? "border-red-500/40"
+            : g.status === "checkin"
+            ? "border-amber-500/30"
+            : "border-slate-700/50"
+        }`}
+      >
+        <span
+          className={`absolute left-0 top-0 bottom-0 w-[3px] ${
+            g.status === "active"
+              ? "bg-red-400"
+              : g.status === "checkin"
+              ? "bg-amber-400"
+              : g.status === "finished" || g.status === "cancelled"
+              ? "bg-slate-500"
+              : "bg-emerald-400"
+          }`}
+        />
+        <div className="camo h-2 border-b border-slate-700/50" />
+        <div className="p-5">
+          <div className="flex items-start justify-between gap-3 mb-4">
+            <div className="min-w-0">
+              <div className="font-mono text-[11px] uppercase tracking-wider text-gray-500 mb-1">
+                Брифінг · #{g.id}
               </div>
-              <h2 className="text-xl font-black">Гра #{g.id}</h2>
+              <h2 className="font-display text-3xl font-bold uppercase tracking-wide leading-none">
+                Гра #{g.id}
+              </h2>
             </div>
-            <StatusBadge status={g.status} />
+            <div className="flex flex-col items-end gap-1.5 shrink-0">
+              <StatusBadge status={g.status} />
+              {MODE[g.game_mode] && (
+                <span className="inline-flex items-center gap-1 rounded border px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-wider text-gray-300 border-slate-600/50 bg-slate-800/60">
+                  <Crosshair className="w-3 h-3" strokeWidth={2} />
+                  {MODE[g.game_mode]}
+                </span>
+              )}
+            </div>
           </div>
 
-          <div className="space-y-1.5 text-[15px]">
-            <p>📅 {g.date} {g.time && <span className="text-gray-400">о {g.time}</span>}</p>
-            <p className="text-gray-300">📍 {g.location}</p>
-            <p className="text-gray-300">🎯 {MODE[g.game_mode]}</p>
-            {!!g.score_round_outcomes_only && (
-              <p className="text-amber-200/90 text-sm">
-                📋 Рейтинг за підсумком раундів (перемога / нічия); смерті в раундах не впливають на очки.
-              </p>
+          <dl className="space-y-2.5 border-t border-slate-700/50 pt-4">
+            <BriefRow icon={CalendarDays} label="Дата">
+              {g.date}
+            </BriefRow>
+            {g.time && (
+              <BriefRow icon={Clock} label="Час">
+                {g.time}
+              </BriefRow>
             )}
+            <BriefRow icon={MapPin} label="Локація">
+              {g.location}
+            </BriefRow>
             {g.duration && (
-              <p className="text-gray-300">
-                ⏱ Тривалість: <span className="font-semibold">{g.duration}</span>
-              </p>
+              <BriefRow icon={Timer} label="Тривалість">
+                {g.duration}
+              </BriefRow>
             )}
             {typeof g.max_players === "number" && (
-              <p className="text-gray-300 text-sm">
-                👥 Вільних місць:{" "}
-                <span className="font-semibold">
-                  {freeSlots}
-                </span>{" "}
-                з {g.max_players}
-              </p>
+              <BriefRow icon={Users} label="Вільних місць">
+                {freeSlots} <span className="text-gray-500 font-normal">з {g.max_players}</span>
+              </BriefRow>
             )}
             {typeof g.payment === "number" && (
-              <p className="text-gray-400">🪙 Вартість участі: <span className="font-semibold text-gray-300">{g.payment} грн</span></p>
+              <BriefRow icon={Wallet} label="Вартість участі">
+                {g.payment} грн
+              </BriefRow>
             )}
-            {myRegistration && myTotalCost != null && (
-              <p className="text-gray-300">
-                💳 Моя сума: <span className="font-semibold text-emerald-300">{myTotalCost} грн</span>
-                {" "}
-                <span className="text-xs text-gray-500">(база {g.payment || 0} + допи {myEquipmentTotal || 0})</span>
-              </p>
-            )}
-            {mySettlement?.settlement && (
-              <p className="text-gray-300">
-                🧾 Мій чек:{" "}
-                <span className="font-semibold text-emerald-300">
-                  {mySettlement.settlement.gross_due_public || 0} грн
-                </span>
-                {" "}
-                <span className="text-xs text-gray-500">
-                  (сплачено {mySettlement.settlement.paid_total || 0}, борг {mySettlement.settlement.debt_public || 0})
-                </span>
-                {Number(mySettlement.settlement.loot_discount || 0) > 0 && (
-                  <span className="block text-xs text-emerald-300 mt-1">
-                    🎁 Бонус застосовано: −{mySettlement.settlement.loot_discount} грн
-                  </span>
-                )}
-              </p>
-            )}
-          </div>
+          </dl>
 
-          {/* Round counter + timer */}
-          {g.status === "active" && (
-            <div className="mt-4 flex items-center justify-center gap-4 bg-red-500/10 border border-red-500/20 rounded-xl py-3 px-4">
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-red-400 animate-pulse" />
-                <span className="text-sm font-bold text-red-300">
-                  {hasActiveRound ? `Раунд ${g.current_round}` : "Перерва"}
-                </span>
-              </div>
-              {hasActiveRound && (
-                <div className="bg-slate-900/60 px-3 py-1 rounded-lg">
-                  <span className="text-lg font-mono font-black text-white">{timerValue}</span>
+          {!!g.score_round_outcomes_only && (
+            <div className="mt-4 flex items-start gap-2 rounded-lg border border-amber-400/30 bg-amber-400/10 px-3 py-2 text-sm text-amber-200/90">
+              <ClipboardList className="w-4 h-4 mt-0.5 shrink-0 text-amber-300" strokeWidth={2} />
+              <span>Рейтинг за підсумком раундів (перемога / нічия); смерті в раундах не впливають на очки.</span>
+            </div>
+          )}
+
+          {((myRegistration && myTotalCost != null) || mySettlement?.settlement) && (
+            <div className="mt-4 space-y-2 rounded-lg border border-slate-700/50 bg-slate-950/40 px-3 py-2.5">
+              {myRegistration && myTotalCost != null && (
+                <div className="flex items-start gap-2 text-sm text-gray-300">
+                  <CreditCard className="w-4 h-4 mt-0.5 shrink-0 text-gray-500" strokeWidth={2} />
+                  <p>
+                    Моя сума: <span className="font-semibold text-emerald-300">{myTotalCost} грн</span>
+                    {" "}
+                    <span className="text-xs text-gray-500">(база {g.payment || 0} + допи {myEquipmentTotal || 0})</span>
+                  </p>
+                </div>
+              )}
+              {mySettlement?.settlement && (
+                <div className="flex items-start gap-2 text-sm text-gray-300">
+                  <Receipt className="w-4 h-4 mt-0.5 shrink-0 text-gray-500" strokeWidth={2} />
+                  <p>
+                    Мій чек:{" "}
+                    <span className="font-semibold text-emerald-300">
+                      {mySettlement.settlement.gross_due_public || 0} грн
+                    </span>
+                    {" "}
+                    <span className="text-xs text-gray-500">
+                      (сплачено {mySettlement.settlement.paid_total || 0}, борг {mySettlement.settlement.debt_public || 0})
+                    </span>
+                    {Number(mySettlement.settlement.loot_discount || 0) > 0 && (
+                      <span className="flex items-center gap-1 text-xs text-emerald-300 mt-1">
+                        <Gift className="w-3.5 h-3.5" strokeWidth={2} />
+                        Бонус застосовано: −{mySettlement.settlement.loot_discount} грн
+                      </span>
+                    )}
+                  </p>
                 </div>
               )}
             </div>
           )}
 
+          {/* Round counter + timer */}
+          {g.status === "active" && (
+            <div className="mt-4 flex items-center justify-between gap-4 bg-red-500/10 border border-red-400/30 rounded-lg py-2.5 px-3">
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full bg-red-400 animate-pulse" />
+                <span className="font-mono text-[11px] font-bold uppercase tracking-wider text-red-300">
+                  {hasActiveRound ? `Раунд ${g.current_round}` : "Перерва"}
+                </span>
+              </div>
+              {hasActiveRound && (
+                <span className="text-lg font-mono font-bold text-gray-100 tabular-nums">{timerValue}</span>
+              )}
+            </div>
+          )}
+
           {/* Player count */}
-          <div className="flex items-center gap-4 mt-4 pt-3 border-t border-white/10">
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mt-4 pt-3 border-t border-slate-700/50">
             <div className="flex items-center gap-1.5">
-              <span>👥</span>
+              <Users className="w-4 h-4 text-gray-500" strokeWidth={2} />
               <span className="font-bold">{players.length}</span>
               <span className="text-gray-400 text-sm">гравців</span>
             </div>
             {g.current_round > 0 && (
               <div className="flex items-center gap-1.5">
-                <span>🔄</span>
+                <RotateCw className="w-4 h-4 text-gray-500" strokeWidth={2} />
                 <span className="font-bold">{rounds.length}</span>
                 <span className="text-gray-400 text-sm">раундів</span>
               </div>
             )}
             {myRegistration && (
-              <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-emerald-500/30 bg-emerald-500/10">
+              <div
+                className={`flex items-center gap-1.5 rounded border px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-wider ${
+                  myRegistration.attendance === "checked_in"
+                    ? "text-emerald-300 border-emerald-400/30 bg-emerald-400/10"
+                    : myRegistration.attendance === "checkin_pending"
+                    ? "text-amber-300 border-amber-400/30 bg-amber-400/10"
+                    : "text-gray-300 border-slate-600/50 bg-slate-800/60"
+                }`}
+              >
                 <div
                   className={`w-1.5 h-1.5 rounded-full ${
                     myRegistration.attendance === "checked_in"
@@ -856,7 +944,7 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
                       : "bg-slate-500"
                   }`}
                 />
-                <span className="text-[11px] font-bold text-emerald-100">
+                <span>
                   {myRegistration.attendance === "checked_in"
                     ? "Check-in підтверджено"
                     : myRegistration.attendance === "checkin_pending"
@@ -876,18 +964,18 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
             <ActionButton
               onClick={openJoinEquipmentModal}
               loading={actionLoading}
-              icon="📝"
+              icon={<PenLine className="w-5 h-5" strokeWidth={2} />}
               label="Записатись на гру"
-              className="bg-gradient-to-r from-emerald-600 to-teal-600"
+              className="bg-emerald-400 text-slate-950"
             />
           )}
           {!myRegistration && myWaitlist && (
             <ActionButton
               onClick={() => {}}
               loading={false}
-              icon="🕒"
+              icon={<Hourglass className="w-5 h-5" strokeWidth={2} />}
               label="Ти у листі очікування"
-              className="bg-slate-700/70"
+              className="bg-slate-800 border border-slate-600/60 text-gray-200"
             />
           )}
           {myRegistration && (g.status === "upcoming" || g.status === "checkin") && (
@@ -898,9 +986,9 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
                 doAction(() => cancelJoinGame(gameId), "Запис скасовано");
               }}
               loading={actionLoading}
-              icon="❌"
+              icon={<X className="w-5 h-5" strokeWidth={2} />}
               label="Скасувати запис"
-              className="bg-gradient-to-r from-slate-700 to-red-700"
+              className="bg-red-500/15 border border-red-400/40 text-red-300"
             />
           )}
           {myRegistration?.attendance === "registered" &&
@@ -914,9 +1002,9 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
                 doAction(() => checkinGame(gameId));
               }}
               loading={actionLoading}
-              icon="📍"
+              icon={<MapPin className="w-5 h-5" strokeWidth={2} />}
               label="Check-in — я на місці"
-              className="bg-gradient-to-r from-amber-600 to-orange-600"
+              className="bg-amber-400 text-slate-950"
             />
           )}
           {g.status === "active" && hasActiveRound && myRegistration?.attendance === "checked_in" && (
@@ -929,25 +1017,28 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
                 doAction(() => reportDead(gameId));
               }}
               loading={actionLoading}
-              icon="💀"
+              icon={<Skull className="w-5 h-5" strokeWidth={2} />}
               label="Мене вбили"
-              className="bg-gradient-to-r from-red-700 to-red-800"
+              className="bg-red-500/15 border border-red-400/40 text-red-300"
             />
           )}
         </div>
       )}
 
       {myRegistration && Array.isArray(myEquipment) && myEquipment.length > 0 && (
-        <div className="bg-slate-800/60 backdrop-blur-sm rounded-2xl p-4 mb-5 border border-slate-700/40">
+        <div className="bg-slate-900/80 border border-slate-700/50 rounded-2xl p-4 mb-5">
           <div className="flex items-center justify-between mb-2">
-            <h3 className="text-sm font-bold text-gray-300 uppercase tracking-wider">Моє спорядження</h3>
+            <div className="flex items-center gap-2">
+              <Wrench className="w-5 h-5 text-emerald-300" strokeWidth={2} />
+              <h3 className="text-xs font-bold text-gray-300 uppercase tracking-wider">Моє спорядження</h3>
+            </div>
             <span className="text-xs text-emerald-300 font-semibold">+{myEquipmentTotal || 0} грн</span>
           </div>
           <div className="space-y-1.5">
             {myEquipment.map((rw, idx) => {
               const def = equipmentItems.find((it) => it.item_key === rw.item_key);
               return (
-                <div key={`${rw.item_key}_${idx}`} className="flex items-center justify-between text-xs bg-slate-900/50 border border-slate-700/40 rounded-xl px-3 py-2">
+                <div key={`${rw.item_key}_${idx}`} className="flex items-center justify-between text-xs bg-slate-950/40 border border-slate-700/50 rounded-lg px-3 py-2">
                   <span className="text-gray-200">{def?.title || rw.item_key}</span>
                   <span className="text-gray-400">
                     {rw.quantity} × {rw.unit_price ?? 0} ={" "}
@@ -962,11 +1053,11 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
 
       {/* ---- Rides / Logistics ---- */}
       {myRegistration && g.status !== "finished" && g.status !== "cancelled" && (
-        <div className="bg-slate-800/60 backdrop-blur-sm rounded-2xl p-4 mb-5 border border-slate-700/40">
+        <div className="bg-slate-900/80 border border-slate-700/50 rounded-2xl p-4 mb-5">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
-              <span>🚗</span>
-              <h3 className="text-sm font-bold text-gray-300 uppercase tracking-wider">
+              <Car className="w-5 h-5 text-emerald-300" strokeWidth={2} />
+              <h3 className="text-xs font-bold text-gray-300 uppercase tracking-wider">
                 Поїздки
               </h3>
             </div>
@@ -983,7 +1074,7 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
                 }));
                 setShowRideModal(true);
               }}
-              className="px-3 py-1.5 rounded-xl bg-emerald-600/20 border border-emerald-500/30 text-[11px] font-bold text-emerald-300 active:scale-95 transition-transform"
+              className="px-3 py-1.5 rounded-lg bg-emerald-400 text-slate-950 text-[11px] font-bold active:scale-[0.98] transition-transform"
             >
               Запропонувати
             </button>
@@ -1001,23 +1092,27 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
                 const seatsFree = Math.max(0, r.seats_total - r.seats_accepted);
                 const mineReq = r.myRequest?.status;
                 return (
-                  <div key={r.id} className="bg-slate-900/40 border border-slate-700/40 rounded-2xl p-3">
+                  <div key={r.id} className="bg-slate-950/40 border border-slate-700/50 rounded-lg p-3">
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0">
                         <div className="text-xs text-gray-400">
                           Водій: <span className="font-semibold text-gray-200">{formatNick(r.owner_nickname)}</span>
                         </div>
-                        <div className="text-xs text-gray-400 mt-1">
-                          👥 Місць: <span className="font-semibold text-gray-200">{seatsFree}</span> / {r.seats_total}
+                        <div className="flex items-center gap-1.5 text-xs text-gray-400 mt-1">
+                          <Users className="w-3.5 h-3.5 text-gray-500" strokeWidth={2} />
+                          Місць: <span className="font-semibold text-gray-200">{seatsFree}</span> / {r.seats_total}
                         </div>
-                        <div className="text-xs text-gray-400 mt-1">
-                          📍 {r.depart_location}
+                        <div className="flex items-center gap-1.5 text-xs text-gray-400 mt-1">
+                          <MapPin className="w-3.5 h-3.5 text-gray-500 shrink-0" strokeWidth={2} />
+                          {r.depart_location}
                         </div>
-                        <div className="text-xs text-gray-400 mt-1">
-                          ⏰ {r.depart_time}
+                        <div className="flex items-center gap-1.5 text-xs text-gray-400 mt-1">
+                          <Clock className="w-3.5 h-3.5 text-gray-500 shrink-0" strokeWidth={2} />
+                          {r.depart_time}
                         </div>
-                        <div className="text-xs text-gray-500 mt-1">
-                          🚗 {r.car_make}, {r.car_color}
+                        <div className="flex items-center gap-1.5 text-xs text-gray-500 mt-1">
+                          <Car className="w-3.5 h-3.5 text-gray-500 shrink-0" strokeWidth={2} />
+                          {r.car_make}, {r.car_color}
                         </div>
                         {r.updated_at && (
                           <div className="text-[10px] text-gray-600 mt-1">
@@ -1042,7 +1137,7 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
                                 setShowRideModal(true);
                               }}
                               disabled={actionLoading}
-                              className="px-2.5 py-1 rounded-lg bg-slate-700/40 border border-slate-600/40 text-[10px] font-bold text-gray-200 active:scale-95 disabled:opacity-50"
+                              className="px-2.5 py-1 rounded-lg bg-slate-800 border border-slate-600/60 text-gray-200 text-[10px] font-bold active:scale-95 disabled:opacity-50"
                             >
                               Редагувати
                             </button>
@@ -1053,13 +1148,13 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
                                 doAction(() => deleteRide(gameId, r.id), "Поїздку скасовано");
                               }}
                               disabled={actionLoading}
-                              className="px-2.5 py-1 rounded-lg bg-red-700/30 border border-red-600/30 text-[10px] font-bold text-red-200 active:scale-95 disabled:opacity-50"
+                              className="px-2.5 py-1 rounded-lg bg-red-500/15 border border-red-400/40 text-red-300 text-[10px] font-bold active:scale-95 disabled:opacity-50"
                             >
                               Скасувати
                             </button>
                           </>
                         ) : mineReq ? (
-                          <span className="text-[10px] font-bold text-gray-400">
+                          <span className="rounded border px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-wider text-gray-300 border-slate-600/50 bg-slate-800/60">
                             {mineReq === "pending"
                               ? "Очікує підтвердження"
                               : mineReq === "accepted"
@@ -1075,7 +1170,7 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
                               setRequestRideModal({ rideId: r.id, ownerNickname: r.owner_nickname });
                             }}
                             disabled={actionLoading || seatsFree <= 0}
-                            className="px-2.5 py-1 rounded-lg bg-emerald-600/30 border border-emerald-500/30 text-[10px] font-bold text-emerald-200 active:scale-95 disabled:opacity-50"
+                            className="px-2.5 py-1 rounded-lg bg-emerald-400 text-slate-950 text-[10px] font-bold active:scale-95 disabled:opacity-50"
                           >
                             Запит місця
                           </button>
@@ -1090,7 +1185,7 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
                         </div>
                         <div className="space-y-1.5">
                           {r.pendingRequests.map((pr) => (
-                            <div key={pr.request_id} className="flex items-center justify-between bg-slate-800/60 border border-slate-700/40 rounded-xl px-2 py-1.5">
+                            <div key={pr.request_id} className="flex items-center justify-between bg-slate-800/60 border border-slate-700/50 rounded-lg px-2 py-1.5">
                               <div className="text-[11px] text-gray-200">
                                 {formatNick(pr.requester_nickname)} • <span className="text-gray-400">місць:</span>{" "}
                                 <span className="font-semibold">{pr.seats_requested}</span>
@@ -1099,7 +1194,7 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
                                 <button
                                   onClick={() => doAction(() => respondRideRequest(gameId, r.id, pr.request_id, "accept"), "Запит прийнято")}
                                   disabled={actionLoading}
-                                  className="px-2 py-1 rounded-lg bg-emerald-600/60 text-[10px] font-bold text-white active:scale-95 disabled:opacity-50"
+                                  className="px-2 py-1 rounded-lg bg-emerald-400 text-slate-950 text-[10px] font-bold active:scale-95 disabled:opacity-50"
                                 >
                                   Так
                                 </button>
@@ -1113,7 +1208,7 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
                                     );
                                   }}
                                   disabled={actionLoading}
-                                  className="px-2 py-1 rounded-lg bg-red-700/60 text-[10px] font-bold text-white active:scale-95 disabled:opacity-50"
+                                  className="px-2 py-1 rounded-lg bg-red-500/15 border border-red-400/40 text-red-300 text-[10px] font-bold active:scale-95 disabled:opacity-50"
                                 >
                                   Ні
                                 </button>
@@ -1131,7 +1226,7 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
                         </div>
                         <div className="space-y-1.5">
                           {r.acceptedRequests.map((ar) => (
-                            <div key={ar.request_id} className="flex items-center justify-between bg-slate-800/40 border border-slate-700/40 rounded-xl px-2 py-1.5">
+                            <div key={ar.request_id} className="flex items-center justify-between bg-slate-800/40 border border-slate-700/50 rounded-lg px-2 py-1.5">
                               <div className="text-[11px] text-gray-200">
                                 {formatNick(ar.requester_nickname)} • <span className="text-gray-400">місць:</span>{" "}
                                 <span className="font-semibold">{ar.seats_requested}</span>
@@ -1151,7 +1246,7 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
                                   );
                                 }}
                                 disabled={actionLoading}
-                                className="px-2 py-1 rounded-lg bg-red-700/40 border border-red-600/30 text-[10px] font-bold text-red-200 active:scale-95 disabled:opacity-50"
+                                className="px-2 py-1 rounded-lg bg-red-500/15 border border-red-400/40 text-red-300 text-[10px] font-bold active:scale-95 disabled:opacity-50"
                               >
                                 Kick
                               </button>
@@ -1171,11 +1266,14 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
       {/* ---- Ride create modal ---- */}
       {showRideModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowRideModal(false)} />
-          <div className="relative w-full max-w-md bg-slate-900/95 border border-emerald-500/30 rounded-3xl p-4">
+          <div className="absolute inset-0 bg-black/70" onClick={() => setShowRideModal(false)} />
+          <div className="relative w-full max-w-md bg-slate-900 border border-slate-600/60 rounded-2xl p-4">
             <div className="flex items-center justify-between mb-3">
-              <div className="text-sm font-black text-emerald-300">Запропонувати поїздку</div>
-              <button onClick={() => setShowRideModal(false)} className="text-gray-400 text-sm px-2 py-1">✕</button>
+              <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-gray-300">
+                <Car className="w-5 h-5 text-emerald-300" strokeWidth={2} />
+                Запропонувати поїздку
+              </div>
+              <button onClick={() => setShowRideModal(false)} className="text-gray-400 px-2 py-1" aria-label="Закрити"><X className="w-4 h-4" strokeWidth={2} /></button>
             </div>
 
             <div className="space-y-2">
@@ -1186,7 +1284,7 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
                   min={1}
                   value={rideForm.seats_total}
                   onChange={(e) => setRideForm((s) => ({ ...s, seats_total: parseInt(e.target.value || 1) }))}
-                  className="mt-1 w-full bg-slate-800/70 border border-slate-700/50 rounded-xl px-3 py-2 text-sm"
+                  className="mt-1 w-full bg-slate-800/70 border border-slate-700/50 rounded-lg px-3 py-2 text-sm"
                 />
               </label>
               <label className="block text-[11px] text-gray-400">
@@ -1194,7 +1292,7 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
                 <input
                   value={rideForm.depart_location}
                   onChange={(e) => setRideForm((s) => ({ ...s, depart_location: e.target.value }))}
-                  className="mt-1 w-full bg-slate-800/70 border border-slate-700/50 rounded-xl px-3 py-2 text-sm"
+                  className="mt-1 w-full bg-slate-800/70 border border-slate-700/50 rounded-lg px-3 py-2 text-sm"
                   placeholder="Напр. метро / парковка / адреса"
                 />
               </label>
@@ -1203,7 +1301,7 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
                 <input
                   value={rideForm.depart_time}
                   onChange={(e) => setRideForm((s) => ({ ...s, depart_time: e.target.value }))}
-                  className="mt-1 w-full bg-slate-800/70 border border-slate-700/50 rounded-xl px-3 py-2 text-sm"
+                  className="mt-1 w-full bg-slate-800/70 border border-slate-700/50 rounded-lg px-3 py-2 text-sm"
                   placeholder="Напр. 08:30"
                 />
               </label>
@@ -1213,7 +1311,7 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
                   <input
                     value={rideForm.car_make}
                     onChange={(e) => setRideForm((s) => ({ ...s, car_make: e.target.value }))}
-                    className="mt-1 w-full bg-slate-800/70 border border-slate-700/50 rounded-xl px-3 py-2 text-sm"
+                    className="mt-1 w-full bg-slate-800/70 border border-slate-700/50 rounded-lg px-3 py-2 text-sm"
                     placeholder="VW Golf"
                   />
                 </label>
@@ -1222,7 +1320,7 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
                   <input
                     value={rideForm.car_color}
                     onChange={(e) => setRideForm((s) => ({ ...s, car_color: e.target.value }))}
-                    className="mt-1 w-full bg-slate-800/70 border border-slate-700/50 rounded-xl px-3 py-2 text-sm"
+                    className="mt-1 w-full bg-slate-800/70 border border-slate-700/50 rounded-lg px-3 py-2 text-sm"
                     placeholder="сірий"
                   />
                 </label>
@@ -1245,7 +1343,7 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
                 })
               }
               disabled={actionLoading}
-              className="mt-3 w-full bg-gradient-to-r from-emerald-600 to-teal-600 py-3 rounded-2xl font-bold text-[14px] active:scale-[0.98] disabled:opacity-50"
+              className="mt-3 w-full bg-emerald-400 text-slate-950 py-3 rounded-lg font-bold text-[14px] active:scale-[0.98] disabled:opacity-50"
             >
               {actionLoading ? <Spinner /> : "Зберегти"}
             </button>
@@ -1256,13 +1354,13 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
       {/* ---- Request seats modal ---- */}
       {requestRideModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setRequestRideModal(null)} />
-          <div className="relative w-full max-w-md bg-slate-900/95 border border-emerald-500/30 rounded-3xl p-4">
+          <div className="absolute inset-0 bg-black/70" onClick={() => setRequestRideModal(null)} />
+          <div className="relative w-full max-w-md bg-slate-900 border border-slate-600/60 rounded-2xl p-4">
             <div className="flex items-center justify-between mb-3">
-              <div className="text-sm font-black text-emerald-300">
+              <div className="text-sm font-bold text-gray-100">
                 Запит місць у {formatNick(requestRideModal.ownerNickname)}
               </div>
-              <button onClick={() => setRequestRideModal(null)} className="text-gray-400 text-sm px-2 py-1">✕</button>
+              <button onClick={() => setRequestRideModal(null)} className="text-gray-400 px-2 py-1" aria-label="Закрити"><X className="w-4 h-4" strokeWidth={2} /></button>
             </div>
             <label className="block text-[11px] text-gray-400">
               Скільки місць потрібно?
@@ -1271,7 +1369,7 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
                 min={1}
                 value={requestSeats}
                 onChange={(e) => setRequestSeats(parseInt(e.target.value || 1))}
-                className="mt-1 w-full bg-slate-800/70 border border-slate-700/50 rounded-xl px-3 py-2 text-sm"
+                className="mt-1 w-full bg-slate-800/70 border border-slate-700/50 rounded-lg px-3 py-2 text-sm"
               />
             </label>
             <button
@@ -1282,7 +1380,7 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
                 ).then(() => setRequestRideModal(null))
               }
               disabled={actionLoading}
-              className="mt-3 w-full bg-gradient-to-r from-emerald-600 to-teal-600 py-3 rounded-2xl font-bold text-[14px] active:scale-[0.98] disabled:opacity-50"
+              className="mt-3 w-full bg-emerald-400 text-slate-950 py-3 rounded-lg font-bold text-[14px] active:scale-[0.98] disabled:opacity-50"
             >
               {actionLoading ? <Spinner /> : "Відправити запит"}
             </button>
@@ -1293,37 +1391,38 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
       {showJoinEquipmentModal && !myRegistration && (
         <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
           <div
-            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            className="absolute inset-0 bg-black/70"
             onClick={() => setShowJoinEquipmentModal(false)}
           />
-          <div className="relative w-full max-w-2xl max-h-[88vh] overflow-y-auto bg-slate-900/95 border border-emerald-500/30 rounded-3xl p-4 pb-28">
+          <div className="relative w-full max-w-2xl max-h-[88vh] overflow-y-auto bg-slate-900 border border-slate-600/60 rounded-2xl p-4 pb-28">
             <div className="flex items-start justify-between gap-3 mb-3">
               <div>
-                <div className="text-[11px] text-gray-400">Запис на гру #{g.id}</div>
-                <div className="text-sm font-black text-emerald-200">
+                <div className="font-mono text-[11px] uppercase tracking-wider text-gray-500">Запис на гру #{g.id}</div>
+                <div className="text-sm font-bold text-gray-100">
                   Обери спорядження та одразу побач суму
                 </div>
               </div>
               <button
                 onClick={() => setShowJoinEquipmentModal(false)}
-                className="text-gray-400 text-sm px-2 py-1"
+                className="text-gray-400 px-2 py-1"
+                aria-label="Закрити"
               >
-                ✕
+                <X className="w-4 h-4" strokeWidth={2} />
               </button>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-3">
-              <div className="rounded-2xl border border-slate-700/50 bg-slate-800/50 p-3">
+              <div className="rounded-lg border border-slate-700/50 bg-slate-800/50 p-3">
                 <div className="text-[10px] text-gray-400 uppercase tracking-wider">База</div>
-                <div className="text-lg font-black text-white">{g.payment || 0} грн</div>
+                <div className="text-lg font-bold text-gray-100">{g.payment || 0} грн</div>
               </div>
-              <div className="rounded-2xl border border-emerald-700/40 bg-emerald-900/20 p-3">
+              <div className="rounded-lg border border-emerald-400/30 bg-emerald-400/10 p-3">
                 <div className="text-[10px] text-emerald-300 uppercase tracking-wider">Додатково</div>
-                <div className="text-lg font-black text-emerald-200">{joinAdditionalCost} грн</div>
+                <div className="text-lg font-bold text-emerald-200">{joinAdditionalCost} грн</div>
               </div>
-              <div className="rounded-2xl border border-amber-700/40 bg-amber-900/20 p-3">
+              <div className="rounded-lg border border-amber-400/30 bg-amber-400/10 p-3">
                 <div className="text-[10px] text-amber-300 uppercase tracking-wider">Разом</div>
-                <div className="text-lg font-black text-amber-200">{joinTotalCost} грн</div>
+                <div className="text-lg font-bold text-amber-200">{joinTotalCost} грн</div>
               </div>
             </div>
 
@@ -1351,12 +1450,12 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
                   qty <= 0;
                 const incDisabled = disabled || qty >= maxQty || primaryLocked;
                 return (
-                  <div key={it.item_key} className="flex items-center gap-2 rounded-2xl border border-slate-700/40 bg-slate-800/50 p-2.5">
+                  <div key={it.item_key} className="flex items-center gap-2 rounded-lg border border-slate-700/50 bg-slate-800/50 p-2.5">
                     <div className="w-12 h-10 rounded-lg bg-slate-900/80 overflow-hidden flex items-center justify-center border border-slate-700/40">
                       {it.image_url ? (
                         <img src={it.image_url} alt={it.title} className="w-full h-full object-contain" />
                       ) : (
-                        <span>🎯</span>
+                        <Crosshair className="w-4 h-4 text-gray-500" strokeWidth={2} />
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
@@ -1376,7 +1475,7 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
                           }))
                         }
                         disabled={decDisabled}
-                        className="w-7 h-7 rounded-lg bg-slate-700/70 text-gray-200 text-sm font-bold disabled:opacity-40"
+                        className="w-7 h-7 rounded-lg bg-slate-800 border border-slate-600/60 text-gray-200 text-sm font-bold disabled:opacity-40"
                       >
                         −
                       </button>
@@ -1390,7 +1489,7 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
                           }))
                         }
                         disabled={incDisabled}
-                        className="w-7 h-7 rounded-lg bg-emerald-600/80 text-black text-sm font-black disabled:opacity-40"
+                        className="w-7 h-7 rounded-lg bg-emerald-400 text-slate-950 text-sm font-bold disabled:opacity-40"
                       >
                         +
                       </button>
@@ -1400,7 +1499,7 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
               })}
             </div>
 
-            <div className="sticky bottom-0 pt-3 bg-gradient-to-t from-slate-900 via-slate-900/95 to-transparent">
+            <div className="sticky bottom-0 pt-3 bg-slate-900 border-t border-slate-700/50">
               <button
                 onClick={() =>
                   doAction(async () => {
@@ -1417,7 +1516,7 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
                   })
                 }
                 disabled={actionLoading}
-                className="w-full bg-gradient-to-r from-emerald-600 to-teal-600 py-3 rounded-2xl font-bold text-[14px] active:scale-[0.98] disabled:opacity-50"
+                className="w-full bg-emerald-400 text-slate-950 py-3 rounded-lg font-bold text-[14px] active:scale-[0.98] disabled:opacity-50"
               >
                 {actionLoading ? <Spinner /> : "Підтвердити запис"}
               </button>
@@ -1431,16 +1530,17 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
       {isAdmin && isBetweenRounds && mvpPickOpen && mvpState && (
         <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
           <div
-            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            className="absolute inset-0 bg-black/70"
             onClick={() => setMvpPickOpen(false)}
           />
-          <div className="relative w-full max-w-md bg-slate-900/95 border border-amber-500/30 rounded-3xl p-4">
+          <div className="relative w-full max-w-md bg-slate-900 border border-slate-600/60 rounded-2xl p-4">
             <div className="flex items-start justify-between gap-3 mb-3">
               <div>
-                <div className="text-[11px] text-gray-400">
+                <div className="flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-wider text-amber-300">
+                  <Star className="w-3.5 h-3.5" strokeWidth={2} />
                   MVP Раунду {mvpState.round_number}
                 </div>
-                <div className="text-sm font-black text-amber-200">
+                <div className="text-sm font-bold text-gray-100">
                   Кого команда переможців визначає як MVP?
                 </div>
                 <div className="text-[11px] text-gray-400 mt-1">
@@ -1449,9 +1549,10 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
               </div>
               <button
                 onClick={() => setMvpPickOpen(false)}
-                className="text-gray-400 text-sm px-2 py-1"
+                className="text-gray-400 px-2 py-1"
+                aria-label="Закрити"
               >
-                ✕
+                <X className="w-4 h-4" strokeWidth={2} />
               </button>
             </div>
 
@@ -1466,14 +1567,18 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
                       haptic("impact");
                       setMvpPickSelected(c.player_id);
                     }}
-                    className={`w-full flex items-center justify-between py-2 px-3 rounded-2xl border transition-all active:scale-[0.99] ${
+                    className={`w-full flex items-center justify-between py-2 px-3 rounded-lg border transition-all active:scale-[0.99] ${
                       selected
-                        ? "border-amber-500/60 bg-amber-500/10"
-                        : "border-slate-700/40 bg-slate-800/50 hover:bg-slate-700/50"
+                        ? "border-emerald-400/50 bg-emerald-400/10"
+                        : "border-slate-700/50 bg-slate-800/50 hover:bg-slate-700/50"
                     }`}
                   >
                     <div className="flex items-center gap-2">
-                      <span className="text-base">{selected ? "✅" : "🪖"}</span>
+                      {selected ? (
+                        <CheckCircle2 className="w-4 h-4 text-emerald-300" strokeWidth={2} />
+                      ) : (
+                        <UserRound className="w-4 h-4 text-gray-500" strokeWidth={2} />
+                      )}
                       <span className="text-sm font-semibold">
                         {formatNick(c.nickname)}
                       </span>
@@ -1492,7 +1597,7 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
             <div className="grid grid-cols-2 gap-2 mt-3">
               <button
                 onClick={() => setMvpPickOpen(false)}
-                className="py-3 rounded-2xl bg-slate-800/70 border border-slate-700/40 text-sm font-bold text-gray-200 active:scale-[0.98]"
+                className="py-3 rounded-lg bg-slate-800 border border-slate-600/60 text-gray-200 text-sm font-bold active:scale-[0.98]"
               >
                 Пізніше
               </button>
@@ -1523,7 +1628,7 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
                   setMvpPickSelected(null);
                 }}
                 disabled={actionLoading || !mvpPickSelected}
-                className="py-3 rounded-2xl bg-gradient-to-r from-amber-500 to-yellow-400 text-sm font-black text-black shadow-lg shadow-amber-900/30 active:scale-[0.98] disabled:opacity-50"
+                className="py-3 rounded-lg bg-emerald-400 text-slate-950 text-sm font-bold active:scale-[0.98] disabled:opacity-50"
               >
                 Підтвердити
               </button>
@@ -1534,10 +1639,10 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
 
       {/* ---- Admin panel ---- */}
       {isAdmin && g.status !== "finished" && g.status !== "cancelled" && (
-        <div className="bg-orange-950/20 border border-orange-800/30 rounded-2xl p-4 mb-5 space-y-3">
+        <div className="bg-slate-900/80 border border-amber-500/25 rounded-2xl p-4 mb-5 space-y-3">
           <div className="flex items-center gap-2 mb-1.5">
-            <span className="text-base">⚙️</span>
-            <h3 className="text-sm font-bold text-orange-400 uppercase tracking-wider">
+            <Settings className="w-5 h-5 text-amber-300" strokeWidth={2} />
+            <h3 className="text-xs font-bold text-gray-300 uppercase tracking-wider">
               Адмін
             </h3>
           </div>
@@ -1551,7 +1656,7 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
                   if (!ok) return;
                   doAction(() => adminSetGameStatus(gameId, "checkin"));
                 }}
-                icon="📍"
+                icon={<MapPin className="w-4 h-4" strokeWidth={2} />}
                 label="Відкрити Check-in"
                 color="amber"
               />
@@ -1565,7 +1670,7 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
                   if (!ok) return;
                   doAction(() => adminSetGameStatus(gameId, "active"));
                 }}
-                icon="▶️"
+                icon={<Play className="w-4 h-4" strokeWidth={2} />}
                 label="Почати гру"
                 color="red"
               />
@@ -1585,7 +1690,7 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
                         : "🏁 Гру завершено!",
                   );
                 }}
-                icon="🏁"
+                icon={<Flag className="w-4 h-4" strokeWidth={2} />}
                 label="Завершити гру"
                 color="red"
               />
@@ -1594,7 +1699,7 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
 
           {/* Cancel game — keep far from frequent actions */}
           {g.status !== "finished" && g.status !== "cancelled" && (
-            <div className="pt-2 mt-1 border-t border-orange-900/30">
+            <div className="pt-2 mt-1 border-t border-slate-700/50">
               <button
                 type="button"
                 onClick={async () => {
@@ -1608,9 +1713,10 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
                   );
                 }}
                 disabled={actionLoading}
-                className="w-full py-3 rounded-2xl bg-slate-800/60 border border-red-700/30 text-sm font-bold text-red-200 active:scale-[0.99] disabled:opacity-50"
+                className="w-full flex items-center justify-center gap-2 py-3 rounded-lg bg-red-500/15 border border-red-400/40 text-red-300 text-sm font-bold active:scale-[0.98] disabled:opacity-50"
               >
-                ❌ Скасувати гру
+                <XCircle className="w-4 h-4" strokeWidth={2} />
+                Скасувати гру
               </button>
               <p className="mt-2 text-[10px] text-gray-500">
                 Рекомендується використовувати лише в екстрених випадках.
@@ -1621,10 +1727,10 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
           {/* Гравці ще без чек-іну (адмін може відмітити без телефону) */}
           {(g.status === "checkin" || g.status === "active") &&
             players.some((p) => p.attendance === "registered") && (
-              <div className="mt-3 bg-slate-900/40 border border-slate-600/40 rounded-2xl p-3">
+              <div className="mt-3 bg-slate-950/40 border border-slate-700/50 rounded-lg p-3">
                 <div className="flex items-center gap-2 mb-2">
-                  <span className="text-sm">🪖</span>
-                  <p className="text-xs font-semibold text-gray-300 uppercase tracking-wider">
+                  <HardHat className="w-4 h-4 text-emerald-300" strokeWidth={2} />
+                  <p className="text-xs font-bold text-gray-300 uppercase tracking-wider">
                     Записані, ще без check-in
                   </p>
                 </div>
@@ -1637,7 +1743,7 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
                     .map((p) => (
                       <div
                         key={`reg-${p.player_id}`}
-                        className="flex items-center justify-between py-1.5 px-2 rounded-xl bg-slate-800/70"
+                        className="flex items-center justify-between py-1.5 px-2 rounded-lg bg-slate-800/70"
                       >
                         <span className="text-xs font-medium">{formatNick(p.nickname)}</span>
                         <button
@@ -1649,7 +1755,7 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
                               "Гравця відмічено на місці",
                             )
                           }
-                          className="px-2 py-1 rounded-lg bg-emerald-600/70 text-[10px] font-bold text-white active:scale-95"
+                          className="flex items-center gap-1 px-2 py-1 rounded-lg bg-emerald-400 text-slate-950 text-[10px] font-bold active:scale-95"
                         >
                           Чекін
                         </button>
@@ -1662,10 +1768,10 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
           {/* Pending check-ins list */}
           {g.status === "checkin" &&
             players.some((p) => p.attendance === "checkin_pending") && (
-              <div className="mt-3 bg-slate-900/40 border border-amber-700/40 rounded-2xl p-3">
+              <div className="mt-3 bg-slate-950/40 border border-amber-400/30 rounded-lg p-3">
                 <div className="flex items-center gap-2 mb-2">
-                  <span className="text-sm">📍</span>
-                  <p className="text-xs font-semibold text-amber-300 uppercase tracking-wider">
+                  <MapPin className="w-4 h-4 text-amber-300" strokeWidth={2} />
+                  <p className="text-xs font-bold text-amber-300 uppercase tracking-wider">
                     Check-in очікують підтвердження
                   </p>
                 </div>
@@ -1675,7 +1781,7 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
                     .map((p) => (
                       <div
                         key={p.player_id}
-                        className="flex items-center justify-between py-1.5 px-2 rounded-xl bg-slate-800/70"
+                        className="flex items-center justify-between py-1.5 px-2 rounded-lg bg-slate-800/70"
                       >
                         <div className="flex items-center gap-2">
                           <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
@@ -1696,9 +1802,10 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
                                 "Check-in підтверджено",
                               )
                             }
-                            className="px-2 py-1 rounded-lg bg-emerald-600/70 text-[10px] font-bold text-white active:scale-95"
+                            className="flex items-center gap-1 px-2 py-1 rounded-lg bg-emerald-400 text-slate-950 text-[10px] font-bold active:scale-95"
                           >
-                            ✅ Так
+                            <Check className="w-3 h-3" strokeWidth={2} />
+                            Так
                           </button>
                           <button
                             onClick={async () => {
@@ -1716,9 +1823,10 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
                                 "Check-in скасовано",
                               );
                             }}
-                            className="px-2 py-1 rounded-lg bg-red-700/70 text-[10px] font-bold text-white active:scale-95"
+                            className="flex items-center gap-1 px-2 py-1 rounded-lg bg-red-500/15 border border-red-400/40 text-red-300 text-[10px] font-bold active:scale-95"
                           >
-                            ✕ Ні
+                            <X className="w-3 h-3" strokeWidth={2} />
+                            Ні
                           </button>
                         </div>
                       </div>
@@ -1728,10 +1836,10 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
             )}
 
           {/* Add players by Telegram @username (phone/surprise registrations) */}
-          <div className="mt-2 bg-slate-900/40 border border-slate-700/40 rounded-2xl p-3">
+          <div className="mt-2 bg-slate-950/40 border border-slate-700/50 rounded-lg p-3">
             <div className="flex items-center gap-2 mb-2">
-              <span className="text-sm">➕</span>
-              <p className="text-xs font-semibold text-gray-300 uppercase tracking-wider">
+              <UserPlus className="w-4 h-4 text-emerald-300" strokeWidth={2} />
+              <p className="text-xs font-bold text-gray-300 uppercase tracking-wider">
                 Додати по @username (з телефону)
               </p>
             </div>
@@ -1740,7 +1848,7 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
               onChange={(e) => setAddUsersText(e.target.value)}
               rows={3}
               placeholder="@user1\nhttps://t.me/user2\nuser3"
-              className="w-full bg-slate-800/60 border border-slate-700/40 rounded-xl p-2 text-xs text-gray-200 placeholder:text-gray-500 focus:outline-none focus:border-emerald-500/40"
+              className="w-full bg-slate-800/60 border border-slate-700/50 rounded-lg p-2 text-xs text-gray-200 placeholder:text-gray-500 focus:outline-none focus:border-emerald-500/40"
             />
             <button
               onClick={async () => {
@@ -1761,17 +1869,17 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
                 }
               }}
               disabled={actionLoading || addUsersText.trim().length === 0}
-              className="mt-2 w-full bg-emerald-700/40 border border-emerald-600/30 py-2.5 rounded-xl text-sm font-bold text-emerald-200 active:scale-95 transition-transform disabled:opacity-50"
+              className="mt-2 w-full flex items-center justify-center gap-2 bg-emerald-400 text-slate-950 py-2.5 rounded-lg text-sm font-bold active:scale-[0.98] transition-transform disabled:opacity-50"
             >
-              {actionLoading ? <Spinner /> : "➕ Додати в гру"}
+              {actionLoading ? <Spinner /> : <><UserPlus className="w-4 h-4" strokeWidth={2} />Додати в гру</>}
             </button>
           </div>
 
-          <div className="mt-2 bg-slate-900/40 border border-slate-700/40 rounded-2xl p-3">
+          <div className="mt-2 bg-slate-950/40 border border-slate-700/50 rounded-lg p-3">
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2">
-                <span className="text-sm">🧰</span>
-                <p className="text-xs font-semibold text-gray-300 uppercase tracking-wider">
+                <Wrench className="w-4 h-4 text-emerald-300" strokeWidth={2} />
+                <p className="text-xs font-bold text-gray-300 uppercase tracking-wider">
                   Наявність спорядження
                 </p>
               </div>
@@ -1788,14 +1896,15 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
                     setAdminEqLoading(false);
                   }
                 }}
-                className="px-2 py-1 rounded-lg bg-slate-800/70 text-[10px] font-bold text-gray-300"
+                className="flex items-center gap-1 px-2 py-1 rounded-lg bg-slate-800 border border-slate-600/60 text-gray-200 text-[10px] font-bold"
               >
+                <RotateCw className="w-3 h-3" strokeWidth={2} />
                 Оновити
               </button>
             </div>
             <div className="space-y-1.5 max-h-56 overflow-y-auto overflow-x-hidden pr-1">
               {(adminEquipmentItems || []).map((it) => (
-                <div key={it.item_key} className="rounded-xl border border-slate-700/40 bg-slate-800/60 p-2">
+                <div key={it.item_key} className="rounded-lg border border-slate-700/50 bg-slate-800/60 p-2">
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <div className="min-w-0">
                       <div className="text-xs font-semibold text-gray-200 truncate">{it.title}</div>
@@ -1858,7 +1967,7 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
                       type="button"
                       onClick={() => saveAdminEquipmentItem(it)}
                       disabled={adminEqLoading}
-                      className="w-full sm:w-auto px-2 py-1 rounded-lg bg-emerald-600/70 text-[10px] font-bold text-black disabled:opacity-50"
+                      className="w-full sm:w-auto px-2 py-1 rounded-lg bg-emerald-400 text-slate-950 text-[10px] font-bold disabled:opacity-50"
                     >
                       Зберегти
                     </button>
@@ -1872,11 +1981,11 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
 
       {/* ---- Organizer/Admin billing (game child module) ---- */}
       {canManageBilling && g.status !== "cancelled" && (
-        <div className="bg-fuchsia-950/15 border border-fuchsia-800/30 rounded-2xl p-4 mb-5">
+        <div className="bg-slate-900/80 border border-slate-700/50 rounded-2xl p-4 mb-5">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
-              <span className="text-base">🧾</span>
-              <h3 className="text-sm font-bold text-fuchsia-300 uppercase tracking-wider">
+              <Receipt className="w-5 h-5 text-emerald-300" strokeWidth={2} />
+              <h3 className="text-xs font-bold text-gray-300 uppercase tracking-wider">
                 Розрахунок по грі
               </h3>
             </div>
@@ -1886,8 +1995,9 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
                 await loadBillingData();
                 await loadSettlementData();
               }}
-              className="px-2 py-1 rounded-lg bg-slate-800/70 border border-slate-700/40 text-[10px] font-bold text-gray-300"
+              className="flex items-center gap-1 px-2 py-1 rounded-lg bg-slate-800 border border-slate-600/60 text-gray-200 text-[10px] font-bold"
             >
+              <RotateCw className="w-3 h-3" strokeWidth={2} />
               Оновити
             </button>
           </div>
@@ -1901,16 +2011,18 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
               <button
                 type="button"
                 onClick={() => downloadBilling("admin_public")}
-                className="py-2 rounded-xl bg-emerald-700/40 border border-emerald-600/40 text-xs font-bold text-emerald-200"
+                className="flex items-center justify-center gap-2 py-2 rounded-lg bg-slate-800 border border-slate-600/60 text-gray-200 text-xs font-bold"
               >
+                <Download className="w-4 h-4 text-gray-400" strokeWidth={2} />
                 XLSX Публічний список оплат
               </button>
             )}
             <button
               type="button"
               onClick={() => downloadBilling("organizer")}
-              className="py-2 rounded-xl bg-sky-700/40 border border-sky-600/40 text-xs font-bold text-sky-200"
+              className="flex items-center justify-center gap-2 py-2 rounded-lg bg-slate-800 border border-slate-600/60 text-gray-200 text-xs font-bold"
             >
+              <Download className="w-4 h-4 text-gray-400" strokeWidth={2} />
               XLSX Організаторський розрахунок
             </button>
           </div>
@@ -1923,7 +2035,7 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
                 {(billingData?.players || []).map((p) => (
                   <div
                     key={`bill-${p.player_id}`}
-                    className="flex items-center justify-between py-1.5 px-2 rounded-xl bg-slate-800/60 border border-slate-700/30"
+                    className="flex items-center justify-between py-1.5 px-2 rounded-lg bg-slate-800/60 border border-slate-700/50"
                   >
                     <div className="min-w-0">
                       <div className="text-xs font-semibold text-gray-200 truncate">
@@ -1936,7 +2048,7 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
                     <button
                       type="button"
                       onClick={() => openBillingEditor(p)}
-                      className="px-2 py-1 rounded-lg bg-fuchsia-700/40 border border-fuchsia-600/40 text-[10px] font-bold text-fuchsia-200"
+                      className="px-2 py-1 rounded-lg bg-slate-800 border border-slate-600/60 text-gray-200 text-[10px] font-bold"
                     >
                       Редагувати
                     </button>
@@ -1947,7 +2059,7 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
                 )}
               </div>
 
-              <div className="mt-3 rounded-2xl border border-slate-700/40 bg-slate-900/40 p-2">
+              <div className="mt-3 rounded-lg border border-slate-700/50 bg-slate-950/40 p-2">
                 <div className="flex items-center justify-between gap-2 mb-2">
                   <p className="text-[11px] font-semibold uppercase tracking-wider text-gray-300">
                     Оплати та борги
@@ -1958,8 +2070,8 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
                       onClick={() => setUnpaidOnly((v) => !v)}
                       className={`px-2 py-1 rounded-lg text-[10px] font-bold border ${
                         unpaidOnly
-                          ? "bg-amber-600/30 border-amber-500/50 text-amber-200"
-                          : "bg-slate-800/70 border-slate-700/40 text-gray-300"
+                          ? "bg-amber-400/10 border-amber-400/40 text-amber-300"
+                          : "bg-slate-800 border-slate-600/60 text-gray-300"
                       }`}
                     >
                       {unpaidOnly ? "Тільки боржники" : "Всі гравці"}
@@ -1968,7 +2080,7 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
                       type="button"
                       onClick={notifyAllDebtors}
                       disabled={settlementSavingKey === "notify-mass"}
-                      className="px-2 py-1 rounded-lg bg-indigo-700/40 border border-indigo-600/40 text-[10px] font-bold text-indigo-200 disabled:opacity-40"
+                      className="px-2 py-1 rounded-lg bg-slate-800 border border-slate-600/60 text-gray-200 text-[10px] font-bold disabled:opacity-40"
                     >
                       DM боржникам
                     </button>
@@ -2012,7 +2124,7 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
               </div>
 
               {!!billingPreviewRows.length && (
-                <div className="mt-3 rounded-2xl border border-slate-700/40 bg-slate-900/40 p-2">
+                <div className="mt-3 rounded-lg border border-slate-700/50 bg-slate-950/40 p-2">
                   <div className="flex items-center justify-between gap-2 mb-2">
                     <p className="text-[11px] font-semibold uppercase tracking-wider text-gray-300">
                       Preview таблиці
@@ -2023,8 +2135,8 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
                         onClick={() => setBillingPreviewBasePrice(700)}
                         className={`px-2 py-1 rounded-lg text-[10px] font-bold border ${
                           billingPreviewBasePrice === 700
-                            ? "bg-emerald-600/30 border-emerald-500/50 text-emerald-200"
-                            : "bg-slate-800/70 border-slate-700/40 text-gray-300"
+                            ? "bg-emerald-400 border-emerald-400 text-slate-950"
+                            : "bg-slate-800 border-slate-600/60 text-gray-300"
                         }`}
                       >
                         700
@@ -2034,8 +2146,8 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
                         onClick={() => setBillingPreviewBasePrice(500)}
                         className={`px-2 py-1 rounded-lg text-[10px] font-bold border ${
                           billingPreviewBasePrice === 500
-                            ? "bg-sky-600/30 border-sky-500/50 text-sky-200"
-                            : "bg-slate-800/70 border-slate-700/40 text-gray-300"
+                            ? "bg-emerald-400 border-emerald-400 text-slate-950"
+                            : "bg-slate-800 border-slate-600/60 text-gray-300"
                         }`}
                       >
                         500
@@ -2118,12 +2230,12 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
         <div className="space-y-3 mb-5">
           {/* MVP voting block */}
           {mvpState && (
-            <div className="bg-slate-900/50 border border-amber-700/40 rounded-2xl p-4">
+            <div className="bg-slate-900/80 border border-amber-500/30 rounded-2xl p-4">
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2">
-                  <span className="text-lg">⭐</span>
+                  <Star className="w-5 h-5 text-amber-300" strokeWidth={2} />
                   <div>
-                    <h3 className="text-sm font-bold text-amber-300 uppercase tracking-wider">
+                    <h3 className="text-xs font-bold text-gray-300 uppercase tracking-wider">
                       MVP Раунду {mvpState.round_number}
                     </h3>
                     <p className="text-[11px] text-gray-400">
@@ -2158,12 +2270,16 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
                             "full",
                           );
                         }}
-                        className={`flex items-center justify-between py-1.5 px-2 rounded-xl bg-slate-800/60 ${
+                        className={`flex items-center justify-between py-1.5 px-2 rounded-lg bg-slate-800/60 ${
                           isAdmin && !isMine ? "cursor-pointer hover:bg-slate-700/60" : ""
-                        } ${isMine ? "bg-emerald-900/20" : ""}`}
+                        } ${isMine ? "bg-emerald-400/10 border border-emerald-400/30" : ""}`}
                       >
                         <div className="flex items-center gap-2">
-                          <span className="text-sm">{isMine ? "✅" : "🪖"}</span>
+                          {isMine ? (
+                            <CheckCircle2 className="w-4 h-4 text-emerald-300" strokeWidth={2} />
+                          ) : (
+                            <UserRound className="w-4 h-4 text-gray-500" strokeWidth={2} />
+                          )}
                           <span className="text-xs font-medium">
                             {formatNick(c.nickname)}
                           </span>
@@ -2176,7 +2292,7 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
                             </span>
                           </span>
                           {isAdmin && isMine && (
-                            <span className="px-2 py-1 rounded-lg text-[10px] font-bold bg-slate-700/60 text-gray-200 opacity-90">
+                            <span className="rounded border px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-wider text-emerald-300 border-emerald-400/30 bg-emerald-400/10">
                               Обраний
                             </span>
                           )}
@@ -2191,9 +2307,9 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
 
           {/* Admin: start next round */}
           {isAdmin && (
-            <div className="bg-emerald-950/20 border border-emerald-800/30 rounded-2xl p-5 text-center">
-              <div className="text-3xl mb-2">⏸</div>
-              <h3 className="text-lg font-black mb-1">Перерва між раундами</h3>
+            <div className="bg-slate-900/80 border border-slate-700/50 rounded-2xl p-5 text-center">
+              <Pause className="w-8 h-8 mx-auto mb-2 text-emerald-300" strokeWidth={2} />
+              <h3 className="font-display text-xl font-bold uppercase tracking-wide mb-1">Перерва між раундами</h3>
               <p className="text-sm text-gray-400 mb-4">
                 Раундів зіграно:{" "}
                 {rounds.filter((r) => r.status === "finished").length}
@@ -2216,9 +2332,9 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
                     );
                   }}
                   disabled={actionLoading}
-                  className="w-full mb-2 bg-slate-700/70 border border-slate-600/40 py-3 rounded-2xl font-bold text-[14px] transition-all active:scale-[0.98] disabled:opacity-50"
+                  className="w-full mb-2 flex items-center justify-center gap-2 bg-slate-800 border border-slate-600/60 text-gray-200 py-3 rounded-lg font-bold text-[14px] transition-all active:scale-[0.98] disabled:opacity-50"
                 >
-                  {actionLoading ? <Spinner /> : "🔀 Випадково перемішати команди"}
+                  {actionLoading ? <Spinner /> : <><Shuffle className="w-4 h-4" strokeWidth={2} />Випадково перемішати команди</>}
                 </button>
               )}
               <button
@@ -2228,9 +2344,9 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
                   doAction(() => adminStartRound(gameId));
                 }}
                 disabled={actionLoading || adminNeedsMvp}
-                className="w-full bg-gradient-to-r from-emerald-600 to-teal-600 py-4 rounded-2xl font-bold text-[15px] shadow-lg transition-all active:scale-[0.98] disabled:opacity-50"
+                className="w-full flex items-center justify-center gap-2 bg-emerald-400 text-slate-950 py-4 rounded-lg font-bold text-[15px] transition-all active:scale-[0.98] disabled:opacity-50"
               >
-                {actionLoading ? <Spinner /> : "▶️ Почати наступний раунд"}
+                {actionLoading ? <Spinner /> : <><Play className="w-5 h-5" strokeWidth={2} />Почати наступний раунд</>}
               </button>
             </div>
           )}
@@ -2239,18 +2355,18 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
 
       {/* ---- Live round panel ---- */}
       {g.status === "active" && hasActiveRound && (
-        <div className="bg-red-950/15 border border-red-800/30 rounded-2xl p-4 mb-5">
+        <div className="bg-slate-900/80 border border-red-500/40 rounded-2xl p-4 mb-5">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 rounded-full bg-red-400 animate-pulse" />
-              <h3 className="text-sm font-bold text-red-400 uppercase tracking-wider">
+              <h3 className="text-xs font-bold text-red-300 uppercase tracking-wider">
                 Раунд {g.current_round}
               </h3>
             </div>
             <div className="flex items-center gap-2">
               <span className="text-sm font-mono font-bold text-gray-300">{timerValue}</span>
-              <button onClick={load} className="text-xs text-gray-500 bg-slate-800/60 px-2 py-1 rounded-lg active:scale-95 transition-transform">
-                🔄
+              <button onClick={load} className="text-gray-400 bg-slate-800 border border-slate-600/60 text-gray-200 px-2 py-1 rounded-lg active:scale-95 transition-transform" aria-label="Оновити">
+                <RotateCw className="w-3.5 h-3.5" strokeWidth={2} />
               </button>
             </div>
           </div>
@@ -2273,10 +2389,10 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
                   {g.game_mode !== "ffa" && (
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-2">
-                        <div className={`w-2 h-2 rounded-full ${tc.dot}`} />
-                        <span className={`text-sm font-bold ${tc.text}`}>{tc.label}</span>
+                        <div className={`w-2 h-2 rounded-sm ${tc.dot}`} />
+                        <span className={`font-mono text-[11px] font-bold uppercase tracking-wider ${tc.text}`}>{tc.label}</span>
                       </div>
-                      <span className="text-xs text-gray-500">{alive}/{tPlayers.length} alive</span>
+                      <span className="font-mono text-[11px] text-gray-500">{alive}/{tPlayers.length} alive</span>
                     </div>
                   )}
                   <div className="space-y-1">
@@ -2286,17 +2402,21 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
                       return (
                         <div
                           key={p.player_id}
-                          className={`flex items-center justify-between p-2.5 rounded-xl transition-all ${
+                          className={`flex items-center justify-between p-2.5 rounded-lg transition-all ${
                             markedDead ? "bg-slate-800/30 border border-slate-800/30 opacity-50" : `${tc.bg} border ${tc.border}`
                           }`}
                         >
                           <div className="flex items-center gap-2.5">
-                            <span className="text-lg">{markedDead ? "💀" : "💚"}</span>
+                            {markedDead ? (
+                              <Skull className="w-4 h-4 text-gray-500" strokeWidth={2} />
+                            ) : (
+                              <HeartPulse className="w-4 h-4 text-emerald-300" strokeWidth={2} />
+                            )}
                             <span className={`text-sm font-semibold ${markedDead ? "line-through text-gray-500" : ""}`}>
                               {formatNick(p.nickname)}
                             </span>
                             {pendingDeadSet.has(p.player_id) && p.is_alive && (
-                              <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-700/40 text-amber-200">
+                              <span className="rounded border px-1.5 py-0.5 font-mono text-[10px] font-bold uppercase tracking-wider text-amber-300 border-amber-400/30 bg-amber-400/10">
                                 pending
                               </span>
                             )}
@@ -2304,13 +2424,17 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
                           {canToggleDead && (
                             <button
                               onClick={() => toggleRoundPendingDead(p.player_id, p.is_alive)}
-                              className={`text-xs px-3 py-1.5 rounded-lg font-semibold active:scale-95 transition-all ${
+                              className={`flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg font-semibold active:scale-95 transition-all ${
                                 pendingDeadSet.has(p.player_id)
-                                  ? "bg-slate-700/70 border border-slate-600/50 text-gray-200"
-                                  : "bg-red-800/60 hover:bg-red-700/60"
+                                  ? "bg-slate-800 border border-slate-600/60 text-gray-200"
+                                  : "bg-red-500/15 border border-red-400/40 text-red-300"
                               }`}
                             >
-                              {pendingDeadSet.has(p.player_id) ? "↩️ Відмінити" : "💀 Вбитий"}
+                              {pendingDeadSet.has(p.player_id) ? (
+                                <><Undo2 className="w-3.5 h-3.5" strokeWidth={2} />Відмінити</>
+                              ) : (
+                                <><Skull className="w-3.5 h-3.5" strokeWidth={2} />Вбитий</>
+                              )}
                             </button>
                           )}
                         </div>
@@ -2324,7 +2448,7 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
 
           {/* End round buttons */}
           {isAdmin && (
-            <div className="mt-4 pt-3 border-t border-red-900/30">
+            <div className="mt-4 pt-3 border-t border-slate-700/50">
               {g.game_mode !== "ffa" ? (
                 <>
                   <p className="text-xs text-gray-500 mb-2 font-medium">Завершити раунд — хто виграв?</p>
@@ -2335,24 +2459,27 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
                     <button
                       onClick={() => submitRoundOutcome("A")}
                       disabled={actionLoading}
-                      className="flex-1 bg-amber-700/35 border border-amber-600/35 py-2.5 rounded-xl text-sm font-bold text-amber-200 active:scale-95 transition-transform"
+                      className="flex-1 flex items-center justify-center gap-2 bg-amber-400/10 border border-amber-400/40 py-2.5 rounded-lg text-sm font-bold text-amber-300 active:scale-[0.98] transition-transform"
                     >
-                      🟡 Team A
+                      <span className="w-2 h-2 rounded-sm bg-amber-400" />
+                      Team A
                     </button>
                     <button
                       onClick={() => submitRoundOutcome("B")}
                       disabled={actionLoading}
-                      className="flex-1 bg-blue-700/40 border border-blue-600/30 py-2.5 rounded-xl text-sm font-bold text-blue-300 active:scale-95 transition-transform"
+                      className="flex-1 flex items-center justify-center gap-2 bg-blue-400/10 border border-blue-400/40 py-2.5 rounded-lg text-sm font-bold text-blue-300 active:scale-[0.98] transition-transform"
                     >
-                      🔵 Team B
+                      <span className="w-2 h-2 rounded-sm bg-blue-400" />
+                      Team B
                     </button>
                   </div>
                   <button
                     onClick={() => submitRoundOutcome(null)}
                     disabled={actionLoading}
-                    className="mt-2 w-full bg-slate-700/50 border border-slate-500/30 py-2.5 rounded-xl text-sm font-bold text-gray-300 active:scale-95 transition-transform"
+                    className="mt-2 w-full flex items-center justify-center gap-2 bg-slate-800 border border-slate-600/60 text-gray-200 py-2.5 rounded-lg text-sm font-bold active:scale-[0.98] transition-transform"
                   >
-                    ⚖ Нічия
+                    <Scale className="w-4 h-4" strokeWidth={2} />
+                    Нічия
                   </button>
                 </>
               ) : (
@@ -2363,9 +2490,10 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
                   <button
                     onClick={() => submitRoundOutcome(null)}
                     disabled={actionLoading}
-                    className="w-full bg-slate-700/60 border border-slate-600/30 py-2.5 rounded-xl text-sm font-bold text-gray-300 active:scale-95 transition-transform"
+                    className="w-full flex items-center justify-center gap-2 bg-slate-800 border border-slate-600/60 text-gray-200 py-2.5 rounded-lg text-sm font-bold active:scale-[0.98] transition-transform"
                   >
-                    ⏹ Завершити раунд
+                    <Square className="w-4 h-4" strokeWidth={2} />
+                    Завершити раунд
                   </button>
                 </>
               )}
@@ -2375,13 +2503,13 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
       )}
 
       {/* ---- Players list ---- */}
-      <div className="bg-slate-800/60 backdrop-blur-sm rounded-2xl p-4 mb-4 border border-slate-700/40">
+      <div className="bg-slate-900/80 border border-slate-700/50 rounded-2xl p-4 mb-4">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
-            <span>👥</span>
-            <h3 className="text-sm font-bold text-gray-300 uppercase tracking-wider">Гравці</h3>
+            <Users className="w-5 h-5 text-emerald-300" strokeWidth={2} />
+            <h3 className="text-xs font-bold text-gray-300 uppercase tracking-wider">Гравці</h3>
           </div>
-          <span className="text-xs text-gray-500 bg-slate-700/60 px-2 py-0.5 rounded-full">{players.length}</span>
+          <span className="rounded border px-2 py-0.5 font-mono text-[10px] font-bold text-gray-300 border-slate-600/50 bg-slate-800/60">{players.length}</span>
         </div>
         <div className="space-y-1">
           {players.map((p) => (
@@ -2390,7 +2518,7 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
               onClick={() => {
                 if (isAdmin) openPlayerActions(p);
               }}
-              className={`flex items-center justify-between py-2.5 px-2 rounded-xl transition-colors ${
+              className={`flex items-center justify-between py-2.5 px-2 rounded-lg transition-colors ${
                 isAdmin ? "hover:bg-slate-700/20 cursor-pointer" : "hover:bg-slate-700/20"
               }`}
             >
@@ -2404,7 +2532,7 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
                       : p.attendance === "no_show"
                       ? "bg-red-400"
                       : p.attendance === "left_early"
-                      ? "bg-orange-400"
+                      ? "bg-amber-600"
                       : "bg-gray-600"
                   }`}
                   title={
@@ -2416,7 +2544,7 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
                 <div>
                   <span className="text-sm font-medium">{formatNick(p.nickname)}</span>
                   {p.attendance === "left_early" && (
-                    <span className="ml-2 text-[10px] font-bold px-1.5 py-0.5 rounded bg-orange-500/20 text-orange-300">
+                    <span className="ml-2 rounded border px-1.5 py-0.5 font-mono text-[10px] font-bold uppercase tracking-wider text-amber-300 border-amber-400/30 bg-amber-400/10">
                       Пішов раніше
                     </span>
                   )}
@@ -2441,7 +2569,10 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
                     {p.team_name}
                   </span>
                 )}
-                <span className="text-[10px] text-gray-600">⭐{p.rating}</span>
+                <span className="flex items-center gap-0.5 font-mono text-[10px] text-gray-500">
+                  <Star className="w-3 h-3" strokeWidth={2} />
+                  {p.rating}
+                </span>
                 {isAdmin &&
                   (g.status === "checkin" || g.status === "active") &&
                   g.game_mode !== "ffa" &&
@@ -2459,8 +2590,8 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
                         }}
                         className={`px-2 py-1 rounded-lg text-[10px] font-semibold active:scale-95 transition-all ${
                           p.game_team === "A"
-                            ? "bg-amber-600 text-white"
-                            : "bg-slate-700 text-gray-200"
+                            ? "bg-amber-400 text-slate-950"
+                            : "bg-slate-800 border border-slate-600/60 text-gray-200"
                         }`}
                       >
                         A
@@ -2477,8 +2608,8 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
                         }}
                         className={`px-2 py-1 rounded-lg text-[10px] font-semibold active:scale-95 transition-all ${
                           p.game_team === "B"
-                            ? "bg-blue-600 text-white"
-                            : "bg-slate-700 text-gray-200"
+                            ? "bg-blue-400 text-slate-950"
+                            : "bg-slate-800 border border-slate-600/60 text-gray-200"
                         }`}
                       >
                         B
@@ -2501,7 +2632,7 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
                           "Гравця видалено з гри",
                         );
                       }}
-                      className="ml-1 px-2 py-1 rounded-lg bg-red-800/60 text-[10px] font-semibold text-red-100 active:scale-95"
+                      className="ml-1 px-2 py-1 rounded-lg bg-red-500/15 border border-red-400/40 text-red-300 text-[10px] font-semibold active:scale-95"
                     >
                       Kick
                     </button>
@@ -2514,10 +2645,10 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
 
       {/* ---- Rounds history ---- */}
       {rounds.length > 0 && (
-        <div className="bg-slate-800/60 backdrop-blur-sm rounded-2xl p-4 border border-slate-700/40">
+        <div className="bg-slate-900/80 border border-slate-700/50 rounded-2xl p-4">
           <div className="flex items-center gap-2 mb-3">
-            <span>🔄</span>
-            <h3 className="text-sm font-bold text-gray-300 uppercase tracking-wider">Раунди</h3>
+            <RotateCw className="w-5 h-5 text-emerald-300" strokeWidth={2} />
+            <h3 className="text-xs font-bold text-gray-300 uppercase tracking-wider">Раунди</h3>
           </div>
           <div className="space-y-2">
             {rounds.map((r) => {
@@ -2534,30 +2665,30 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
                 : r.status === "active" ? timerValue : "";
               const outcomeLabel = r.winner_game_team
                 ? r.winner_game_team === "A"
-                  ? "🟡 A"
-                  : "🔵 B"
+                  ? <span className="inline-flex items-center gap-1.5"><span className="w-2 h-2 rounded-sm bg-amber-400" />A</span>
+                  : <span className="inline-flex items-center gap-1.5"><span className="w-2 h-2 rounded-sm bg-blue-400" />B</span>
                 : r.status === "active"
-                  ? "⏳"
+                  ? <Hourglass className="w-4 h-4" strokeWidth={2} />
                   : r.status === "finished"
-                    ? "⚖ Нічия"
+                    ? <span className="inline-flex items-center gap-1.5"><Scale className="w-4 h-4" strokeWidth={2} />Нічия</span>
                     : "—";
               return (
-                <div key={r.id} className="flex items-center justify-between py-2 px-3 rounded-xl bg-slate-700/20">
+                <div key={r.id} className="flex items-center justify-between py-2 px-3 rounded-lg bg-slate-950/40 border border-slate-700/40">
                   <div className="flex items-center gap-2">
-                    <span className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs font-black ${
-                      r.status === "active" ? "bg-red-500/20 text-red-400" : r.status === "finished" ? "bg-emerald-500/15 text-emerald-400" : "bg-slate-700 text-gray-500"
+                    <span className={`w-7 h-7 rounded flex items-center justify-center font-mono text-xs font-bold ${
+                      r.status === "active" ? "bg-red-400/10 border border-red-400/40 text-red-300" : r.status === "finished" ? "bg-emerald-400/10 border border-emerald-400/30 text-emerald-300" : "bg-slate-800 border border-slate-700/50 text-gray-500"
                     }`}>{r.round_number}</span>
                     <span className="text-sm font-medium">Раунд {r.round_number}</span>
                     {r.status === "active" && (
-                      <div className="flex items-center gap-1 bg-red-500/20 px-2 py-0.5 rounded-full">
+                      <div className="flex items-center gap-1 rounded border border-red-400/40 bg-red-400/10 px-2 py-0.5">
                         <div className="w-1 h-1 rounded-full bg-red-400 animate-pulse" />
-                        <span className="text-[10px] font-bold text-red-400">LIVE</span>
+                        <span className="font-mono text-[10px] font-bold uppercase tracking-wider text-red-300">LIVE</span>
                       </div>
                     )}
                   </div>
                   <div className="flex items-center gap-2">
                     {duration && <span className="text-[11px] text-gray-500 font-mono">{duration}</span>}
-                    <span className={`text-sm font-bold ${winColor}`}>
+                    <span className={`flex items-center text-sm font-bold ${winColor}`}>
                       {outcomeLabel}
                     </span>
                   </div>
@@ -2596,63 +2727,87 @@ async function adminStartRound(gameId) {
 }
 
 function Spinner() {
-  return <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin inline-block" />;
+  return <span className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin inline-block opacity-80" />;
 }
 
 // ---- Sub-components ----
 
 function StatusBadge({ status }) {
   const config = {
-    upcoming: "bg-blue-500/20 text-blue-300 border-blue-500/20",
-    checkin: "bg-amber-500/20 text-amber-300 border-amber-500/20",
-    active: "bg-red-500/20 text-red-300 border-red-500/20",
-    finished: "bg-slate-600/30 text-gray-400 border-slate-600/20",
-    cancelled: "bg-slate-700/30 text-gray-500 border-slate-700/20",
+    upcoming: "text-emerald-300 border-emerald-400/30 bg-emerald-400/10",
+    checkin: "text-amber-300 border-amber-400/30 bg-amber-400/10",
+    active: "text-red-300 border-red-400/40 bg-red-400/10",
+    finished: "text-gray-400 border-slate-600/50 bg-slate-700/30",
+    cancelled: "text-gray-500 border-slate-700/50 bg-slate-800/30",
+  };
+  const dots = {
+    upcoming: "bg-emerald-400",
+    checkin: "bg-amber-400 animate-pulse",
+    active: "bg-red-400 animate-pulse",
+    finished: "bg-gray-500",
+    cancelled: "bg-gray-600",
   };
   const labels = { upcoming: "Очікується", checkin: "Check-in", active: "LIVE", finished: "Завершена", cancelled: "Скасована" };
-  return <span className={`px-3 py-1 rounded-xl text-[11px] font-bold border ${config[status] || ""}`}>{labels[status] || status}</span>;
+  return (
+    <span className={`inline-flex items-center gap-1.5 rounded border px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-wider ${config[status] || "text-gray-400 border-slate-600/50 bg-slate-700/30"}`}>
+      <span className={`w-1.5 h-1.5 rounded-full ${dots[status] || "bg-gray-500"}`} />
+      {labels[status] || status}
+    </span>
+  );
+}
+
+function BriefRow({ icon: Icon, label, children }) {
+  return (
+    <div className="flex items-start gap-3">
+      <Icon className="w-4 h-4 mt-0.5 shrink-0 text-gray-500" strokeWidth={2} />
+      <dt className="w-28 shrink-0 text-[11px] uppercase tracking-wider text-gray-500 pt-0.5">{label}</dt>
+      <dd className="min-w-0 flex-1 text-[15px] font-semibold text-gray-100">{children}</dd>
+    </div>
+  );
 }
 
 function ActionButton({ onClick, loading, icon, label, className }) {
   return (
-    <button onClick={onClick} disabled={loading} className={`w-full flex items-center justify-center gap-2 py-4 rounded-2xl font-bold text-[15px] shadow-lg transition-all active:scale-[0.98] disabled:opacity-50 ${className}`}>
-      {loading ? <Spinner /> : <><span>{icon}</span>{label}</>}
+    <button onClick={onClick} disabled={loading} className={`w-full flex items-center justify-center gap-2 py-4 rounded-lg font-bold text-[15px] transition-all active:scale-[0.98] disabled:opacity-50 ${className}`}>
+      {loading ? <Spinner /> : <>{icon}{label}</>}
     </button>
   );
 }
 
 function SmallButton({ onClick, icon, label, color }) {
-  const colors = { amber: "bg-amber-700/40 border-amber-600/30 text-amber-300", red: "bg-red-700/40 border-red-600/30 text-red-300", emerald: "bg-emerald-700/40 border-emerald-600/30 text-emerald-300" };
+  const colors = { amber: "bg-amber-400/10 border-amber-400/40 text-amber-300", red: "bg-red-500/15 border-red-400/40 text-red-300", emerald: "bg-emerald-400 border-emerald-400 text-slate-950" };
   return (
-    <button onClick={onClick} className={`flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-bold border active:scale-95 transition-transform ${colors[color] || colors.emerald}`}>
-      <span>{icon}</span> {label}
+    <button onClick={onClick} className={`flex items-center gap-1.5 px-4 py-2.5 rounded-lg text-sm font-bold border active:scale-[0.98] transition-transform ${colors[color] || colors.emerald}`}>
+      {icon} {label}
     </button>
   );
 }
 
 function PlayerActionsModal({ player, onClose, onPrepayment }) {
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 p-3">
-      <div className="w-full max-w-sm rounded-2xl bg-slate-900 border border-slate-700/50 overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/70 p-3">
+      <div className="w-full max-w-sm rounded-2xl bg-slate-900 border border-slate-600/60 overflow-hidden">
         <div className="p-4 border-b border-slate-700/40 flex items-center justify-between">
           <div>
-            <div className="font-black text-sm">Дії з гравцем</div>
+            <div className="text-xs font-bold uppercase tracking-wider text-gray-300">Дії з гравцем</div>
             <div className="text-xs text-gray-400">{formatNick(player?.nickname || player?.player_name)}</div>
           </div>
           <button
             onClick={onClose}
-            className="px-3 py-1.5 rounded-xl bg-slate-800/70 border border-slate-700/40 text-xs font-bold text-gray-200 active:scale-95"
+            className="px-2.5 py-1.5 rounded-lg bg-slate-800 border border-slate-600/60 text-gray-200 active:scale-95"
+            aria-label="Закрити"
           >
-            ✕
+            <X className="w-4 h-4" strokeWidth={2} />
           </button>
         </div>
         <div className="p-3">
           <button
             type="button"
             onClick={onPrepayment}
-            className="w-full text-left px-3 py-3 rounded-xl bg-emerald-700/30 border border-emerald-600/40 text-sm font-semibold text-emerald-200 active:scale-[0.99]"
+            className="w-full flex items-center gap-2 text-left px-3 py-3 rounded-lg bg-slate-800 border border-slate-600/60 text-gray-200 text-sm font-semibold active:scale-[0.99]"
           >
-            💳 Зарахувати передплату
+            <CreditCard className="w-4 h-4 text-emerald-300" strokeWidth={2} />
+            Зарахувати передплату
           </button>
         </div>
       </div>
@@ -2693,12 +2848,12 @@ function SettlementRow({
   const notifyKey = `notify-${row.player_id}`;
 
   return (
-    <div className="rounded-xl border border-slate-700/40 bg-slate-800/50 p-2">
+    <div className="rounded-lg border border-slate-700/50 bg-slate-800/50 p-2">
       <div className="flex items-center justify-between gap-2 mb-1">
         <div className="text-xs font-semibold text-gray-200 flex items-center gap-1.5 min-w-0">
           <span className="truncate">{formatNick(row.player_name)}</span>
           {isLeftEarly && (
-            <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-orange-500/20 text-orange-300 shrink-0">
+            <span className="rounded border px-1.5 py-0.5 font-mono text-[9px] font-bold uppercase tracking-wider text-amber-300 border-amber-400/30 bg-amber-400/10 shrink-0">
               Пішов раніше
             </span>
           )}
@@ -2716,8 +2871,9 @@ function SettlementRow({
         {row?.settlement?.paid_total || 0}
       </div>
       {lootDiscount > 0 && (
-        <div className="text-[10px] text-emerald-300 mb-2">
-          🎁 Бонус: −{lootDiscount} грн
+        <div className="flex items-center gap-1 text-[10px] text-emerald-300 mb-2">
+          <Gift className="w-3.5 h-3.5 shrink-0" strokeWidth={2} />
+          Бонус: −{lootDiscount} грн
           {lootRewards.length
             ? ` (${lootRewards
                 .map((r) => `${r.reward_key} −${r.discount_percent}%`)
@@ -2737,7 +2893,7 @@ function SettlementRow({
           type="button"
           onClick={() => onSavePrepayment(draft)}
           disabled={savingKey === prepayKey}
-          className="px-2 py-1 rounded-lg bg-cyan-700/40 border border-cyan-600/40 text-[10px] font-bold text-cyan-200 disabled:opacity-40"
+          className="px-2 py-1 rounded-lg bg-slate-800 border border-slate-600/60 text-gray-200 text-[10px] font-bold disabled:opacity-40"
         >
           Передплата
         </button>
@@ -2745,7 +2901,7 @@ function SettlementRow({
           type="button"
           onClick={onMarkPaid}
           disabled={debt <= 0 || savingKey === paidKey}
-          className="px-2 py-1 rounded-lg bg-emerald-700/40 border border-emerald-600/40 text-[10px] font-bold text-emerald-200 disabled:opacity-40"
+          className="px-2 py-1 rounded-lg bg-emerald-400 text-slate-950 text-[10px] font-bold disabled:opacity-40"
         >
           Оплачено
         </button>
@@ -2753,7 +2909,7 @@ function SettlementRow({
           type="button"
           onClick={onNotify}
           disabled={debt <= 0 || savingKey === notifyKey}
-          className="px-2 py-1 rounded-lg bg-violet-700/40 border border-violet-600/40 text-[10px] font-bold text-violet-200 disabled:opacity-40"
+          className="px-2 py-1 rounded-lg bg-slate-800 border border-slate-600/60 text-gray-200 text-[10px] font-bold disabled:opacity-40"
         >
           DM
         </button>
@@ -2764,18 +2920,19 @@ function SettlementRow({
 
 function PrepaymentModal({ player, amount, onChangeAmount, onClose, onSave, saving }) {
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 p-3">
-      <div className="w-full max-w-sm rounded-2xl bg-slate-900 border border-slate-700/50 overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/70 p-3">
+      <div className="w-full max-w-sm rounded-2xl bg-slate-900 border border-slate-600/60 overflow-hidden">
         <div className="p-4 border-b border-slate-700/40 flex items-center justify-between">
           <div>
-            <div className="font-black text-sm">Зарахувати передплату</div>
+            <div className="text-xs font-bold uppercase tracking-wider text-gray-300">Зарахувати передплату</div>
             <div className="text-xs text-gray-400">{formatNick(player?.nickname || player?.player_name)}</div>
           </div>
           <button
             onClick={onClose}
-            className="px-3 py-1.5 rounded-xl bg-slate-800/70 border border-slate-700/40 text-xs font-bold text-gray-200 active:scale-95"
+            className="px-2.5 py-1.5 rounded-lg bg-slate-800 border border-slate-600/60 text-gray-200 active:scale-95"
+            aria-label="Закрити"
           >
-            ✕
+            <X className="w-4 h-4" strokeWidth={2} />
           </button>
         </div>
         <div className="p-4 space-y-3">
@@ -2791,7 +2948,7 @@ function PrepaymentModal({ player, amount, onChangeAmount, onClose, onSave, savi
             type="button"
             onClick={onSave}
             disabled={saving}
-            className="w-full py-2.5 rounded-xl bg-emerald-600/80 text-sm font-bold text-black disabled:opacity-50"
+            className="w-full py-2.5 rounded-lg bg-emerald-400 text-slate-950 text-sm font-bold active:scale-[0.98] disabled:opacity-50"
           >
             {saving ? "Збереження..." : "Зарахувати"}
           </button>
@@ -2803,18 +2960,22 @@ function PrepaymentModal({ player, amount, onChangeAmount, onClose, onSave, savi
 
 function BillingEditorModal({ player, value, onChange, onClose, onSave, saving }) {
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 p-3">
-      <div className="w-full max-w-lg rounded-2xl bg-slate-900 border border-slate-700/50 overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/70 p-3">
+      <div className="w-full max-w-lg rounded-2xl bg-slate-900 border border-slate-600/60 overflow-hidden">
         <div className="p-4 border-b border-slate-700/40 flex items-center justify-between">
           <div>
-            <div className="font-black">🧾 Розрахунок</div>
+            <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-gray-300">
+              <Receipt className="w-5 h-5 text-emerald-300" strokeWidth={2} />
+              Розрахунок
+            </div>
             <div className="text-xs text-gray-400">{formatNick(player?.player_name)}</div>
           </div>
           <button
             onClick={onClose}
-            className="px-3 py-1.5 rounded-xl bg-slate-800/70 border border-slate-700/40 text-xs font-bold text-gray-200 active:scale-95"
+            className="px-2.5 py-1.5 rounded-lg bg-slate-800 border border-slate-600/60 text-gray-200 active:scale-95"
+            aria-label="Закрити"
           >
-            ✕
+            <X className="w-4 h-4" strokeWidth={2} />
           </button>
         </div>
 
@@ -2822,7 +2983,7 @@ function BillingEditorModal({ player, value, onChange, onClose, onSave, saving }
           {BILLING_FIELDS.map((f) => {
             const mode = value?.[`${f.key}_mode`] || "amount";
             return (
-              <div key={f.key} className="rounded-xl border border-slate-700/40 bg-slate-800/50 p-3">
+              <div key={f.key} className="rounded-lg border border-slate-700/50 bg-slate-800/50 p-3">
                 <div className="flex items-center justify-between gap-2 mb-2">
                   <div className="text-xs font-semibold text-gray-200">{f.label}</div>
                   <select
@@ -2884,9 +3045,9 @@ function BillingEditorModal({ player, value, onChange, onClose, onSave, saving }
           <button
             onClick={onSave}
             disabled={saving}
-            className="w-full bg-gradient-to-r from-fuchsia-600 to-violet-600 py-3.5 rounded-2xl font-bold text-[15px] shadow-lg transition-all active:scale-[0.98] disabled:opacity-50"
+            className="w-full flex items-center justify-center gap-2 bg-emerald-400 text-slate-950 py-3.5 rounded-lg font-bold text-[15px] transition-all active:scale-[0.98] disabled:opacity-50"
           >
-            {saving ? <Spinner /> : "✅ Зберегти"}
+            {saving ? <Spinner /> : <><Check className="w-5 h-5" strokeWidth={2} />Зберегти</>}
           </button>
         </div>
       </div>
@@ -2896,15 +3057,19 @@ function BillingEditorModal({ player, value, onChange, onClose, onSave, saving }
 
 function RideModal({ value, onChange, onClose, onSubmit, submitting }) {
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 p-3">
-      <div className="w-full max-w-lg rounded-2xl bg-slate-900 border border-slate-700/50 overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/70 p-3">
+      <div className="w-full max-w-lg rounded-2xl bg-slate-900 border border-slate-600/60 overflow-hidden">
         <div className="p-4 border-b border-slate-700/40 flex items-center justify-between">
-          <div className="font-black">🚗 Запропонувати поїздку</div>
+          <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-gray-300">
+            <Car className="w-5 h-5 text-emerald-300" strokeWidth={2} />
+            Запропонувати поїздку
+          </div>
           <button
             onClick={onClose}
-            className="px-3 py-1.5 rounded-xl bg-slate-800/70 border border-slate-700/40 text-xs font-bold text-gray-200 active:scale-95"
+            className="px-2.5 py-1.5 rounded-lg bg-slate-800 border border-slate-600/60 text-gray-200 active:scale-95"
+            aria-label="Закрити"
           >
-            ✕
+            <X className="w-4 h-4" strokeWidth={2} />
           </button>
         </div>
 
@@ -2922,7 +3087,7 @@ function RideModal({ value, onChange, onClose, onSubmit, submitting }) {
                     seats_total: parseInt(e.target.value || "1", 10),
                   })
                 }
-                className="mt-1 w-full bg-slate-800/60 border border-slate-700/40 rounded-xl p-2 text-sm text-gray-200 focus:outline-none focus:border-emerald-500/40"
+                className="mt-1 w-full bg-slate-800/60 border border-slate-700/40 rounded-lg p-2 text-sm text-gray-200 focus:outline-none focus:border-emerald-500/40"
               />
             </label>
             <label className="text-xs text-gray-400">
@@ -2933,7 +3098,7 @@ function RideModal({ value, onChange, onClose, onSubmit, submitting }) {
                   onChange({ ...value, depart_time: e.target.value })
                 }
                 placeholder="Напр. 08:30 або після роботи"
-                className="mt-1 w-full bg-slate-800/60 border border-slate-700/40 rounded-xl p-2 text-sm text-gray-200 placeholder:text-gray-500 focus:outline-none focus:border-emerald-500/40"
+                className="mt-1 w-full bg-slate-800/60 border border-slate-700/40 rounded-lg p-2 text-sm text-gray-200 placeholder:text-gray-500 focus:outline-none focus:border-emerald-500/40"
               />
             </label>
           </div>
@@ -2946,7 +3111,7 @@ function RideModal({ value, onChange, onClose, onSubmit, submitting }) {
                 onChange({ ...value, depart_location: e.target.value })
               }
               placeholder="Напр. метро, ТЦ, точка збору"
-              className="mt-1 w-full bg-slate-800/60 border border-slate-700/40 rounded-xl p-2 text-sm text-gray-200 placeholder:text-gray-500 focus:outline-none focus:border-emerald-500/40"
+              className="mt-1 w-full bg-slate-800/60 border border-slate-700/40 rounded-lg p-2 text-sm text-gray-200 placeholder:text-gray-500 focus:outline-none focus:border-emerald-500/40"
             />
           </label>
 
@@ -2957,7 +3122,7 @@ function RideModal({ value, onChange, onClose, onSubmit, submitting }) {
                 value={value.car_make}
                 onChange={(e) => onChange({ ...value, car_make: e.target.value })}
                 placeholder="Toyota"
-                className="mt-1 w-full bg-slate-800/60 border border-slate-700/40 rounded-xl p-2 text-sm text-gray-200 placeholder:text-gray-500 focus:outline-none focus:border-emerald-500/40"
+                className="mt-1 w-full bg-slate-800/60 border border-slate-700/40 rounded-lg p-2 text-sm text-gray-200 placeholder:text-gray-500 focus:outline-none focus:border-emerald-500/40"
               />
             </label>
             <label className="text-xs text-gray-400">
@@ -2966,7 +3131,7 @@ function RideModal({ value, onChange, onClose, onSubmit, submitting }) {
                 value={value.car_color}
                 onChange={(e) => onChange({ ...value, car_color: e.target.value })}
                 placeholder="Сірий"
-                className="mt-1 w-full bg-slate-800/60 border border-slate-700/40 rounded-xl p-2 text-sm text-gray-200 placeholder:text-gray-500 focus:outline-none focus:border-emerald-500/40"
+                className="mt-1 w-full bg-slate-800/60 border border-slate-700/40 rounded-lg p-2 text-sm text-gray-200 placeholder:text-gray-500 focus:outline-none focus:border-emerald-500/40"
               />
             </label>
           </div>
@@ -2974,9 +3139,9 @@ function RideModal({ value, onChange, onClose, onSubmit, submitting }) {
           <button
             onClick={onSubmit}
             disabled={submitting}
-            className="w-full bg-gradient-to-r from-emerald-600 to-teal-600 py-3.5 rounded-2xl font-bold text-[15px] shadow-lg transition-all active:scale-[0.98] disabled:opacity-50"
+            className="w-full flex items-center justify-center gap-2 bg-emerald-400 text-slate-950 py-3.5 rounded-lg font-bold text-[15px] transition-all active:scale-[0.98] disabled:opacity-50"
           >
-            {submitting ? <Spinner /> : "✅ Опублікувати"}
+            {submitting ? <Spinner /> : <><Check className="w-5 h-5" strokeWidth={2} />Опублікувати</>}
           </button>
         </div>
       </div>
@@ -3000,14 +3165,15 @@ function RideRequestButton({ disabled, maxSeats, onRequest }) {
           max={Math.max(1, maxSeats || 1)}
           value={seats}
           onChange={(e) => setSeats(parseInt(e.target.value || "1", 10))}
-          className="w-16 bg-slate-800/60 border border-slate-700/40 rounded-xl p-2 text-xs text-gray-200 focus:outline-none focus:border-emerald-500/40"
+          className="w-16 bg-slate-800/60 border border-slate-700/40 rounded-lg p-2 text-xs text-gray-200 focus:outline-none focus:border-emerald-500/40"
         />
         <button
           onClick={() => onRequest(seats)}
           disabled={disabled}
-          className="px-3 py-2 rounded-xl bg-emerald-700/40 border border-emerald-600/30 text-xs font-bold text-emerald-200 active:scale-95 disabled:opacity-50"
+          className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-emerald-400 text-slate-950 text-xs font-bold active:scale-95 disabled:opacity-50"
         >
-          🙋 Запит
+          <Hand className="w-4 h-4" strokeWidth={2} />
+          Запит
         </button>
       </div>
       <div className="text-[10px] text-gray-500">до {Math.max(1, maxSeats || 1)}</div>
