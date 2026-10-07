@@ -8,14 +8,15 @@ import Leaderboard from "./pages/Leaderboard";
 import Teams from "./pages/Teams";
 import Admin from "./pages/Admin";
 import Contacts from "./pages/Contacts";
+import { UserRound, Crosshair, Shield, Radio, Trophy, SlidersHorizontal } from "lucide-react";
 
 const TABS = [
-  { id: "profile", icon: "👤", activeIcon: "👤", label: "Профіль" },
-  { id: "games", icon: "🎮", activeIcon: "🎮", label: "Ігри" },
-  { id: "teams", icon: "🏠", activeIcon: "🏠", label: "Команди" },
-  { id: "contacts", icon: "📣", activeIcon: "📣", label: "Контакти" },
-  { id: "leaderboard", icon: "🏆", activeIcon: "🏆", label: "Рейтинг" },
-  { id: "admin", icon: "⚙️", activeIcon: "⚙️", label: "Адмін" },
+  { id: "profile", Icon: UserRound, label: "Профіль" },
+  { id: "games", Icon: Crosshair, label: "Ігри" },
+  { id: "teams", Icon: Shield, label: "Команди" },
+  { id: "contacts", Icon: Radio, label: "Зв'язок" },
+  { id: "leaderboard", Icon: Trophy, label: "Рейтинг" },
+  { id: "admin", Icon: SlidersHorizontal, label: "Штаб" },
 ];
 
 const SURVEY_KEY = "game-experience-2026-v1";
@@ -237,40 +238,29 @@ export default function App() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-screen bg-slate-900">
-        <div className="text-center">
-          <div className="relative mb-6 mx-auto w-fit">
-            <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-emerald-500 to-cyan-600 flex items-center justify-center text-4xl shadow-2xl shadow-emerald-900/50 animate-bounce-slow">
-              🎯
+      <div className="flex items-center justify-center h-screen">
+        <div className="text-center animate-fade-up">
+          <div className="relative mx-auto mb-6 w-20 h-20">
+            <div className="camo absolute inset-0 rounded-2xl border border-emerald-400/30 shadow-2xl" />
+            <div className="absolute inset-0 flex items-center justify-center">
+              <Crosshair className="w-9 h-9 text-emerald-200 loader-spin" strokeWidth={1.75} />
             </div>
-            <div className="absolute -inset-2 rounded-[26px] border-2 border-emerald-500/20 animate-ping-slow" />
           </div>
 
-          <h2 className="text-lg font-bold bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent mb-2">
+          <h2 className="font-display text-2xl font-bold uppercase tracking-[0.18em] text-gray-100">
             Airsoft Club
           </h2>
 
-          <div className="flex items-center justify-center gap-1.5">
-            <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-dot1" />
-            <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-dot2" />
-            <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-dot3" />
+          <div className="mt-4 mx-auto h-[3px] w-28 overflow-hidden rounded-full bg-slate-700/70">
+            <div className="h-full w-1/3 rounded-full bg-emerald-400 loader-bar" />
           </div>
         </div>
 
         <style>{`
-          @keyframes bounce-slow { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
-          .animate-bounce-slow { animation: bounce-slow 2s ease-in-out infinite; }
-
-          @keyframes ping-slow { 0% { transform: scale(1); opacity: 0.3; } 100% { transform: scale(1.3); opacity: 0; } }
-          .animate-ping-slow { animation: ping-slow 2s ease-out infinite; }
-
-          @keyframes dot1 { 0%,100% { opacity: 0.3; } 33% { opacity: 1; } }
-          @keyframes dot2 { 0%,100% { opacity: 0.3; } 50% { opacity: 1; } }
-          @keyframes dot3 { 0%,100% { opacity: 0.3; } 66% { opacity: 1; } }
-
-          .animate-dot1 { animation: dot1 1.2s ease infinite; }
-          .animate-dot2 { animation: dot2 1.2s ease infinite; }
-          .animate-dot3 { animation: dot3 1.2s ease infinite; }
+          @keyframes loader-spin { to { transform: rotate(360deg); } }
+          .loader-spin { animation: loader-spin 3s linear infinite; }
+          @keyframes loader-bar { 0% { transform: translateX(-100%); } 100% { transform: translateX(300%); } }
+          .loader-bar { animation: loader-bar 1.2s cubic-bezier(0.65, 0, 0.35, 1) infinite; }
         `}</style>
       </div>
     );
@@ -281,8 +271,22 @@ export default function App() {
   // -------------------------------
 
   return (
-    <div className="min-h-screen bg-slate-900 text-white flex flex-col">
+    <div className="min-h-screen text-white flex flex-col">
       <div className="h-[env(safe-area-inset-top,0px)]" />
+
+      <header className="camo relative border-b border-slate-600/40">
+        <div className="flex items-center justify-between px-4 py-2.5">
+          <div className="flex items-center gap-2">
+            <Crosshair className="w-4 h-4 text-emerald-300" strokeWidth={2.25} />
+            <span className="font-display text-[15px] font-semibold uppercase tracking-[0.2em] text-gray-100">
+              Airsoft Club
+            </span>
+          </div>
+          <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-gray-300/80">
+            {visibleTabs.find((t) => t.id === tab)?.label || "Гра"}
+          </span>
+        </div>
+      </header>
 
       <main
         ref={contentRef}
@@ -341,46 +345,36 @@ export default function App() {
 
       {/* NAVIGATION */}
       <nav className="fixed bottom-0 left-0 right-0 z-50">
-        <div className="h-6 bg-gradient-to-t from-slate-900 to-transparent pointer-events-none" />
+        <div className="h-6 bg-gradient-to-t from-slate-950 to-transparent pointer-events-none" />
 
-        <div className="bg-slate-900/95 backdrop-blur-xl border-t border-slate-700/50 px-2 pb-4">
+        <div className="bg-slate-950/95 border-t border-slate-600/40 px-1 pb-[max(env(safe-area-inset-bottom),12px)]">
           <div className="flex items-stretch">
             {visibleTabs.map((t) => {
-              const isActive = tab === t.id;
+              const isActive = tab === t.id || (t.id === "games" && tab === "game_detail");
+              const { Icon } = t;
 
               return (
                 <button
                   key={t.id}
                   onClick={() => switchTab(t.id)}
-                  className="flex-1 relative flex flex-col items-center pt-2 pb-1.5 transition-all duration-200 active:scale-90"
+                  className="flex-1 relative flex flex-col items-center gap-1 pt-2.5 pb-1 active:scale-95"
                 >
-                  <div
-                    className={`absolute top-0 left-1/2 -translate-x-1/2 h-[3px] rounded-full transition-all duration-300 ${
-                      isActive ? "w-6 bg-emerald-400" : "w-0"
+                  <span
+                    className={`absolute top-0 left-1/2 -translate-x-1/2 h-[2px] bg-emerald-400 transition-all duration-300 ease-smooth ${
+                      isActive ? "w-8 opacity-100" : "w-0 opacity-0"
                     }`}
                   />
 
-                  <div
-                    className={`relative w-10 h-8 flex items-center justify-center rounded-xl transition-all duration-200 ${
-                      isActive ? "bg-emerald-500/15 scale-110" : ""
+                  <Icon
+                    className={`w-[22px] h-[22px] transition-all duration-300 ease-smooth ${
+                      isActive ? "text-emerald-300 -translate-y-0.5" : "text-gray-500"
                     }`}
-                  >
-                    <span
-                      className={`text-xl transition-all duration-200 ${
-                        isActive ? "scale-110" : "grayscale opacity-60"
-                      }`}
-                    >
-                      {isActive ? t.activeIcon : t.icon}
-                    </span>
-
-                    {isActive && (
-                      <div className="absolute inset-0 rounded-xl bg-emerald-400/10 blur-md" />
-                    )}
-                  </div>
+                    strokeWidth={isActive ? 2.25 : 1.75}
+                  />
 
                   <span
-                    className={`text-[10px] font-semibold mt-0.5 ${
-                      isActive ? "text-emerald-400" : "text-gray-500"
+                    className={`font-mono text-[9px] uppercase tracking-[0.12em] transition-colors duration-300 ${
+                      isActive ? "text-emerald-200" : "text-gray-500"
                     }`}
                   >
                     {t.label}
@@ -394,17 +388,17 @@ export default function App() {
 
       <style>{`
         @keyframes slideInRight {
-          from { opacity: 0; transform: translateX(30px); }
+          from { opacity: 0; transform: translateX(18px); }
           to { opacity: 1; transform: translateX(0); }
         }
 
         @keyframes slideInLeft {
-          from { opacity: 0; transform: translateX(-30px); }
+          from { opacity: 0; transform: translateX(-18px); }
           to { opacity: 1; transform: translateX(0); }
         }
 
-        .animate-slide-in-right { animation: slideInRight 0.3s ease-out; }
-        .animate-slide-in-left { animation: slideInLeft 0.3s ease-out; }
+        .animate-slide-in-right { animation: slideInRight 0.35s cubic-bezier(0.22, 1, 0.36, 1); }
+        .animate-slide-in-left { animation: slideInLeft 0.35s cubic-bezier(0.22, 1, 0.36, 1); }
 
         main::-webkit-scrollbar { display: none; }
         main { -ms-overflow-style: none; scrollbar-width: none; }

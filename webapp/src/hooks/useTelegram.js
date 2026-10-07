@@ -12,8 +12,8 @@ export function useTelegram() {
 
     // Ці методи доступні тільки в реальному Telegram
     if (isRealTelegram) {
-      try { tg.setHeaderColor("#1a1a2e"); } catch (e) {}
-      try { tg.setBackgroundColor("#16213e"); } catch (e) {}
+      try { tg.setHeaderColor("#191a14"); } catch (e) {}
+      try { tg.setBackgroundColor("#10110c"); } catch (e) {}
     }
   }, [tg, isRealTelegram]);
 

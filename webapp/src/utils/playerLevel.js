@@ -1,3 +1,6 @@
+import React from "react";
+import RankInsignia from "../components/RankInsignia";
+
 /**
  * Граничні суми очок (рейтинг) для рівнів:
  * L1: 0–50, L2: 51–100, L3: 101–150, L4: 151–200, L5: 201–300.
@@ -59,15 +62,20 @@ export function getPlayerLevelState(rating) {
 export function getAvatarForLevel(level) {
   const lv = Math.max(1, Math.floor(Number(level) || 1));
 
-  // Tiered avatar system: recognizable by emoji + consistent color theme.
-  // (User cannot edit; derived from level only.)
-  if (lv <= 1) return { emoji: "🪖", ring: "#94a3b8", bg: "from-slate-600/30 to-slate-900/30" };
-  if (lv === 2) return { emoji: "🥾", ring: "#38bdf8", bg: "from-sky-600/30 to-slate-900/30" };
-  if (lv === 3) return { emoji: "🛡️", ring: "#22c55e", bg: "from-emerald-600/30 to-slate-900/30" };
-  if (lv === 4) return { emoji: "⚔️", ring: "#f59e0b", bg: "from-amber-600/30 to-slate-900/30" };
-  if (lv === 5) return { emoji: "🎖️", ring: "#a855f7", bg: "from-violet-600/30 to-slate-900/30" };
-  if (lv <= 7) return { emoji: "🦅", ring: "#06b6d4", bg: "from-cyan-600/30 to-slate-900/30" };
-  if (lv <= 10) return { emoji: "🐺", ring: "#ef4444", bg: "from-rose-600/30 to-slate-900/30" };
-  if (lv <= 15) return { emoji: "👑", ring: "#fbbf24", bg: "from-yellow-500/30 to-slate-900/30" };
-  return { emoji: "💎", ring: "#60a5fa", bg: "from-blue-500/30 to-slate-900/30" };
+  // Tiered avatar: rank insignia + colour derived from level only.
+  const tier =
+    lv <= 1 ? { ring: "#8b876a", bg: "from-slate-600/40 to-slate-900/60" } :
+    lv === 2 ? { ring: "#9fb4bd", bg: "from-sky-700/40 to-slate-900/60" } :
+    lv === 3 ? { ring: "#a3b35a", bg: "from-emerald-700/40 to-slate-900/60" } :
+    lv === 4 ? { ring: "#cf9f3e", bg: "from-amber-700/40 to-slate-900/60" } :
+    lv === 5 ? { ring: "#bea3b3", bg: "from-violet-700/40 to-slate-900/60" } :
+    lv <= 7 ? { ring: "#c9b67e", bg: "from-teal-700/40 to-slate-900/60" } :
+    lv <= 10 ? { ring: "#de947e", bg: "from-rose-700/40 to-slate-900/60" } :
+    lv <= 15 ? { ring: "#ddb85e", bg: "from-yellow-600/40 to-slate-900/60" } :
+    { ring: "#c2d0d6", bg: "from-blue-600/40 to-slate-900/60" };
+
+  return {
+    ...tier,
+    emoji: React.createElement(RankInsignia, { level: lv, color: tier.ring }),
+  };
 }

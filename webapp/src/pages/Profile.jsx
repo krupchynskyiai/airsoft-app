@@ -76,34 +76,7 @@ const BADGE_ICONS = {
 };
 
 // ---- Animated background particles (decorative) ----
-function FloatingParticles() {
-  return (
-    <div className="absolute inset-0 overflow-hidden pointer-events-none">
-      {[...Array(6)].map((_, i) => (
-        <div
-          key={i}
-          className="absolute rounded-full opacity-10"
-          style={{
-            width: `${20 + i * 15}px`,
-            height: `${20 + i * 15}px`,
-            background: `radial-gradient(circle, ${i % 2 === 0 ? "#10b981" : "#06b6d4"}, transparent)`,
-            top: `${10 + i * 14}%`,
-            left: `${5 + i * 16}%`,
-            animation: `float${i % 3} ${4 + i * 0.7}s ease-in-out infinite`,
-          }}
-        />
-      ))}
-      <style>{`
-        @keyframes float0 { 0%,100% { transform: translateY(0) scale(1); } 50% { transform: translateY(-12px) scale(1.1); } }
-        @keyframes float1 { 0%,100% { transform: translateY(0) rotate(0); } 50% { transform: translateY(-8px) rotate(5deg); } }
-        @keyframes float2 { 0%,100% { transform: translateX(0); } 50% { transform: translateX(10px); } }
-      `}</style>
-    </div>
-  );
-}
-
-// ---- Circular progress ring ----
-function ProgressRing({ value, max, size = 72, stroke = 5, color = "#10b981" }) {
+function ProgressRing({ value, max, size = 72, stroke = 5, color = "#a3b35a" }) {
   const radius = (size - stroke) / 2;
   const circumference = 2 * Math.PI * radius;
   const progress = max > 0 ? Math.min(value / max, 1) : 0;
@@ -111,7 +84,7 @@ function ProgressRing({ value, max, size = 72, stroke = 5, color = "#10b981" }) 
 
   return (
     <svg width={size} height={size} className="transform -rotate-90">
-      <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke="#1e293b" strokeWidth={stroke} />
+      <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke="#25251d" strokeWidth={stroke} />
       <circle
         cx={size / 2} cy={size / 2} r={radius} fill="none"
         stroke={color} strokeWidth={stroke} strokeLinecap="round"
@@ -375,7 +348,7 @@ export default function Profile({ profile, onReload }) {
         haptic("success");
         setBadgeCelebration({
           name: badge?.badge_name || firstNew,
-          color: badge?.badge_color || "#fbbf24",
+          color: badge?.badge_color || "#ddb85e",
           description: badge?.badge_description || "",
         });
 
@@ -423,10 +396,10 @@ export default function Profile({ profile, onReload }) {
                     height: `${size * 0.4}px`,
                     background:
                       i % 3 === 0
-                        ? "#22c55e"
+                        ? "#a3b35a"
                         : i % 3 === 1
-                          ? "#06b6d4"
-                          : "#eab308",
+                          ? "#c9b67e"
+                          : "#cf9f3e",
                     top: `${top}%`,
                     left: fromLeft ? "-5%" : "105%",
                     animation: `${fromLeft ? "confettiLeft" : "confettiRight"} 1.6s ease-out ${delay}s forwards`,
@@ -650,32 +623,32 @@ export default function Profile({ profile, onReload }) {
         </div>
       )}
       {/* ---- Hero card with avatar ---- */}
-      <div className="relative mb-6 rounded-3xl overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-emerald-600 via-teal-600 to-cyan-700" />
-        <FloatingParticles />
+      <div className="relative mb-6 rounded-3xl overflow-hidden border border-slate-600/50">
+        <div className="camo absolute inset-0" />
+        <div className="absolute inset-0 bg-gradient-to-b from-slate-950/30 via-slate-950/55 to-slate-950/85" />
 
         <div className="relative px-5 pt-6 pb-5">
           {/* Avatar + name */}
           <div className="flex items-center gap-4 mb-5">
             <div className="relative">
               <div
-                className={`w-[72px] h-[72px] rounded-2xl backdrop-blur-sm flex items-center justify-center text-3xl shadow-lg border border-white/20 bg-gradient-to-br ${avatar.bg}`}
+                className={`w-[72px] h-[72px] rounded-2xl flex items-center justify-center shadow-lg border border-white/15 bg-slate-950/70 bg-gradient-to-br ${avatar.bg}`}
                 style={{ boxShadow: `0 20px 60px ${avatar.ring}22` }}
               >
                 {avatar.emoji}
               </div>
-              <div className="absolute -bottom-1 -right-1 bg-amber-500 text-[10px] font-black px-1.5 py-0.5 rounded-md shadow-md">
+              <div className="absolute -bottom-1.5 -right-1.5 bg-amber-400 text-slate-950 font-mono text-[10px] font-bold px-1.5 py-0.5 rounded shadow-md">
                 LV{levelState.level}
               </div>
             </div>
             <div className="flex-1 min-w-0">
-              <h1 className="text-[22px] font-extrabold tracking-tight truncate">{p.callsign || p.nickname}</h1>
-              <p className="text-emerald-100/80 text-sm">#{String(p.id).padStart(3, "0")} • {p.team || "Соло Гравець"}</p>
+              <h1 className="font-display text-[26px] font-bold uppercase tracking-wide truncate leading-tight">{p.callsign || p.nickname}</h1>
+              <p className="font-mono text-[11px] uppercase tracking-wider text-gray-300">#{String(p.id).padStart(3, "0")} • {p.team || "Соло Гравець"}</p>
             </div>
           </div>
 
           {/* Rating */}
-          <div className="flex items-center justify-center gap-3 bg-white/10 backdrop-blur-sm rounded-2xl py-4 px-5 border border-white/10">
+          <div className="flex items-center gap-4 bg-slate-950/60 rounded-xl py-3.5 px-4 border border-white/10">
             <div className="relative flex items-center justify-center">
               <ProgressRing
                 value={levelState.progress}
@@ -689,8 +662,8 @@ export default function Profile({ profile, onReload }) {
               </div>
             </div>
             <div>
-              <div className="text-xs text-emerald-100/60 uppercase tracking-wider font-semibold">Рейтинг</div>
-              <div className="text-[13px] text-emerald-100/80">
+              <div className="text-[10px] text-gray-400 uppercase tracking-wider font-semibold">Рейтинг</div>
+              <div className="text-[13px] text-gray-200">
                 Далі: {levelState.pointsToNext} до рівня {levelState.nextLevel}
               </div>
             </div>
@@ -709,8 +682,8 @@ export default function Profile({ profile, onReload }) {
       {/* ---- Combat stats card ---- */}
       <div className="bg-slate-800/80 backdrop-blur-sm rounded-2xl p-4 mb-4 border border-slate-700/50">
         <div className="flex items-center gap-2 mb-4">
-          <span className="text-base">⚔️</span>
-          <h3 className="text-sm font-bold text-gray-300 uppercase tracking-wider">Статистика боїв</h3>
+          <Swords className="w-4 h-4 text-emerald-300" />
+          <h3 className="text-xs font-bold text-gray-300 uppercase tracking-wider">Статистика боїв</h3>
         </div>
 
         <div className="grid grid-cols-2 gap-3 mb-4">
