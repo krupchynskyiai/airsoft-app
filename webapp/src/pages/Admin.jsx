@@ -11,6 +11,37 @@ import {
 } from "../api";
 import { useTelegram } from "../hooks/useTelegram";
 import PlayerSearch from "../components/PlayerSearch";
+import {
+  Gamepad2,
+  BarChart3,
+  Ban,
+  Gift,
+  PenLine,
+  Lightbulb,
+  ChevronRight,
+  ChevronLeft,
+  CalendarDays,
+  Clock,
+  MapPin,
+  Timer,
+  Users,
+  Wallet,
+  Swords,
+  Dices,
+  UserRound,
+  Check,
+  Crosshair,
+  ClipboardList,
+  RotateCw,
+  Shield,
+  X,
+  Hash,
+  ArrowUp,
+  ArrowDown,
+  CheckCircle2,
+  Receipt,
+  RefreshCw,
+} from "lucide-react";
 
 export default function Admin() {
   const [section, setSection] = useState(null);
@@ -19,55 +50,55 @@ export default function Admin() {
   const sections = [
     {
       id: "game",
-      icon: "🎮",
+      icon: Gamepad2,
       label: "Створити гру",
       desc: "Нова подія з датою, локацією та форматом",
-      color: "from-emerald-600/20 to-teal-700/10",
-      border: "border-emerald-700/30",
+      tone: "text-emerald-300 border-emerald-400/30 bg-emerald-400/10",
     },
     {
       id: "points",
-      icon: "📊",
+      icon: BarChart3,
       label: "Змінити очки",
       desc: "Додати або зняти рейтинг гравцю",
-      color: "from-amber-600/20 to-orange-700/10",
-      border: "border-amber-700/30",
+      tone: "text-amber-300 border-amber-400/30 bg-amber-400/10",
     },
     {
       id: "blacklist",
-      icon: "⛔",
+      icon: Ban,
       label: "Blacklist",
       desc: "Проблемні гравці, яким заборонено грати",
-      color: "from-red-600/20 to-rose-700/10",
-      border: "border-red-700/40",
+      tone: "text-red-300 border-red-400/30 bg-red-400/10",
     },
     {
       id: "loot",
-      icon: "🎁",
+      icon: Gift,
       label: "Запити бонусів",
       desc: "Підтвердження використання бонусів гравцями",
-      color: "from-sky-600/20 to-indigo-700/10",
-      border: "border-sky-700/40",
+      tone: "text-sky-300 border-sky-400/30 bg-sky-400/10",
     },
     {
       id: "survey",
-      icon: "📝",
+      icon: PenLine,
       label: "Опитування",
       desc: "Відповіді гравців по досвіду",
-      color: "from-fuchsia-600/20 to-violet-700/10",
-      border: "border-fuchsia-700/40",
+      tone: "text-teal-300 border-teal-400/30 bg-teal-400/10",
     },
   ];
 
   return (
     <div className="pb-4">
       <div className="mb-5">
-        <h2 className="text-2xl font-black">Адмін панель</h2>
-        <p className="text-sm text-gray-500">Керування клубом</p>
+        <h2 className="font-display text-3xl font-bold uppercase tracking-wide text-gray-100">
+          Штаб
+        </h2>
+        <p className="text-[11px] font-bold uppercase tracking-wider text-gray-500 mt-1">
+          Адмін панель · керування клубом
+        </p>
+        <div className="camo h-1 w-24 rounded-sm mt-2 opacity-70" />
       </div>
 
       {!section ? (
-        <div className="space-y-3">
+        <div className="space-y-2">
           {sections.map((s) => (
             <button
               key={s.id}
@@ -75,36 +106,27 @@ export default function Admin() {
                 haptic("impact");
                 setSection(s.id);
               }}
-              className={`w-full text-left bg-gradient-to-br ${s.color} border ${s.border} p-5 rounded-2xl transition-all active:scale-[0.98] hover:border-slate-500/50`}
+              className="w-full text-left bg-slate-900/80 border border-slate-700/50 p-4 rounded-2xl transition-all ease-smooth active:scale-[0.98] hover:border-slate-500/60"
             >
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-2xl bg-slate-800/60 flex items-center justify-center text-2xl shadow-inner">
-                  {s.icon}
+                <div
+                  className={`w-11 h-11 rounded-lg border flex items-center justify-center ${s.tone}`}
+                >
+                  <s.icon className="w-5 h-5" strokeWidth={2} />
                 </div>
-                <div className="flex-1">
-                  <div className="font-bold text-[15px]">{s.label}</div>
+                <div className="flex-1 min-w-0">
+                  <div className="font-bold text-[15px] text-gray-100">{s.label}</div>
                   <div className="text-xs text-gray-400 mt-0.5">{s.desc}</div>
                 </div>
-                <svg
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  className="text-gray-500"
-                >
-                  <path d="M9 18l6-6-6-6" />
-                </svg>
+                <ChevronRight className="w-5 h-5 text-gray-500" strokeWidth={2} />
               </div>
             </button>
           ))}
 
-          <div className="mt-6 bg-slate-800/40 rounded-2xl p-4 border border-slate-700/30">
+          <div className="mt-6 bg-slate-900/80 rounded-2xl p-4 border border-slate-700/50">
             <div className="flex items-center gap-2 mb-3">
-              <span>💡</span>
-              <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">
+              <Lightbulb className="w-5 h-5 text-emerald-300" strokeWidth={2} />
+              <span className="text-xs font-bold text-gray-300 uppercase tracking-wider">
                 Підказки
               </span>
             </div>
@@ -123,19 +145,9 @@ export default function Admin() {
               haptic("impact");
               setSection(null);
             }}
-            className="flex items-center gap-2 text-emerald-400 text-sm font-medium mb-5 active:opacity-60 transition-opacity"
+            className="flex items-center gap-1.5 text-emerald-300 text-xs font-bold uppercase tracking-wider mb-5 active:opacity-60 transition-opacity"
           >
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-            >
-              <path d="M15 18l-6-6 6-6" />
-            </svg>
+            <ChevronLeft className="w-4 h-4" strokeWidth={2.5} />
             Назад
           </button>
 
@@ -198,28 +210,28 @@ function CreateGameForm({ onDone }) {
   const modes = [
     {
       id: "team_vs_team",
-      icon: "⚔️",
+      icon: Swords,
       label: "Команда проти команди",
       desc: "Постійні команди",
     },
     {
       id: "random_teams",
-      icon: "🎲",
+      icon: Dices,
       label: "Випадкові команди",
       desc: "Автоматичний розподіл",
     },
-    { id: "ffa", icon: "👤", label: "Free For All", desc: "Кожен сам за себе" },
+    { id: "ffa", icon: UserRound, label: "Free For All", desc: "Кожен сам за себе" },
   ];
 
   return (
     <div>
       <div className="flex items-center gap-3 mb-6">
-        <div className="w-12 h-12 rounded-2xl bg-emerald-600/20 flex items-center justify-center text-2xl">
-          🎮
+        <div className="w-11 h-11 rounded-lg border flex items-center justify-center text-emerald-300 border-emerald-400/30 bg-emerald-400/10">
+          <Gamepad2 className="w-5 h-5" strokeWidth={2} />
         </div>
         <div>
-          <h3 className="text-lg font-black">Нова гра</h3>
-          <p className="text-xs text-gray-500">Крок {step} з 2</p>
+          <h3 className="font-display text-xl font-bold uppercase tracking-wide text-gray-100">Нова гра</h3>
+          <p className="font-mono text-[11px] font-bold uppercase tracking-wider text-gray-500">Крок {step} з 2</p>
         </div>
       </div>
 
@@ -227,7 +239,7 @@ function CreateGameForm({ onDone }) {
         {[1, 2].map((s) => (
           <div
             key={s}
-            className={`flex-1 h-1 rounded-full transition-all duration-300 ${s <= step ? "bg-emerald-500" : "bg-slate-700"}`}
+            className={`flex-1 h-1 rounded-sm transition-all duration-300 ease-smooth ${s <= step ? "bg-emerald-400" : "bg-slate-700"}`}
           />
         ))}
       </div>
@@ -235,35 +247,35 @@ function CreateGameForm({ onDone }) {
       {step === 1 && (
         <div className="space-y-4">
           <FormInput
-            icon="📅"
+            icon={<CalendarDays className="w-4 h-4 text-gray-500" strokeWidth={2} />}
             label="Дата"
             value={form.date}
             onChange={(v) => set("date", v)}
             placeholder="14 квітня 2026"
           />
           <FormInput
-            icon="🕐"
+            icon={<Clock className="w-4 h-4 text-gray-500" strokeWidth={2} />}
             label="Час"
             value={form.time}
             onChange={(v) => set("time", v)}
             placeholder="10:00"
           />
           <FormInput
-            icon="📍"
+            icon={<MapPin className="w-4 h-4 text-gray-500" strokeWidth={2} />}
             label="Локація"
             value={form.location}
             onChange={(v) => set("location", v)}
             placeholder="Airsoft Field"
           />
           <FormInput
-            icon="⏱"
+            icon={<Timer className="w-4 h-4 text-gray-500" strokeWidth={2} />}
             label="Тривалість гри"
             value={form.duration}
             onChange={(v) => set("duration", v)}
             placeholder="Наприклад: 4 години або 10:00–14:00"
           />
           <FormInput
-            icon="👥"
+            icon={<Users className="w-4 h-4 text-gray-500" strokeWidth={2} />}
             label="Максимальна кількість гравців"
             value={form.max_players}
             onChange={(v) => set("max_players", v)}
@@ -271,7 +283,7 @@ function CreateGameForm({ onDone }) {
             type="number"
           />
           <FormInput
-            icon="🪙"
+            icon={<Wallet className="w-4 h-4 text-gray-500" strokeWidth={2} />}
             label="Вартість участі, грн."
             value={form.payment}
             onChange={(v) => set("payment", v)}
@@ -286,19 +298,20 @@ function CreateGameForm({ onDone }) {
               }
             }}
             disabled={!form.date || !form.location}
-            className="w-full bg-emerald-600 disabled:bg-slate-700 disabled:text-gray-500 py-4 rounded-2xl font-bold transition-all active:scale-[0.98]"
+            className="w-full bg-emerald-400 text-slate-950 disabled:bg-slate-800 disabled:text-gray-500 py-4 rounded-lg font-bold uppercase tracking-wide transition-all active:scale-[0.98] flex items-center justify-center gap-2"
           >
-            Далі →
+            Далі
+            <ChevronRight className="w-4 h-4" strokeWidth={2.5} />
           </button>
         </div>
       )}
 
       {step === 2 && (
         <div className="space-y-3">
-          <p className="text-sm text-gray-400 mb-2 font-medium">
+          <p className="text-xs font-bold uppercase tracking-wider text-gray-300 mb-2">
             Обери формат гри
           </p>
-          <label className="flex items-start gap-3 p-4 rounded-2xl border border-slate-700/40 bg-slate-800/40 cursor-pointer active:scale-[0.99] transition-transform">
+          <label className="flex items-start gap-3 p-4 rounded-2xl border border-slate-700/50 bg-slate-900/80 cursor-pointer active:scale-[0.99] transition-transform">
             <input
               type="checkbox"
               checked={form.score_round_outcomes_only}
@@ -320,63 +333,93 @@ function CreateGameForm({ onDone }) {
                 haptic("impact");
                 set("game_mode", m.id);
               }}
-              className={`w-full p-4 rounded-2xl border-2 flex items-center gap-4 transition-all active:scale-[0.98] ${
+              className={`w-full p-4 rounded-2xl border flex items-center gap-4 transition-all ease-smooth active:scale-[0.98] ${
                 form.game_mode === m.id
-                  ? "border-emerald-500/60 bg-emerald-950/30"
-                  : "border-slate-700/40 bg-slate-800/40"
+                  ? "border-emerald-400/60 bg-emerald-400/10"
+                  : "border-slate-700/50 bg-slate-900/80"
               }`}
             >
               <div
-                className={`w-12 h-12 rounded-xl flex items-center justify-center text-2xl ${
+                className={`w-11 h-11 rounded-lg border flex items-center justify-center ${
                   form.game_mode === m.id
-                    ? "bg-emerald-600/20"
-                    : "bg-slate-700/60"
+                    ? "text-emerald-300 border-emerald-400/30 bg-emerald-400/10"
+                    : "text-gray-400 border-slate-600/60 bg-slate-800"
                 }`}
               >
-                {m.icon}
+                <m.icon className="w-5 h-5" strokeWidth={2} />
               </div>
               <div className="text-left flex-1">
-                <div className="font-bold">{m.label}</div>
+                <div className="font-bold text-gray-100">{m.label}</div>
                 <div className="text-xs text-gray-500">{m.desc}</div>
               </div>
               {form.game_mode === m.id && (
-                <span className="text-emerald-400 text-lg">✓</span>
+                <Check className="w-5 h-5 text-emerald-300" strokeWidth={2.5} />
               )}
             </button>
           ))}
 
-          <div className="bg-slate-800/60 rounded-2xl p-4 border border-slate-700/30 mt-4">
-            <p className="text-xs text-gray-500 uppercase tracking-wider font-bold mb-2">
-              Підсумок
-            </p>
-            <div className="space-y-1.5 text-sm">
-              <p>
-                📅 {form.date} {form.time && `о ${form.time}`}
+          <div className="bg-slate-900/80 rounded-2xl p-4 border border-slate-700/50 mt-4">
+            <div className="flex items-center gap-2 mb-3">
+              <ClipboardList className="w-5 h-5 text-emerald-300" strokeWidth={2} />
+              <p className="text-xs text-gray-300 uppercase tracking-wider font-bold">
+                Підсумок
               </p>
-              <p>📍 {form.location}</p>
-              <p>🎯 {modes.find((m) => m.id === form.game_mode)?.label}</p>
+            </div>
+            <div className="space-y-1.5 text-sm text-gray-200">
+              <p className="flex items-center gap-2">
+                <CalendarDays className="w-4 h-4 text-gray-500 shrink-0" strokeWidth={2} />
+                <span>
+                  {form.date} {form.time && `о ${form.time}`}
+                </span>
+              </p>
+              <p className="flex items-center gap-2">
+                <MapPin className="w-4 h-4 text-gray-500 shrink-0" strokeWidth={2} />
+                <span>{form.location}</span>
+              </p>
+              <p className="flex items-center gap-2">
+                <Crosshair className="w-4 h-4 text-gray-500 shrink-0" strokeWidth={2} />
+                <span>{modes.find((m) => m.id === form.game_mode)?.label}</span>
+              </p>
               {form.score_round_outcomes_only && (
-                <p>📋 Скоринг: лише перемоги раундів / нічия</p>
+                <p className="flex items-center gap-2">
+                  <ClipboardList className="w-4 h-4 text-gray-500 shrink-0" strokeWidth={2} />
+                  <span>Скоринг: лише перемоги раундів / нічия</span>
+                </p>
               )}
-              <p>👥 До {form.max_players} гравців</p>
-              <p>🪙 Вартість участі {form.payment} грн</p>
-              <p>⏱ Тривалість: {form.duration || "не вказано"}</p>
-              <p>🔄 Раунди — по ходу гри</p>
+              <p className="flex items-center gap-2">
+                <Users className="w-4 h-4 text-gray-500 shrink-0" strokeWidth={2} />
+                <span>До {form.max_players} гравців</span>
+              </p>
+              <p className="flex items-center gap-2">
+                <Wallet className="w-4 h-4 text-gray-500 shrink-0" strokeWidth={2} />
+                <span>Вартість участі {form.payment} грн</span>
+              </p>
+              <p className="flex items-center gap-2">
+                <Timer className="w-4 h-4 text-gray-500 shrink-0" strokeWidth={2} />
+                <span>Тривалість: {form.duration || "не вказано"}</span>
+              </p>
+              <p className="flex items-center gap-2">
+                <RotateCw className="w-4 h-4 text-gray-500 shrink-0" strokeWidth={2} />
+                <span>Раунди — по ходу гри</span>
+              </p>
             </div>
           </div>
 
           <button
             onClick={submit}
             disabled={loading}
-            className="w-full bg-gradient-to-r from-emerald-600 to-teal-600 py-4 rounded-2xl font-bold text-[15px] shadow-lg shadow-emerald-900/30 transition-all active:scale-[0.98] disabled:opacity-50"
+            className="w-full bg-emerald-400 text-slate-950 py-4 rounded-lg font-bold text-[15px] uppercase tracking-wide transition-all active:scale-[0.98] disabled:opacity-50"
           >
             {loading ? (
               <span className="flex items-center justify-center gap-2">
-                <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                <span className="w-5 h-5 border-2 border-slate-950/30 border-t-slate-950 rounded-full animate-spin" />
                 Створення...
               </span>
             ) : (
-              "✅ Створити гру"
+              <span className="flex items-center justify-center gap-2">
+                <CheckCircle2 className="w-5 h-5" strokeWidth={2} />
+                Створити гру
+              </span>
             )}
           </button>
         </div>
@@ -388,9 +431,10 @@ function CreateGameForm({ onDone }) {
             haptic("impact");
             setStep(step - 1);
           }}
-          className="w-full text-center text-gray-500 text-sm mt-3 py-2"
+          className="w-full flex items-center justify-center gap-1.5 text-gray-500 text-xs font-bold uppercase tracking-wider mt-3 py-2"
         >
-          ← Назад
+          <ChevronLeft className="w-4 h-4" strokeWidth={2} />
+          Назад
         </button>
       )}
     </div>
@@ -427,11 +471,11 @@ function PointsForm({ onDone }) {
   return (
     <div>
       <div className="flex items-center gap-3 mb-6">
-        <div className="w-12 h-12 rounded-2xl bg-amber-600/20 flex items-center justify-center text-2xl">
-          📊
+        <div className="w-11 h-11 rounded-lg border flex items-center justify-center text-amber-300 border-amber-400/30 bg-amber-400/10">
+          <BarChart3 className="w-5 h-5" strokeWidth={2} />
         </div>
         <div>
-          <h3 className="text-lg font-black">Змінити очки</h3>
+          <h3 className="font-display text-xl font-bold uppercase tracking-wide text-gray-100">Змінити очки</h3>
           <p className="text-xs text-gray-500">Додати або зняти рейтинг</p>
         </div>
       </div>
@@ -448,20 +492,20 @@ function PointsForm({ onDone }) {
             setSelectedPlayer(p);
           }}
           placeholder="Нікнейм гравця"
-          icon="👤"
+          icon={<UserRound className="w-4 h-4 text-gray-500" strokeWidth={2} />}
         />
 
         {/* Selected player info */}
         {selectedPlayer && (
-          <div className="flex items-center gap-3 bg-emerald-950/20 border border-emerald-800/30 rounded-xl px-4 py-2.5">
-            <div className="w-8 h-8 rounded-lg bg-emerald-600/20 flex items-center justify-center text-sm">
-              🪖
+          <div className="flex items-center gap-3 bg-emerald-400/10 border border-emerald-400/30 rounded-lg px-4 py-2.5">
+            <div className="w-8 h-8 rounded-lg border border-emerald-400/30 bg-emerald-400/10 flex items-center justify-center text-emerald-300">
+              <Shield className="w-4 h-4" strokeWidth={2} />
             </div>
             <div className="flex-1">
               <span className="text-sm font-bold">
                 {selectedPlayer.nickname}
               </span>
-              <span className="text-xs text-gray-500 ml-2">
+              <span className="font-mono text-[11px] text-gray-500 ml-2">
                 Rating: {selectedPlayer.rating}
               </span>
             </div>
@@ -470,15 +514,16 @@ function PointsForm({ onDone }) {
                 setSelectedPlayer(null);
                 setNick("");
               }}
-              className="text-gray-500 text-xs"
+              className="text-gray-500 p-1"
+              aria-label="Скинути"
             >
-              ✕
+              <X className="w-4 h-4" strokeWidth={2} />
             </button>
           </div>
         )}
 
         <FormInput
-          icon="🔢"
+          icon={<Hash className="w-4 h-4 text-gray-500" strokeWidth={2} />}
           label="Кількість очок"
           value={amount}
           onChange={setAmount}
@@ -490,26 +535,26 @@ function PointsForm({ onDone }) {
           <button
             onClick={() => submit(1)}
             disabled={loading || (!nick.trim() && !selectedPlayer) || !amount}
-            className="bg-gradient-to-r from-emerald-600 to-teal-600 disabled:from-slate-700 disabled:to-slate-700 disabled:text-gray-500 py-4 rounded-2xl font-bold transition-all active:scale-[0.98] flex items-center justify-center gap-2"
+            className="bg-emerald-400 text-slate-950 disabled:bg-slate-800 disabled:text-gray-500 py-4 rounded-lg font-bold transition-all active:scale-[0.98] flex items-center justify-center gap-2"
           >
             {loading ? (
               <Spinner />
             ) : (
               <>
-                <span>⬆️</span> Додати
+                <ArrowUp className="w-4 h-4" strokeWidth={2.5} /> Додати
               </>
             )}
           </button>
           <button
             onClick={() => submit(-1)}
             disabled={loading || (!nick.trim() && !selectedPlayer) || !amount}
-            className="bg-gradient-to-r from-red-700 to-red-800 disabled:from-slate-700 disabled:to-slate-700 disabled:text-gray-500 py-4 rounded-2xl font-bold transition-all active:scale-[0.98] flex items-center justify-center gap-2"
+            className="bg-red-500/15 border border-red-400/40 text-red-300 disabled:bg-slate-800 disabled:border-slate-700/50 disabled:text-gray-500 py-4 rounded-lg font-bold transition-all active:scale-[0.98] flex items-center justify-center gap-2"
           >
             {loading ? (
               <Spinner />
             ) : (
               <>
-                <span>⬇️</span> Зняти
+                <ArrowDown className="w-4 h-4" strokeWidth={2.5} /> Зняти
               </>
             )}
           </button>
@@ -566,11 +611,11 @@ function BlacklistForm({ onDone }) {
   return (
     <div>
       <div className="flex items-center gap-3 mb-6">
-        <div className="w-12 h-12 rounded-2xl bg-red-600/20 flex items-center justify-center text-2xl">
-          ⛔
+        <div className="w-11 h-11 rounded-lg border flex items-center justify-center text-red-300 border-red-400/30 bg-red-400/10">
+          <Ban className="w-5 h-5" strokeWidth={2} />
         </div>
         <div>
-          <h3 className="text-lg font-black">Blacklist</h3>
+          <h3 className="font-display text-xl font-bold uppercase tracking-wide text-gray-100">Blacklist</h3>
           <p className="text-xs text-gray-500">
             Заборона участі у всіх іграх
           </p>
@@ -589,19 +634,19 @@ function BlacklistForm({ onDone }) {
             setSelectedPlayer(p);
           }}
           placeholder="Нікнейм гравця"
-          icon="👤"
+          icon={<UserRound className="w-4 h-4 text-gray-500" strokeWidth={2} />}
         />
 
         {selectedPlayer && (
-          <div className="flex items-center gap-3 bg-slate-900/60 border border-red-700/40 rounded-xl px-4 py-2.5">
-            <div className="w-8 h-8 rounded-lg bg-red-600/30 flex items-center justify-center text-sm">
-              🪖
+          <div className="flex items-center gap-3 bg-red-500/10 border border-red-400/40 rounded-lg px-4 py-2.5">
+            <div className="w-8 h-8 rounded-lg border border-red-400/30 bg-red-400/10 flex items-center justify-center text-red-300">
+              <Shield className="w-4 h-4" strokeWidth={2} />
             </div>
             <div className="flex-1">
               <span className="text-sm font-bold">
                 {selectedPlayer.nickname}
               </span>
-              <span className="text-xs text-gray-500 ml-2">
+              <span className="font-mono text-[11px] text-gray-500 ml-2">
                 Rating: {selectedPlayer.rating}
               </span>
             </div>
@@ -610,22 +655,23 @@ function BlacklistForm({ onDone }) {
                 setSelectedPlayer(null);
                 setNick("");
               }}
-              className="text-gray-500 text-xs"
+              className="text-gray-500 p-1"
+              aria-label="Скинути"
             >
-              ✕
+              <X className="w-4 h-4" strokeWidth={2} />
             </button>
           </div>
         )}
 
         <div>
-          <label className="text-xs text-gray-400 font-semibold uppercase tracking-wider mb-1.5 block">
+          <label className="text-xs text-gray-400 font-bold uppercase tracking-wider mb-1.5 block">
             Причина (необов'язково)
           </label>
           <textarea
             value={reason}
             onChange={(e) => setReason(e.target.value)}
             placeholder="Наприклад: постійні no-show, порушення правил безпеки..."
-            className="w-full bg-slate-800/60 border-2 border-slate-700/40 rounded-2xl px-3 py-2 text-sm focus:border-red-500/60 focus:outline-none focus:ring-2 focus:ring-red-500/10 transition-all placeholder:text-gray-600 resize-none h-20"
+            className="w-full bg-slate-900/80 border border-slate-700/50 rounded-lg px-3 py-2 text-sm focus:border-red-400/60 focus:outline-none transition-all placeholder:text-gray-600 resize-none h-20"
           />
         </div>
 
@@ -633,26 +679,26 @@ function BlacklistForm({ onDone }) {
           <button
             onClick={add}
             disabled={loading || !selectedPlayer}
-            className="bg-gradient-to-r from-red-700 to-red-800 disabled:from-slate-700 disabled:to-slate-700 disabled:text-gray-500 py-4 rounded-2xl font-bold transition-all active:scale-[0.98] flex items-center justify-center gap-2"
+            className="bg-red-500/15 border border-red-400/40 text-red-300 disabled:bg-slate-800 disabled:border-slate-700/50 disabled:text-gray-500 py-4 rounded-lg font-bold transition-all active:scale-[0.98] flex items-center justify-center gap-2"
           >
             {loading ? (
               <Spinner />
             ) : (
               <>
-                <span>⛔</span> Додати
+                <Ban className="w-4 h-4" strokeWidth={2} /> Додати
               </>
             )}
           </button>
           <button
             onClick={remove}
             disabled={loading || !selectedPlayer}
-            className="bg-slate-700 disabled:bg-slate-800 disabled:text-gray-500 py-4 rounded-2xl font-bold transition-all active:scale-[0.98] flex items-center justify-center gap-2"
+            className="bg-slate-800 border border-slate-600/60 text-gray-200 disabled:border-slate-700/50 disabled:text-gray-500 py-4 rounded-lg font-bold transition-all active:scale-[0.98] flex items-center justify-center gap-2"
           >
             {loading ? (
               <Spinner />
             ) : (
               <>
-                <span>✅</span> Прибрати
+                <CheckCircle2 className="w-4 h-4" strokeWidth={2} /> Прибрати
               </>
             )}
           </button>
@@ -712,11 +758,11 @@ function LootRequestsForm({ onDone }) {
   return (
     <div>
       <div className="flex items-center gap-3 mb-4">
-        <div className="w-12 h-12 rounded-2xl bg-sky-600/20 flex items-center justify-center text-2xl">
-          🎁
+        <div className="w-11 h-11 rounded-lg border flex items-center justify-center text-sky-300 border-sky-400/30 bg-sky-400/10">
+          <Gift className="w-5 h-5" strokeWidth={2} />
         </div>
         <div className="flex-1">
-          <h3 className="text-lg font-black">Запити бонусів</h3>
+          <h3 className="font-display text-xl font-bold uppercase tracking-wide text-gray-100">Запити бонусів</h3>
           <p className="text-xs text-gray-500">Тільки адмін списує бонус після фактичного використання</p>
         </div>
       </div>
@@ -725,14 +771,16 @@ function LootRequestsForm({ onDone }) {
         <button
           onClick={loadRequests}
           disabled={loading}
-          className="px-3 py-2 rounded-xl bg-slate-800/70 border border-slate-700/50 text-xs font-semibold disabled:opacity-50"
+          className="px-3 py-2 rounded-lg bg-slate-800 border border-slate-600/60 text-gray-200 text-xs font-bold uppercase tracking-wider disabled:opacity-50 flex items-center gap-1.5"
         >
+          <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} strokeWidth={2} />
           {loading ? "Оновлення..." : "Оновити"}
         </button>
         <button
           onClick={onDone}
-          className="px-3 py-2 rounded-xl bg-slate-800/70 border border-slate-700/50 text-xs font-semibold"
+          className="px-3 py-2 rounded-lg bg-slate-800 border border-slate-600/60 text-gray-200 text-xs font-bold uppercase tracking-wider flex items-center gap-1.5"
         >
+          <X className="w-3.5 h-3.5" strokeWidth={2} />
           Закрити
         </button>
       </div>
@@ -740,7 +788,7 @@ function LootRequestsForm({ onDone }) {
       {loading ? (
         <div className="text-sm text-gray-400">Завантаження запитів...</div>
       ) : requests.length === 0 ? (
-        <div className="bg-slate-800/40 border border-slate-700/30 rounded-2xl p-4 text-sm text-gray-400">
+        <div className="bg-slate-900/80 border border-slate-700/50 rounded-2xl p-4 text-sm text-gray-400">
           Немає запитів на використання бонусів.
         </div>
       ) : (
@@ -748,26 +796,29 @@ function LootRequestsForm({ onDone }) {
           {requests.map((rw) => (
             <div
               key={rw.id}
-              className="bg-slate-800/60 border border-slate-700/40 rounded-2xl p-3"
+              className="bg-slate-900/80 border border-slate-700/50 rounded-2xl p-3"
             >
               <div className="flex items-start justify-between gap-3">
                 <div>
-                  <div className="text-sm font-bold">{rw.player_name || rw.player_callsign || rw.player_nickname}</div>
+                  <div className="text-sm font-bold text-gray-100">{rw.player_name || rw.player_callsign || rw.player_nickname}</div>
                   <div className="text-xs text-gray-300">{rw.reward_title || rw.reward_key}</div>
                   {rw.reward_description ? (
                     <div className="text-[11px] text-gray-500 mt-0.5">
                       {rw.reward_description}
                     </div>
                   ) : null}
-                  <div className="text-[11px] text-gray-500 mt-1">
-                    rarity: {rw.rarity} • id: {rw.id}
+                  <div className="font-mono text-[10px] uppercase tracking-wider text-gray-500 mt-1">
+                    rarity: {rw.rarity} · id: {rw.id}
                   </div>
                   {rw.game_id ? (
-                    <div className="text-[11px] text-amber-300 mt-1">
-                      🎮 Гра #{rw.game_id}
+                    <div className="text-[11px] text-amber-300 mt-1 flex items-center gap-1.5">
+                      <Gamepad2 className="w-3.5 h-3.5 shrink-0" strokeWidth={2} />
+                      <span>
+                      Гра #{rw.game_id}
                       {rw.game_date ? ` · ${rw.game_date}` : ""}
                       {rw.game_time ? ` ${rw.game_time}` : ""}
                       {rw.game_location ? ` · ${rw.game_location}` : ""}
+                      </span>
                     </div>
                   ) : (
                     <div className="text-[11px] text-gray-500 mt-1">
@@ -778,7 +829,7 @@ function LootRequestsForm({ onDone }) {
                 <button
                   onClick={() => setConfirmReward(rw)}
                   disabled={resolvingId === rw.id}
-                  className="px-3 py-2 rounded-xl bg-emerald-600/80 text-black text-xs font-bold disabled:opacity-50"
+                  className="px-3 py-2 rounded-lg bg-emerald-400 text-slate-950 text-xs font-bold active:scale-[0.98] disabled:opacity-50 shrink-0"
                 >
                   {resolvingId === rw.id ? "..." : "Підтвердити"}
                 </button>
@@ -790,10 +841,12 @@ function LootRequestsForm({ onDone }) {
 
       {confirmReward && (
         <div className="fixed inset-0 z-40 flex items-center justify-center px-4">
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
-          <div className="relative z-50 w-full max-w-sm rounded-3xl bg-slate-900/95 border border-emerald-400/40 p-5 text-center shadow-2xl shadow-emerald-900/40">
-            <div className="text-3xl mb-2">🧾</div>
-            <h4 className="text-sm font-bold text-emerald-300 uppercase tracking-[0.15em] mb-2">
+          <div className="absolute inset-0 bg-black/70" />
+          <div className="relative z-50 w-full max-w-sm rounded-2xl bg-slate-900 border border-slate-600/60 p-5 text-center shadow-2xl">
+            <div className="w-11 h-11 mx-auto mb-3 rounded-lg border border-emerald-400/30 bg-emerald-400/10 flex items-center justify-center text-emerald-300">
+              <Receipt className="w-5 h-5" strokeWidth={2} />
+            </div>
+            <h4 className="text-xs font-bold text-emerald-300 uppercase tracking-wider mb-2">
               Підтвердження
             </h4>
             <p className="text-sm text-gray-200 mb-1">
@@ -810,7 +863,7 @@ function LootRequestsForm({ onDone }) {
               <button
                 type="button"
                 onClick={() => setConfirmReward(null)}
-                className="py-2 rounded-xl bg-slate-800 border border-slate-700 text-xs font-semibold"
+                className="py-2.5 rounded-lg bg-slate-800 border border-slate-600/60 text-gray-200 text-xs font-bold"
               >
                 Скасувати
               </button>
@@ -818,7 +871,7 @@ function LootRequestsForm({ onDone }) {
                 type="button"
                 onClick={() => confirmUse(confirmReward)}
                 disabled={resolvingId === confirmReward.id}
-                className="py-2 rounded-xl bg-emerald-600 text-black text-xs font-bold disabled:opacity-50"
+                className="py-2.5 rounded-lg bg-emerald-400 text-slate-950 text-xs font-bold active:scale-[0.98] disabled:opacity-50"
               >
                 {resolvingId === confirmReward.id ? "..." : "Підтвердити"}
               </button>
@@ -829,14 +882,14 @@ function LootRequestsForm({ onDone }) {
 
       {resultModal && (
         <div className="fixed inset-0 z-40 flex items-center justify-center px-4">
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
-          <div className="relative z-50 w-full max-w-sm rounded-3xl bg-slate-900/95 border border-slate-700 p-5 text-center shadow-2xl">
-            <h4 className="text-sm font-bold text-gray-200 mb-2">{resultModal.title}</h4>
+          <div className="absolute inset-0 bg-black/70" />
+          <div className="relative z-50 w-full max-w-sm rounded-2xl bg-slate-900 border border-slate-600/60 p-5 text-center shadow-2xl">
+            <h4 className="text-xs font-bold uppercase tracking-wider text-gray-200 mb-2">{resultModal.title}</h4>
             <p className="text-xs text-gray-400 mb-4">{resultModal.message}</p>
             <button
               type="button"
               onClick={() => setResultModal(null)}
-              className="px-4 py-2 rounded-xl bg-emerald-600 text-black text-xs font-bold"
+              className="px-6 py-2.5 rounded-lg bg-emerald-400 text-slate-950 text-xs font-bold active:scale-[0.98]"
             >
               OK
             </button>
@@ -853,10 +906,10 @@ function SurveyResponsesForm({ onDone }) {
   const { showAlert } = useTelegram();
 
   const overallLabel = {
-    great: "🔥 Дуже кайф",
-    ok: "👍 Норм",
-    meh: "😐 Так собі",
-    bad: "👎 Не зайшло",
+    great: "Дуже кайф",
+    ok: "Норм",
+    meh: "Так собі",
+    bad: "Не зайшло",
   };
   const appLabel = {
     helps_a_lot: "Дуже допомагає",
@@ -908,11 +961,11 @@ function SurveyResponsesForm({ onDone }) {
   return (
     <div>
       <div className="flex items-center gap-3 mb-4">
-        <div className="w-12 h-12 rounded-2xl bg-fuchsia-600/20 flex items-center justify-center text-2xl">
-          📝
+        <div className="w-11 h-11 rounded-lg border flex items-center justify-center text-teal-300 border-teal-400/30 bg-teal-400/10">
+          <PenLine className="w-5 h-5" strokeWidth={2} />
         </div>
         <div className="flex-1">
-          <h3 className="text-lg font-black">Відповіді опитування</h3>
+          <h3 className="font-display text-xl font-bold uppercase tracking-wide text-gray-100">Відповіді опитування</h3>
           <p className="text-xs text-gray-500">Доступно тільки адміну</p>
         </div>
       </div>
@@ -921,14 +974,16 @@ function SurveyResponsesForm({ onDone }) {
         <button
           onClick={load}
           disabled={loading}
-          className="px-3 py-2 rounded-xl bg-slate-800/70 border border-slate-700/50 text-xs font-semibold disabled:opacity-50"
+          className="px-3 py-2 rounded-lg bg-slate-800 border border-slate-600/60 text-gray-200 text-xs font-bold uppercase tracking-wider disabled:opacity-50 flex items-center gap-1.5"
         >
+          <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} strokeWidth={2} />
           {loading ? "Оновлення..." : "Оновити"}
         </button>
         <button
           onClick={onDone}
-          className="px-3 py-2 rounded-xl bg-slate-800/70 border border-slate-700/50 text-xs font-semibold"
+          className="px-3 py-2 rounded-lg bg-slate-800 border border-slate-600/60 text-gray-200 text-xs font-bold uppercase tracking-wider flex items-center gap-1.5"
         >
+          <X className="w-3.5 h-3.5" strokeWidth={2} />
           Закрити
         </button>
       </div>
@@ -936,19 +991,19 @@ function SurveyResponsesForm({ onDone }) {
       {loading ? (
         <div className="text-sm text-gray-400">Завантаження...</div>
       ) : items.length === 0 ? (
-        <div className="bg-slate-800/40 border border-slate-700/30 rounded-2xl p-4 text-sm text-gray-400">
+        <div className="bg-slate-900/80 border border-slate-700/50 rounded-2xl p-4 text-sm text-gray-400">
           Відповідей ще немає.
         </div>
       ) : (
         <div className="space-y-3">
           {items.map((it) => (
-            <div key={it.id} className="bg-slate-800/60 border border-slate-700/40 rounded-2xl p-3">
+            <div key={it.id} className="bg-slate-900/80 border border-slate-700/50 rounded-2xl p-3">
               <div className="flex items-center justify-between gap-2">
-                <div className="text-sm font-bold">{it.player_name}</div>
-                <div className="text-[10px] text-gray-500">{fmtDate(it.created_at)}</div>
+                <div className="text-sm font-bold text-gray-100">{it.player_name}</div>
+                <div className="font-mono text-[10px] text-gray-500">{fmtDate(it.created_at)}</div>
               </div>
-              <div className="text-[11px] text-gray-500 mb-2">
-                @{it.telegram_username || "—"} • {it.survey_key}
+              <div className="font-mono text-[10px] text-gray-500 mb-2">
+                @{it.telegram_username || "—"} · {it.survey_key}
               </div>
               <div className="space-y-1 text-xs text-gray-200">
                 <div><span className="text-gray-500">Досвід:</span> {overallLabel[it.overall_experience] || it.overall_experience}</div>
@@ -977,11 +1032,11 @@ function FormInput({
 }) {
   return (
     <div>
-      <label className="text-xs text-gray-400 font-semibold uppercase tracking-wider mb-1.5 block">
+      <label className="text-xs text-gray-400 font-bold uppercase tracking-wider mb-1.5 block">
         {label}
       </label>
       <div className="relative">
-        <div className="absolute left-4 top-1/2 -translate-y-1/2 text-lg">
+        <div className="absolute left-4 top-1/2 -translate-y-1/2 flex items-center pointer-events-none">
           {icon}
         </div>
         <input
@@ -989,7 +1044,7 @@ function FormInput({
           value={value}
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}
-          className="w-full bg-slate-800/60 border-2 border-slate-700/40 rounded-2xl pl-12 pr-4 py-3.5 text-[15px] focus:border-emerald-500/60 focus:outline-none focus:ring-2 focus:ring-emerald-500/10 transition-all placeholder:text-gray-600"
+          className="w-full bg-slate-900/80 border border-slate-700/50 rounded-lg pl-11 pr-4 py-3.5 text-[15px] focus:border-emerald-400/60 focus:outline-none transition-all placeholder:text-gray-600"
         />
       </div>
     </div>
@@ -998,6 +1053,6 @@ function FormInput({
 
 function Spinner() {
   return (
-    <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+    <span className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin opacity-80" />
   );
 }

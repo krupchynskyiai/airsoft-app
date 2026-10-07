@@ -776,120 +776,165 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
   return (
     <div className="pb-6">
       {/* Back button */}
-      <button onClick={onBack} className="flex items-center gap-2 text-emerald-400 text-sm font-medium mb-4 active:opacity-60 transition-opacity">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M15 18l-6-6 6-6" /></svg>
+      <button onClick={onBack} className="flex items-center gap-1 text-emerald-300 font-mono text-[11px] font-bold uppercase tracking-wider mb-4 active:opacity-60 transition-opacity">
+        <ChevronLeft className="w-4 h-4" strokeWidth={2} />
         Назад до ігор
       </button>
 
-      {/* ---- Hero card ---- */}
-      <div className="relative rounded-2xl overflow-hidden mb-5">
-        <div className={`absolute inset-0 ${
-          g.status === "active" ? "bg-gradient-to-br from-red-700/40 via-orange-800/20 to-slate-900"
-            : g.status === "finished" ? "bg-gradient-to-br from-slate-700/40 to-slate-900"
-            : "bg-gradient-to-br from-emerald-700/30 via-teal-800/20 to-slate-900"
-        }`} />
-        <div className="relative p-5">
-          <div className="flex items-start justify-between mb-4">
-            <div>
-              <div className="flex items-center gap-2 mb-1">
-                <span className="text-gray-400 font-mono text-sm">#{g.id}</span>
-                {g.status === "active" && (
-                  <div className="flex items-center gap-1.5 bg-red-500/20 px-2.5 py-0.5 rounded-full">
-                    <div className="w-1.5 h-1.5 rounded-full bg-red-400 animate-pulse" />
-                    <span className="text-[11px] font-bold text-red-400">LIVE</span>
-                  </div>
-                )}
+      {/* ---- Hero card: mission brief ---- */}
+      <div
+        className={`relative rounded-2xl overflow-hidden mb-5 bg-slate-900/80 border ${
+          g.status === "active"
+            ? "border-red-500/40"
+            : g.status === "checkin"
+            ? "border-amber-500/30"
+            : "border-slate-700/50"
+        }`}
+      >
+        <span
+          className={`absolute left-0 top-0 bottom-0 w-[3px] ${
+            g.status === "active"
+              ? "bg-red-400"
+              : g.status === "checkin"
+              ? "bg-amber-400"
+              : g.status === "finished" || g.status === "cancelled"
+              ? "bg-slate-500"
+              : "bg-emerald-400"
+          }`}
+        />
+        <div className="camo h-2 border-b border-slate-700/50" />
+        <div className="p-5">
+          <div className="flex items-start justify-between gap-3 mb-4">
+            <div className="min-w-0">
+              <div className="font-mono text-[11px] uppercase tracking-wider text-gray-500 mb-1">
+                Брифінг · #{g.id}
               </div>
-              <h2 className="text-xl font-black">Гра #{g.id}</h2>
+              <h2 className="font-display text-3xl font-bold uppercase tracking-wide leading-none">
+                Гра #{g.id}
+              </h2>
             </div>
-            <StatusBadge status={g.status} />
+            <div className="flex flex-col items-end gap-1.5 shrink-0">
+              <StatusBadge status={g.status} />
+              {MODE[g.game_mode] && (
+                <span className="inline-flex items-center gap-1 rounded border px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-wider text-gray-300 border-slate-600/50 bg-slate-800/60">
+                  <Crosshair className="w-3 h-3" strokeWidth={2} />
+                  {MODE[g.game_mode]}
+                </span>
+              )}
+            </div>
           </div>
 
-          <div className="space-y-1.5 text-[15px]">
-            <p>📅 {g.date} {g.time && <span className="text-gray-400">о {g.time}</span>}</p>
-            <p className="text-gray-300">📍 {g.location}</p>
-            <p className="text-gray-300">🎯 {MODE[g.game_mode]}</p>
-            {!!g.score_round_outcomes_only && (
-              <p className="text-amber-200/90 text-sm">
-                📋 Рейтинг за підсумком раундів (перемога / нічия); смерті в раундах не впливають на очки.
-              </p>
+          <dl className="space-y-2.5 border-t border-slate-700/50 pt-4">
+            <BriefRow icon={CalendarDays} label="Дата">
+              {g.date}
+            </BriefRow>
+            {g.time && (
+              <BriefRow icon={Clock} label="Час">
+                {g.time}
+              </BriefRow>
             )}
+            <BriefRow icon={MapPin} label="Локація">
+              {g.location}
+            </BriefRow>
             {g.duration && (
-              <p className="text-gray-300">
-                ⏱ Тривалість: <span className="font-semibold">{g.duration}</span>
-              </p>
+              <BriefRow icon={Timer} label="Тривалість">
+                {g.duration}
+              </BriefRow>
             )}
             {typeof g.max_players === "number" && (
-              <p className="text-gray-300 text-sm">
-                👥 Вільних місць:{" "}
-                <span className="font-semibold">
-                  {freeSlots}
-                </span>{" "}
-                з {g.max_players}
-              </p>
+              <BriefRow icon={Users} label="Вільних місць">
+                {freeSlots} <span className="text-gray-500 font-normal">з {g.max_players}</span>
+              </BriefRow>
             )}
             {typeof g.payment === "number" && (
-              <p className="text-gray-400">🪙 Вартість участі: <span className="font-semibold text-gray-300">{g.payment} грн</span></p>
+              <BriefRow icon={Wallet} label="Вартість участі">
+                {g.payment} грн
+              </BriefRow>
             )}
-            {myRegistration && myTotalCost != null && (
-              <p className="text-gray-300">
-                💳 Моя сума: <span className="font-semibold text-emerald-300">{myTotalCost} грн</span>
-                {" "}
-                <span className="text-xs text-gray-500">(база {g.payment || 0} + допи {myEquipmentTotal || 0})</span>
-              </p>
-            )}
-            {mySettlement?.settlement && (
-              <p className="text-gray-300">
-                🧾 Мій чек:{" "}
-                <span className="font-semibold text-emerald-300">
-                  {mySettlement.settlement.gross_due_public || 0} грн
-                </span>
-                {" "}
-                <span className="text-xs text-gray-500">
-                  (сплачено {mySettlement.settlement.paid_total || 0}, борг {mySettlement.settlement.debt_public || 0})
-                </span>
-                {Number(mySettlement.settlement.loot_discount || 0) > 0 && (
-                  <span className="block text-xs text-emerald-300 mt-1">
-                    🎁 Бонус застосовано: −{mySettlement.settlement.loot_discount} грн
-                  </span>
-                )}
-              </p>
-            )}
-          </div>
+          </dl>
 
-          {/* Round counter + timer */}
-          {g.status === "active" && (
-            <div className="mt-4 flex items-center justify-center gap-4 bg-red-500/10 border border-red-500/20 rounded-xl py-3 px-4">
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-red-400 animate-pulse" />
-                <span className="text-sm font-bold text-red-300">
-                  {hasActiveRound ? `Раунд ${g.current_round}` : "Перерва"}
-                </span>
-              </div>
-              {hasActiveRound && (
-                <div className="bg-slate-900/60 px-3 py-1 rounded-lg">
-                  <span className="text-lg font-mono font-black text-white">{timerValue}</span>
+          {!!g.score_round_outcomes_only && (
+            <div className="mt-4 flex items-start gap-2 rounded-lg border border-amber-400/30 bg-amber-400/10 px-3 py-2 text-sm text-amber-200/90">
+              <ClipboardList className="w-4 h-4 mt-0.5 shrink-0 text-amber-300" strokeWidth={2} />
+              <span>Рейтинг за підсумком раундів (перемога / нічия); смерті в раундах не впливають на очки.</span>
+            </div>
+          )}
+
+          {((myRegistration && myTotalCost != null) || mySettlement?.settlement) && (
+            <div className="mt-4 space-y-2 rounded-lg border border-slate-700/50 bg-slate-950/40 px-3 py-2.5">
+              {myRegistration && myTotalCost != null && (
+                <div className="flex items-start gap-2 text-sm text-gray-300">
+                  <CreditCard className="w-4 h-4 mt-0.5 shrink-0 text-gray-500" strokeWidth={2} />
+                  <p>
+                    Моя сума: <span className="font-semibold text-emerald-300">{myTotalCost} грн</span>
+                    {" "}
+                    <span className="text-xs text-gray-500">(база {g.payment || 0} + допи {myEquipmentTotal || 0})</span>
+                  </p>
+                </div>
+              )}
+              {mySettlement?.settlement && (
+                <div className="flex items-start gap-2 text-sm text-gray-300">
+                  <Receipt className="w-4 h-4 mt-0.5 shrink-0 text-gray-500" strokeWidth={2} />
+                  <p>
+                    Мій чек:{" "}
+                    <span className="font-semibold text-emerald-300">
+                      {mySettlement.settlement.gross_due_public || 0} грн
+                    </span>
+                    {" "}
+                    <span className="text-xs text-gray-500">
+                      (сплачено {mySettlement.settlement.paid_total || 0}, борг {mySettlement.settlement.debt_public || 0})
+                    </span>
+                    {Number(mySettlement.settlement.loot_discount || 0) > 0 && (
+                      <span className="flex items-center gap-1 text-xs text-emerald-300 mt-1">
+                        <Gift className="w-3.5 h-3.5" strokeWidth={2} />
+                        Бонус застосовано: −{mySettlement.settlement.loot_discount} грн
+                      </span>
+                    )}
+                  </p>
                 </div>
               )}
             </div>
           )}
 
+          {/* Round counter + timer */}
+          {g.status === "active" && (
+            <div className="mt-4 flex items-center justify-between gap-4 bg-red-500/10 border border-red-400/30 rounded-lg py-2.5 px-3">
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full bg-red-400 animate-pulse" />
+                <span className="font-mono text-[11px] font-bold uppercase tracking-wider text-red-300">
+                  {hasActiveRound ? `Раунд ${g.current_round}` : "Перерва"}
+                </span>
+              </div>
+              {hasActiveRound && (
+                <span className="text-lg font-mono font-bold text-gray-100 tabular-nums">{timerValue}</span>
+              )}
+            </div>
+          )}
+
           {/* Player count */}
-          <div className="flex items-center gap-4 mt-4 pt-3 border-t border-white/10">
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mt-4 pt-3 border-t border-slate-700/50">
             <div className="flex items-center gap-1.5">
-              <span>👥</span>
+              <Users className="w-4 h-4 text-gray-500" strokeWidth={2} />
               <span className="font-bold">{players.length}</span>
               <span className="text-gray-400 text-sm">гравців</span>
             </div>
             {g.current_round > 0 && (
               <div className="flex items-center gap-1.5">
-                <span>🔄</span>
+                <RotateCw className="w-4 h-4 text-gray-500" strokeWidth={2} />
                 <span className="font-bold">{rounds.length}</span>
                 <span className="text-gray-400 text-sm">раундів</span>
               </div>
             )}
             {myRegistration && (
-              <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-emerald-500/30 bg-emerald-500/10">
+              <div
+                className={`flex items-center gap-1.5 rounded border px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-wider ${
+                  myRegistration.attendance === "checked_in"
+                    ? "text-emerald-300 border-emerald-400/30 bg-emerald-400/10"
+                    : myRegistration.attendance === "checkin_pending"
+                    ? "text-amber-300 border-amber-400/30 bg-amber-400/10"
+                    : "text-gray-300 border-slate-600/50 bg-slate-800/60"
+                }`}
+              >
                 <div
                   className={`w-1.5 h-1.5 rounded-full ${
                     myRegistration.attendance === "checked_in"
@@ -899,7 +944,7 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
                       : "bg-slate-500"
                   }`}
                 />
-                <span className="text-[11px] font-bold text-emerald-100">
+                <span>
                   {myRegistration.attendance === "checked_in"
                     ? "Check-in підтверджено"
                     : myRegistration.attendance === "checkin_pending"
