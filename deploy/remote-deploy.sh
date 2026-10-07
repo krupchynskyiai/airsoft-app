@@ -29,6 +29,18 @@ mkdir -p logs
 echo "▶ Building webapp"
 (cd webapp && npm ci --no-audit --no-fund && npm run build)
 
+# webapp/dist is the web root: the panel's web server serves the built files,
+# everything else (API, /gifts, /equipment, SPA routes) is proxied to Node.
+cat > webapp/dist/.htaccess <<HTACCESS
+<FilesMatch "^\.">
+  Require all denied
+</FilesMatch>
+
+RewriteEngine On
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteRule ^(.*)\$ http://127.0.0.1:$PORT/\$1 [P,L]
+HTACCESS
+
 echo "▶ Restarting $NAME"
 if pm2 describe "$NAME" >/dev/null 2>&1; then
   APP_ENV="$APP_ENV" pm2 restart "$NAME" --update-env
