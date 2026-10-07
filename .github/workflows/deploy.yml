@@ -4,8 +4,7 @@ name: Deploy
 # staging -> staging    (airsoft-staging.tangle.care)
 #
 # Repository secrets:   SSH_HOST, SSH_USER, SSH_PRIVATE_KEY, SSH_KNOWN_HOSTS
-# Environment variable: DEPLOY_PATH (in environments "production" and "staging"),
-#                       absolute path to the git checkout on the server.
+# Optional environment variable DEPLOY_PATH overrides the checkout path on the server.
 on:
   push:
     branches: [main, staging]
@@ -44,7 +43,7 @@ jobs:
     environment: ${{ github.ref_name == 'main' && 'production' || 'staging' }}
     env:
       APP_ENV: ${{ github.ref_name == 'main' && 'production' || 'staging' }}
-      DEPLOY_PATH: ${{ vars.DEPLOY_PATH }}
+      DEPLOY_PATH: ${{ vars.DEPLOY_PATH || (github.ref_name == 'main' && '/home/tangle-care/airsoft_html/airsoft-app' || '/home/tangle-care/airsoftstaging_html/airsoft-app') }}
     steps:
       - name: Set up SSH
         env:
