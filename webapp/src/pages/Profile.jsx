@@ -1,5 +1,13 @@
 import React, { useState, useEffect } from "react";
-import { getFriends, sendFriendRequest, respondFriendRequest, getLootState, spinLoot, requestUseLootReward } from "../api";
+import {
+  getFriends,
+  sendFriendRequest,
+  respondFriendRequest,
+  getLootState,
+  spinLoot,
+  requestUseLootReward,
+  getLootEligibleGames,
+} from "../api";
 import PlayerSearch from "../components/PlayerSearch";
 import { useTelegram } from "../hooks/useTelegram";
 import { getAvatarForLevel, getPlayerLevelState } from "../utils/playerLevel";
@@ -136,6 +144,9 @@ export default function Profile({ profile, onReload }) {
   const [requestingRewardId, setRequestingRewardId] = useState(null);
   const [requestUseModalReward, setRequestUseModalReward] = useState(null);
   const [requestUseResultModal, setRequestUseResultModal] = useState(null);
+  const [requestUseGameId, setRequestUseGameId] = useState(null);
+  const [eligibleGames, setEligibleGames] = useState([]);
+  const [eligibleGamesLoading, setEligibleGamesLoading] = useState(false);
 
   // If профіль ще не зареєстрований, спробувати один раз перезавантажити,
   // щоб дочекатися даних з Telegram / бекенду, перш ніж показувати форму.
@@ -211,25 +222,73 @@ export default function Profile({ profile, onReload }) {
     setLootWinModal(null);
   }
 
+  function rewardBillingMeta(reward) {
+    if (!reward) return null;
+    const def = (lootState?.catalog || []).find(
+      (c) => c.reward_key === reward.reward_key,
+    );
+    return def?.billing || null;
+  }
+
+  async function openRequestUseModal(reward) {
+    if (!reward?.id || reward.status !== "active") return;
+    if (reward.source === "use_requested") return;
+    setRequestUseModalReward(reward);
+    setRequestUseGameId(null);
+
+    const billing = rewardBillingMeta(reward);
+    if (billing?.requiresGame) {
+      try {
+        setEligibleGamesLoading(true);
+        const d = await getLootEligibleGames();
+        const list = Array.isArray(d?.games) ? d.games : [];
+        setEligibleGames(list);
+        if (list.length === 1) setRequestUseGameId(list[0].id);
+      } catch {
+        setEligibleGames([]);
+      } finally {
+        setEligibleGamesLoading(false);
+      }
+    } else {
+      setEligibleGames([]);
+    }
+  }
+
   async function handleRequestUseReward(reward) {
     if (!reward?.id || reward.status !== "active") return;
     if (reward.source === "use_requested") return;
     if (requestingRewardId) return;
 
+    const billing = rewardBillingMeta(reward);
+    const gameId = requestUseGameId || null;
+    if (billing?.requiresGame && !gameId) {
+      haptic("error");
+      setRequestUseResultModal({
+        title: "Оберіть гру",
+        message:
+          "Для цього бонусу треба обрати гру, на якій він буде застосований.",
+      });
+      return;
+    }
+
     try {
       setRequestingRewardId(reward.id);
-      await requestUseLootReward(reward.id);
+      await requestUseLootReward(reward.id, { gameId });
       setLootState((prev) => ({
         ...(prev || {}),
         rewards: (prev?.rewards || []).map((rw) =>
-          rw.id === reward.id ? { ...rw, source: "use_requested" } : rw,
+          rw.id === reward.id
+            ? { ...rw, source: "use_requested", game_id: gameId }
+            : rw,
         ),
       }));
       haptic("success");
       setRequestUseResultModal({
         title: "Запит надіслано",
         message:
-          "Адмін отримає запит у панелі керування. Після підтвердження бонус буде списано.",
+          gameId
+            ? "Адмін отримає запит у панелі керування. Бонус буде застосовано до обраної гри."
+            : "Адмін отримає запит у панелі керування. Після підтвердження бонус буде списано.",
       });
     } catch (e) {
       haptic("error");
@@ -240,6 +299,8 @@ export default function Profile({ profile, onReload }) {
     } finally {
       setRequestingRewardId(null);
       setRequestUseModalReward(null);
+      setRequestUseGameId(null);
+      setEligibleGames([]);
     }
   }
 
@@ -475,45 +536,103 @@ export default function Profile({ profile, onReload }) {
           </div>
         </div>
       )}
-      {requestUseModalReward && (
-        <div className="fixed inset-0 z-40 flex items-center justify-center px-4">
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
-          <div className="relative z-50 w-full max-w-sm rounded-3xl bg-slate-900/95 border border-sky-400/40 p-5 text-center shadow-2xl shadow-sky-900/30">
-            <div className="text-3xl mb-2">📨</div>
-            <h3 className="text-sm font-bold text-sky-300 uppercase tracking-[0.15em] mb-2">
-              Запит на використання
-            </h3>
-            <p className="text-xs text-gray-300 mb-1">
-              Надіслати адміну запит для бонуса:
-            </p>
-            <p className="text-sm font-semibold text-gray-100 mb-4">
-              {(() => {
-                const def = (lootState?.catalog || []).find(
-                  (c) => c.reward_key === requestUseModalReward.reward_key,
-                );
-                return def?.title || requestUseModalReward.reward_key;
-              })()}
-            </p>
-            <div className="grid grid-cols-2 gap-2">
-              <button
-                type="button"
-                onClick={() => setRequestUseModalReward(null)}
-                className="py-2 rounded-xl bg-slate-800 border border-slate-700 text-xs font-semibold"
-              >
-                Скасувати
-              </button>
-              <button
-                type="button"
-                onClick={() => handleRequestUseReward(requestUseModalReward)}
-                disabled={!!requestingRewardId}
-                className="py-2 rounded-xl bg-sky-600 text-black text-xs font-bold disabled:opacity-50"
-              >
-                {requestingRewardId ? "Надсилання..." : "Надіслати"}
-              </button>
+      {requestUseModalReward && (() => {
+        const billing = rewardBillingMeta(requestUseModalReward);
+        const requiresGame = !!billing?.requiresGame;
+        const def = (lootState?.catalog || []).find(
+          (c) => c.reward_key === requestUseModalReward.reward_key,
+        );
+        const noEligible =
+          requiresGame && !eligibleGamesLoading && eligibleGames.length === 0;
+        const canSubmit =
+          !requestingRewardId &&
+          (!requiresGame || (requestUseGameId && !eligibleGamesLoading));
+        return (
+          <div className="fixed inset-0 z-40 flex items-center justify-center px-4">
+            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+            <div className="relative z-50 w-full max-w-sm rounded-3xl bg-slate-900/95 border border-sky-400/40 p-5 text-center shadow-2xl shadow-sky-900/30">
+              <div className="text-3xl mb-2">📨</div>
+              <h3 className="text-sm font-bold text-sky-300 uppercase tracking-[0.15em] mb-2">
+                Запит на використання
+              </h3>
+              <p className="text-xs text-gray-300 mb-1">
+                Надіслати адміну запит для бонуса:
+              </p>
+              <p className="text-sm font-semibold text-gray-100 mb-4">
+                {def?.title || requestUseModalReward.reward_key}
+              </p>
+
+              {requiresGame && (
+                <div className="text-left mb-4">
+                  <div className="text-[11px] font-semibold uppercase tracking-wider text-sky-300 mb-2">
+                    Обери гру
+                  </div>
+                  {eligibleGamesLoading ? (
+                    <div className="text-xs text-gray-500">Завантаження...</div>
+                  ) : noEligible ? (
+                    <div className="text-xs text-amber-300">
+                      Немає ігор, на які ти зареєстрований(а). Запишись на гру
+                      і спробуй знову.
+                    </div>
+                  ) : (
+                    <div className="space-y-1.5 max-h-40 overflow-y-auto pr-1">
+                      {eligibleGames.map((g) => {
+                        const active = requestUseGameId === g.id;
+                        return (
+                          <button
+                            key={g.id}
+                            type="button"
+                            onClick={() => setRequestUseGameId(g.id)}
+                            className={`w-full flex items-center justify-between gap-2 px-3 py-2 rounded-xl border text-left ${
+                              active
+                                ? "bg-sky-500/20 border-sky-400/50 text-sky-100"
+                                : "bg-slate-800/70 border-slate-700/40 text-gray-200"
+                            }`}
+                          >
+                            <div className="min-w-0">
+                              <div className="text-xs font-semibold truncate">
+                                #{g.id} · {g.date} {g.time || ""}
+                              </div>
+                              <div className="text-[10px] text-gray-400 truncate">
+                                {g.location || "—"}
+                              </div>
+                            </div>
+                            <div className="text-[10px] text-gray-400 shrink-0">
+                              {g.status}
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setRequestUseModalReward(null);
+                    setRequestUseGameId(null);
+                    setEligibleGames([]);
+                  }}
+                  className="py-2 rounded-xl bg-slate-800 border border-slate-700 text-xs font-semibold"
+                >
+                  Скасувати
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleRequestUseReward(requestUseModalReward)}
+                  disabled={!canSubmit}
+                  className="py-2 rounded-xl bg-sky-600 text-black text-xs font-bold disabled:opacity-50"
+                >
+                  {requestingRewardId ? "Надсилання..." : "Надіслати"}
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
       {requestUseResultModal && (
         <div className="fixed inset-0 z-40 flex items-center justify-center px-4">
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
@@ -1004,7 +1123,7 @@ export default function Profile({ profile, onReload }) {
                     {isActive && (
                       <button
                         type="button"
-                        onClick={() => setRequestUseModalReward(rw)}
+                        onClick={() => openRequestUseModal(rw)}
                         disabled={!!requestingRewardId || isRequested}
                         className={`text-[10px] font-semibold px-2 py-1 rounded-lg border active:scale-95 disabled:opacity-50 ${
                           isRequested

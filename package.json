@@ -6,6 +6,9 @@
   "scripts": {
     "start": "node index.js",
     "dev": "nodemon index.js",
+    "dev:server": "nodemon index.js",
+    "dev:webapp": "npm --prefix webapp run dev",
+    "dev:local": "concurrently -n server,webapp -c cyan,magenta \"npm:dev:server\" \"npm:dev:webapp\"",
     "build:webapp": "cd webapp && npm install && npm run build",
     "setup": "npm install && cd webapp && npm install && npm run build"
   },
@@ -17,6 +20,7 @@
     "mysql2": "^3.9.0"
   },
   "devDependencies": {
+    "concurrently": "^9.2.1",
     "nodemon": "^3.0.2"
   }
 }

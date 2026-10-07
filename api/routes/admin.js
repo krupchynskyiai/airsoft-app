@@ -958,12 +958,46 @@ router.post("/games/:id/kick-player", async (req, res) => {
       [gid],
     );
 
-    await ins("DELETE FROM game_players WHERE id=?", [registration.id]);
+    // If the player already checked in (or already marked as left_early),
+    // they took a real slot in the game and owe the organizer for it, so
+    // we preserve the row and any linked billing/equipment/payment data.
+    // Otherwise they never actually played — remove them and free the slot.
+    const alreadyParticipated =
+      registration.attendance === "checked_in" ||
+      registration.attendance === "left_early";
 
-    let newCount = beforeCnt.c - 1;
+    if (alreadyParticipated) {
+      // Soft-kick: keep the row for billing, record exact leave time so scoring
+      // can correctly attribute only the rounds the player actually played.
+      await ins(
+        "UPDATE game_players SET attendance='left_early', left_at=NOW() WHERE id=?",
+        [registration.id],
+      );
 
-    // Try to promote first player from waitlist (best-effort)
-    try {
+      // If a round is currently active, mark the player as "not alive" in it —
+      // they abandoned the round and should not receive survival bonuses for it.
+      // The round is still counted for team win/loss because they contributed
+      // to its start.
+      const activeRound = await q1(
+        "SELECT id FROM rounds WHERE game_id=? AND status='active' ORDER BY round_number DESC LIMIT 1",
+        [gid],
+      );
+      if (activeRound) {
+        await ins(
+          "UPDATE round_players SET is_alive=0 WHERE round_id=? AND player_id=?",
+          [activeRound.id, player_id],
+        );
+      }
+    } else {
+      await ins("DELETE FROM game_players WHERE id=?", [registration.id]);
+    }
+
+    let newCount = alreadyParticipated ? beforeCnt.c : beforeCnt.c - 1;
+
+    // Only promote from waitlist when the kick actually frees a slot.
+    // A player who left mid-game did not free anything — they still count
+    // toward the game's occupancy and the organizer's settlement.
+    if (!alreadyParticipated) try {
       const waitCandidate = await q1(
         `SELECT w.player_id, p.team_id, p.telegram_id, p.nickname
          FROM game_waitlist w
@@ -1038,8 +1072,9 @@ ${info}`,
       remaining,
     });
 
-    // Telegram notification about free slots (same logic as cancel)
-    if (config.CHANNEL_ID && game.max_players) {
+    // Telegram notification about free slots (same logic as cancel).
+    // Skip entirely for soft-kicks (left_early) — no slot actually opened up.
+    if (!alreadyParticipated && config.CHANNEL_ID && game.max_players) {
       try {
         const deepLink = `https://t.me/${config.BOT_USERNAME}?startapp=game_${gid}`;
 
@@ -1413,9 +1448,15 @@ router.get("/loot/requests", async (req, res) => {
               lr.image_url,
               lr.status,
               lr.source,
+              lr.game_id,
+              g.date AS game_date,
+              g.time AS game_time,
+              g.location AS game_location,
+              g.status AS game_status,
               lr.created_at
        FROM player_loot_rewards lr
        JOIN players p ON p.id = lr.player_id
+       LEFT JOIN games g ON g.id = lr.game_id
        WHERE lr.status = 'active' AND lr.source = 'use_requested'
        ORDER BY lr.created_at ASC
        LIMIT 200`,
@@ -1559,17 +1600,81 @@ async function calculateGameScores(gid) {
     deathMap[d.killed_player_id] = d.deaths;
   });
 
-  // Беремо поточних checked-in гравців.
-  // Важливо: кікнутий під час активної гри гравець може вже бути видалений із game_players,
-  // але він є у round_players. Такі гравці теж мають отримати очки за зіграні раунди.
+  // Беремо гравців, які реально фіксувались на грі:
+  //   - checked_in       — були на грі й закінчили її;
+  //   - left_early       — чекінились, зіграли частину раундів, потім пішли/були кікнуті,
+  //                        але все одно мають отримати очки за зіграні раунди.
   const gpsCheckedIn = await q(
     `SELECT gp.*, p.rating
      FROM game_players gp
      JOIN players p ON p.id = gp.player_id
-     WHERE gp.game_id=? AND gp.attendance='checked_in'`,
+     WHERE gp.game_id=? AND gp.attendance IN ('checked_in','left_early')`,
     [gid],
   );
 
+  // Підрахунки по раундах мають брати `round_players.game_team`, а не фінальний `game_players.game_team`,
+  // бо команди можуть оновлюватись під час гри.
+  const roundOutcomeStats = await q(
+    `SELECT
+        rp.player_id,
+        SUM(CASE WHEN rp.is_alive=1 THEN 1 ELSE 0 END) AS rounds_survived,
+        SUM(CASE
+          WHEN rp.is_alive=1
+           AND r.status='finished'
+           AND r.winner_game_team IN ('A','B')
+           AND rp.game_team = r.winner_game_team
+          THEN 1 ELSE 0
+        END) AS rounds_alive_and_won,
+        SUM(CASE
+          WHEN rp.is_alive=1
+           AND r.status='finished'
+           AND r.winner_game_team IN ('A','B')
+           AND rp.game_team <> r.winner_game_team
+          THEN 1 ELSE 0
+        END) AS rounds_alive_lost,
+        SUM(CASE
+          WHEN r.status='finished'
+           AND r.winner_game_team IN ('A','B')
+           AND rp.game_team = r.winner_game_team
+          THEN 1 ELSE 0
+        END) AS win_rounds_all,
+        SUM(CASE
+          WHEN r.status='finished'
+           AND r.winner_game_team IN ('A','B')
+           AND rp.game_team <> r.winner_game_team
+          THEN 1 ELSE 0
+        END) AS lose_rounds_all
+      FROM round_players rp
+      JOIN rounds r ON r.id = rp.round_id
+      LEFT JOIN game_players gp
+        ON gp.game_id = r.game_id AND gp.player_id = rp.player_id
+      WHERE r.game_id=? AND r.status='finished'
+        -- Захист: якщо гравець покинув гру (left_early), не зараховуємо
+        -- йому раунди, які стартували вже після його виходу. Раунди,
+        -- що стартували раніше, зараховуються; якщо він при цьому ще
+        -- був у них "живий" на момент виходу — це вже відбито в
+        -- round_players.is_alive (виставляється у 0 при soft-kick).
+        AND (gp.left_at IS NULL OR r.started_at < gp.left_at)
+      GROUP BY rp.player_id`,
+    [gid],
+  );
+
+  const roundOutcomeMap = new Map(
+    roundOutcomeStats.map((s) => [
+      s.player_id,
+      {
+        roundsSurvived: s.rounds_survived || 0,
+        roundsAliveAndWon: s.rounds_alive_and_won || 0,
+        roundsAliveLost: s.rounds_alive_lost || 0,
+        winRoundsAll: s.win_rounds_all || 0,
+        loseRoundsAll: s.lose_rounds_all || 0,
+      },
+    ]),
+  );
+
+  // Якщо гравець зафіксований у round_players, але його запис у game_players
+  // вже видалено (історичні ігри до введення статусу 'left_early'),
+  // все одно нарахуємо йому очки за зіграні раунди.
   const roundParticipantIds = roundOutcomeStats.map((s) => s.player_id);
   const checkedInIds = new Set(gpsCheckedIn.map((p) => p.player_id));
   const missingRoundParticipantIds = roundParticipantIds.filter(
@@ -1624,58 +1729,6 @@ async function calculateGameScores(gid) {
     checkedInCount: gpsCheckedIn.length,
     missingRoundParticipants: missingParticipants.length,
   });
-
-  // Підрахунки по раундах мають брати `round_players.game_team`, а не фінальний `game_players.game_team`,
-  // бо команди можуть оновлюватись під час гри.
-  const roundOutcomeStats = await q(
-    `SELECT
-        rp.player_id,
-        SUM(CASE WHEN rp.is_alive=1 THEN 1 ELSE 0 END) AS rounds_survived,
-        SUM(CASE
-          WHEN rp.is_alive=1
-           AND r.status='finished'
-           AND r.winner_game_team IN ('A','B')
-           AND rp.game_team = r.winner_game_team
-          THEN 1 ELSE 0
-        END) AS rounds_alive_and_won,
-        SUM(CASE
-          WHEN rp.is_alive=1
-           AND r.status='finished'
-           AND r.winner_game_team IN ('A','B')
-           AND rp.game_team <> r.winner_game_team
-          THEN 1 ELSE 0
-        END) AS rounds_alive_lost,
-        SUM(CASE
-          WHEN r.status='finished'
-           AND r.winner_game_team IN ('A','B')
-           AND rp.game_team = r.winner_game_team
-          THEN 1 ELSE 0
-        END) AS win_rounds_all,
-        SUM(CASE
-          WHEN r.status='finished'
-           AND r.winner_game_team IN ('A','B')
-           AND rp.game_team <> r.winner_game_team
-          THEN 1 ELSE 0
-        END) AS lose_rounds_all
-      FROM round_players rp
-      JOIN rounds r ON r.id = rp.round_id
-      WHERE r.game_id=? AND r.status='finished'
-      GROUP BY rp.player_id`,
-    [gid],
-  );
-
-  const roundOutcomeMap = new Map(
-    roundOutcomeStats.map((s) => [
-      s.player_id,
-      {
-        roundsSurvived: s.rounds_survived || 0,
-        roundsAliveAndWon: s.rounds_alive_and_won || 0,
-        roundsAliveLost: s.rounds_alive_lost || 0,
-        winRoundsAll: s.win_rounds_all || 0,
-        loseRoundsAll: s.lose_rounds_all || 0,
-      },
-    ]),
-  );
 
   function clamp(min, val, max) {
     return Math.max(min, Math.min(val, max));

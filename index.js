@@ -14,9 +14,11 @@ const { handleGeoCheckin, handleGameGeo } = require("./handlers/games");
 const { handleTextSteps } = require("./handlers/admin");
 const { createServer } = require("./api/server");
 const { startKeepWarm } = require("./services/keepWarm");
+const { installNotificationGuard } = require("./utils/notificationGuard");
 
 // ---- Create bot ----
 const bot = new Bot(config.BOT_TOKEN);
+installNotificationGuard(bot, "main-bot");
 
 // ---- Session ----
 bot.use(session({ initial: () => ({ step: null, data: {} }) }));

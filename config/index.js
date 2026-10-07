@@ -14,6 +14,15 @@ module.exports = {
   PAYMENT_CARD_NUMBER: process.env.PAYMENT_CARD_NUMBER || "4441114452431495",
   LOG_LEVEL: process.env.LOG_LEVEL || "info",
   WEBAPP_URL: process.env.WEBAPP_URL,
+  // Global kill-switch for any outgoing Telegram messages (DMs, channel posts,
+  // edits, etc.). Meant for running against a test DB that contains real
+  // telegram_ids so we can't accidentally notify real users.
+  NOTIFICATIONS_DISABLED:
+    String(process.env.NOTIFICATIONS_DISABLED || "").toLowerCase() === "true",
+  // When the kill-switch is on, optionally still allow messages to ADMIN_IDS
+  // so admins can test bot flows end-to-end.
+  NOTIFICATIONS_ALLOW_ADMINS:
+    String(process.env.NOTIFICATIONS_ALLOW_ADMINS || "").toLowerCase() === "true",
   DB: {
     host: process.env.DB_HOST || "localhost",
     port: parseInt(process.env.DB_PORT || "3306"),

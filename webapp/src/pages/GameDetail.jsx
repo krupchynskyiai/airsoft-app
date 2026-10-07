@@ -390,10 +390,14 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
     }
   }
 
-  async function savePrepayment(playerId) {
+  async function savePrepayment(playerId, explicitAmount) {
     try {
       setSettlementSavingKey(`prepay-${playerId}`);
-      const amount = Number(prepaymentDrafts[playerId] || 0);
+      const raw =
+        explicitAmount !== undefined && explicitAmount !== null
+          ? explicitAmount
+          : prepaymentDrafts[playerId];
+      const amount = Number(raw || 0);
       await upsertGamePrepayment(gameId, playerId, {
         amount: Number.isFinite(amount) ? Math.max(0, Math.floor(amount)) : 0,
       });
@@ -801,6 +805,11 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
                 <span className="text-xs text-gray-500">
                   (сплачено {mySettlement.settlement.paid_total || 0}, борг {mySettlement.settlement.debt_public || 0})
                 </span>
+                {Number(mySettlement.settlement.loot_discount || 0) > 0 && (
+                  <span className="block text-xs text-emerald-300 mt-1">
+                    🎁 Бонус застосовано: −{mySettlement.settlement.loot_discount} грн
+                  </span>
+                )}
               </p>
             )}
           </div>
@@ -1974,66 +1983,26 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
                       Борг (700): {Number(settlementData?.totals?.debt_public || 0)} грн
                     </div>
                     <div className="space-y-1.5 max-h-72 overflow-y-auto pr-1">
-                      {settlementRows.map((row) => {
-                        const debt = Number(row?.settlement?.debt_public || 0);
-                        const prepayVal = prepaymentDrafts[row.player_id] ?? "";
-                        return (
-                          <div
-                            key={`settle-${row.player_id}`}
-                            className="rounded-xl border border-slate-700/40 bg-slate-800/50 p-2"
-                          >
-                            <div className="flex items-center justify-between gap-2 mb-1">
-                              <div className="text-xs font-semibold text-gray-200">
-                                {formatNick(row.player_name)}
-                              </div>
-                              <div className={`text-[10px] font-bold ${debt > 0 ? "text-amber-300" : "text-emerald-300"}`}>
-                                Борг: {debt} грн
-                              </div>
-                            </div>
-                            <div className="text-[10px] text-gray-400 mb-2">
-                              До сплати: {row?.settlement?.gross_due_public || 0} | Сплачено: {row?.settlement?.paid_total || 0}
-                            </div>
-                            <div className="flex items-center gap-1.5">
-                              <input
-                                type="number"
-                                min="0"
-                                value={prepayVal}
-                                onChange={(e) =>
-                                  setPrepaymentDrafts((prev) => ({
-                                    ...prev,
-                                    [row.player_id]: e.target.value,
-                                  }))
-                                }
-                                className="w-20 px-2 py-1 rounded-lg bg-slate-900 border border-slate-700 text-[10px]"
-                              />
-                              <button
-                                type="button"
-                                onClick={() => savePrepayment(row.player_id)}
-                                disabled={settlementSavingKey === `prepay-${row.player_id}`}
-                                className="px-2 py-1 rounded-lg bg-cyan-700/40 border border-cyan-600/40 text-[10px] font-bold text-cyan-200 disabled:opacity-40"
-                              >
-                                Передплата
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => markPlayerPaid(row.player_id, debt)}
-                                disabled={debt <= 0 || settlementSavingKey === `paid-${row.player_id}`}
-                                className="px-2 py-1 rounded-lg bg-emerald-700/40 border border-emerald-600/40 text-[10px] font-bold text-emerald-200 disabled:opacity-40"
-                              >
-                                Оплачено
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => notifyPlayerDebt(row.player_id)}
-                                disabled={debt <= 0 || settlementSavingKey === `notify-${row.player_id}`}
-                                className="px-2 py-1 rounded-lg bg-violet-700/40 border border-violet-600/40 text-[10px] font-bold text-violet-200 disabled:opacity-40"
-                              >
-                                DM
-                              </button>
-                            </div>
-                          </div>
-                        );
-                      })}
+                      {settlementRows.map((row) => (
+                        <SettlementRow
+                          key={`settle-${row.player_id}`}
+                          row={row}
+                          initialAmount={
+                            prepaymentDrafts[row.player_id] ??
+                            String(row?.settlement?.prepayment_amount || 0)
+                          }
+                          savingKey={settlementSavingKey}
+                          onSavePrepayment={(amount) => {
+                            setPrepaymentDrafts((prev) => ({
+                              ...prev,
+                              [row.player_id]: String(amount),
+                            }));
+                            savePrepayment(row.player_id, amount);
+                          }}
+                          onMarkPaid={() => markPlayerPaid(row.player_id, Number(row?.settlement?.debt_public || 0))}
+                          onNotify={() => notifyPlayerDebt(row.player_id)}
+                        />
+                      ))}
                       {!settlementRows.length && (
                         <div className="text-xs text-gray-500">Список розрахунків порожній.</div>
                       )}
@@ -2434,11 +2403,23 @@ export default function GameDetail({ gameId, onBack, isAdmin, isOrganizer = fals
                       ? "bg-amber-400"
                       : p.attendance === "no_show"
                       ? "bg-red-400"
+                      : p.attendance === "left_early"
+                      ? "bg-orange-400"
                       : "bg-gray-600"
                   }`}
+                  title={
+                    p.attendance === "left_early"
+                      ? "Пішов з гри раніше"
+                      : p.attendance
+                  }
                 />
                 <div>
                   <span className="text-sm font-medium">{formatNick(p.nickname)}</span>
+                  {p.attendance === "left_early" && (
+                    <span className="ml-2 text-[10px] font-bold px-1.5 py-0.5 rounded bg-orange-500/20 text-orange-300">
+                      Пішов раніше
+                    </span>
+                  )}
                   {p.game_team && (
                     <span
                       className={`ml-2 text-[10px] font-bold px-1.5 py-0.5 rounded ${
@@ -2674,6 +2655,108 @@ function PlayerActionsModal({ player, onClose, onPrepayment }) {
             💳 Зарахувати передплату
           </button>
         </div>
+      </div>
+    </div>
+  );
+}
+
+function SettlementRow({
+  row,
+  initialAmount,
+  savingKey,
+  onSavePrepayment,
+  onMarkPaid,
+  onNotify,
+}) {
+  // Per-row draft state so typing in one player's input can never bleed
+  // into other rows (each row is its own React component instance).
+  const [draft, setDraft] = useState(initialAmount ?? "");
+  const lastInitialRef = useRef(initialAmount);
+
+  // If the parent pushes a new server-backed initial amount (e.g. after a
+  // successful save + refetch), adopt it — but don't clobber in-progress typing.
+  useEffect(() => {
+    if (lastInitialRef.current !== initialAmount) {
+      lastInitialRef.current = initialAmount;
+      setDraft(initialAmount ?? "");
+    }
+  }, [initialAmount]);
+
+  const debt = Number(row?.settlement?.debt_public || 0);
+  const lootDiscount = Number(row?.settlement?.loot_discount || 0);
+  const lootRewards = Array.isArray(row?.settlement?.loot_rewards)
+    ? row.settlement.loot_rewards
+    : [];
+  const isLeftEarly = row?.attendance === "left_early";
+  const prepayKey = `prepay-${row.player_id}`;
+  const paidKey = `paid-${row.player_id}`;
+  const notifyKey = `notify-${row.player_id}`;
+
+  return (
+    <div className="rounded-xl border border-slate-700/40 bg-slate-800/50 p-2">
+      <div className="flex items-center justify-between gap-2 mb-1">
+        <div className="text-xs font-semibold text-gray-200 flex items-center gap-1.5 min-w-0">
+          <span className="truncate">{formatNick(row.player_name)}</span>
+          {isLeftEarly && (
+            <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-orange-500/20 text-orange-300 shrink-0">
+              Пішов раніше
+            </span>
+          )}
+        </div>
+        <div
+          className={`text-[10px] font-bold ${
+            debt > 0 ? "text-amber-300" : "text-emerald-300"
+          }`}
+        >
+          Борг: {debt} грн
+        </div>
+      </div>
+      <div className="text-[10px] text-gray-400 mb-1">
+        До сплати: {row?.settlement?.gross_due_public || 0} | Сплачено:{" "}
+        {row?.settlement?.paid_total || 0}
+      </div>
+      {lootDiscount > 0 && (
+        <div className="text-[10px] text-emerald-300 mb-2">
+          🎁 Бонус: −{lootDiscount} грн
+          {lootRewards.length
+            ? ` (${lootRewards
+                .map((r) => `${r.reward_key} −${r.discount_percent}%`)
+                .join(", ")})`
+            : ""}
+        </div>
+      )}
+      <div className="flex items-center gap-1.5">
+        <input
+          type="number"
+          min="0"
+          value={draft}
+          onChange={(e) => setDraft(e.target.value)}
+          className="w-20 px-2 py-1 rounded-lg bg-slate-900 border border-slate-700 text-[10px]"
+        />
+        <button
+          type="button"
+          onClick={() => onSavePrepayment(draft)}
+          disabled={savingKey === prepayKey}
+          className="px-2 py-1 rounded-lg bg-cyan-700/40 border border-cyan-600/40 text-[10px] font-bold text-cyan-200 disabled:opacity-40"
+        >
+          Передплата
+        </button>
+        <button
+          type="button"
+          onClick={onMarkPaid}
+          disabled={debt <= 0 || savingKey === paidKey}
+          className="px-2 py-1 rounded-lg bg-emerald-700/40 border border-emerald-600/40 text-[10px] font-bold text-emerald-200 disabled:opacity-40"
+        >
+          Оплачено
+        </button>
+        <button
+          type="button"
+          onClick={onNotify}
+          disabled={debt <= 0 || savingKey === notifyKey}
+          className="px-2 py-1 rounded-lg bg-violet-700/40 border border-violet-600/40 text-[10px] font-bold text-violet-200 disabled:opacity-40"
+        >
+          DM
+        </button>
       </div>
     </div>
   );

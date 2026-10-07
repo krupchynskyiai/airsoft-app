@@ -762,6 +762,18 @@ function LootRequestsForm({ onDone }) {
                   <div className="text-[11px] text-gray-500 mt-1">
                     rarity: {rw.rarity} • id: {rw.id}
                   </div>
+                  {rw.game_id ? (
+                    <div className="text-[11px] text-amber-300 mt-1">
+                      🎮 Гра #{rw.game_id}
+                      {rw.game_date ? ` · ${rw.game_date}` : ""}
+                      {rw.game_time ? ` ${rw.game_time}` : ""}
+                      {rw.game_location ? ` · ${rw.game_location}` : ""}
+                    </div>
+                  ) : (
+                    <div className="text-[11px] text-gray-500 mt-1">
+                      Гра не вказана
+                    </div>
+                  )}
                 </div>
                 <button
                   onClick={() => setConfirmReward(rw)}

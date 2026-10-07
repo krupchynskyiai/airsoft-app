@@ -1,0 +1,78 @@
+[2026-10-07T08:33:54.666Z] [WARN] Notification guard ACTIVE — outgoing Telegram messages are suppressed | {"bot":"main-bot","allow_admins":false}
+[2026-10-07T08:33:54.814Z] [INFO] =============================
+[2026-10-07T08:33:54.816Z] [INFO]   AIRSOFT CLUB BOT + APP v2  
+[2026-10-07T08:33:54.816Z] [INFO] =============================
+[2026-10-07T08:33:54.818Z] [INFO] Connecting MySQL... | {"host":"s5.thehost.com.ua","database":"airsoft_new_test_db"}
+[2026-10-07T08:33:55.391Z] [INFO] MySQL OK
+[2026-10-07T08:33:55.435Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM players","rows":1,"ms":41}
+[2026-10-07T08:33:55.476Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM teams","rows":1,"ms":41}
+[2026-10-07T08:33:55.518Z] [DB] Q | {"sql":"SELECT COUNT(*) as c FROM games","rows":1,"ms":40}
+[2026-10-07T08:33:55.519Z] [INFO] DB | {"players":91,"teams":1,"games":5}
+[2026-10-07T08:33:55.532Z] [WARN] Notification guard ACTIVE — outgoing Telegram messages are suppressed | {"bot":"api-bot","allow_admins":false}
+[2026-10-07T08:34:14.712Z] [INFO] Keep-warm started | {"healthUrl":"https://airsoft-app.onrender.com/api/health","intervalMs":300000}
+[2026-10-07T08:34:14.741Z] [INFO] Bot running!
+[2026-10-07T08:34:14.742Z] [INFO] Express server on port 1488
+[2026-10-07T08:34:14.743Z] [INFO] Mini App URL: http://localhost:1488
+[2026-10-07T08:34:15.646Z] [DEBUG] API GET /profile | {"body":{}}
+[2026-10-07T08:34:15.648Z] [WARN] DEV AUTH BYPASS | {"userId":412606522}
+[2026-10-07T08:34:15.689Z] [DB] Q | {"sql":"SELECT * FROM players WHERE telegram_id=?","rows":1,"ms":39}
+[2026-10-07T08:34:15.733Z] [DB] Q | {"sql":"SELECT p.*, t.name AS team_name\n       FROM players p LEFT JOIN teams t ON p.team_id = t.id\n       W","rows":1,"ms":40}
+[2026-10-07T08:34:15.775Z] [DB] Q | {"sql":"SELECT badge_name, badge_emoji FROM player_badges WHERE player_id = ?","rows":7,"ms":40}
+[2026-10-07T08:34:15.818Z] [DB] Q | {"sql":"SELECT g.id, g.date, g.time, g.game_mode, g.status, gp.result, gp.kills_total, gp.deaths_total\n     ","rows":5,"ms":41}
+[2026-10-07T08:34:15.861Z] [DB] Q | {"sql":"SELECT winner_game_team, COUNT(*) AS wins\n         FROM rounds\n         WHERE game_id=? AND status='","rows":1,"ms":42}
+[2026-10-07T08:34:15.883Z] [DB] Q | {"sql":"SELECT winner_game_team, COUNT(*) AS wins\n         FROM rounds\n         WHERE game_id=? AND status='","rows":2,"ms":19}
+[2026-10-07T08:34:15.903Z] [DB] Q | {"sql":"SELECT winner_game_team, COUNT(*) AS wins\n         FROM rounds\n         WHERE game_id=? AND status='","rows":2,"ms":18}
+[2026-10-07T08:34:15.926Z] [DB] Q | {"sql":"SELECT winner_game_team, COUNT(*) AS wins\n         FROM rounds\n         WHERE game_id=? AND status='","rows":2,"ms":19}
+[2026-10-07T08:34:15.946Z] [DB] Q | {"sql":"SELECT winner_game_team, COUNT(*) AS wins\n         FROM rounds\n         WHERE game_id=? AND status='","rows":2,"ms":19}
+[2026-10-07T08:34:15.989Z] [DB] Q | {"sql":"SELECT COUNT(*) AS c\n       FROM round_players rp\n       JOIN rounds r ON r.id = rp.round_id\n       ","rows":1,"ms":41}
+[2026-10-07T08:34:16.028Z] [DB] Q | {"sql":"SELECT COUNT(*) AS c\n       FROM round_players rp\n       JOIN rounds r ON r.id = rp.round_id\n       ","rows":1,"ms":38}
+[2026-10-07T08:34:16.077Z] [DB] Q | {"sql":"SELECT p.id, p.nickname, p.callsign, p.rating\n       FROM friends f\n       JOIN players p ON p.id = ","rows":2,"ms":48}
+[2026-10-07T08:34:16.078Z] [INFO] Profile API | {"tgId":412606522,"isAdmin":true,"admins":[412606522]}
+[2026-10-07T08:34:16.091Z] [DEBUG] API GET /friends | {"body":{}}
+[2026-10-07T08:34:16.092Z] [WARN] DEV AUTH BYPASS | {"userId":412606522}
+[2026-10-07T08:34:16.096Z] [DEBUG] API GET /loot/state | {"body":{}}
+[2026-10-07T08:34:16.097Z] [WARN] DEV AUTH BYPASS | {"userId":412606522}
+[2026-10-07T08:34:16.099Z] [DEBUG] API GET /survey/status | {"body":{}}
+[2026-10-07T08:34:16.100Z] [WARN] DEV AUTH BYPASS | {"userId":412606522}
+[2026-10-07T08:34:16.112Z] [DB] Q | {"sql":"SELECT * FROM players WHERE telegram_id=?","rows":1,"ms":18}
+[2026-10-07T08:34:16.157Z] [DB] Q | {"sql":"SELECT id FROM players WHERE telegram_id = ?","rows":1,"ms":44}
+[2026-10-07T08:34:16.187Z] [DB] Q | {"sql":"SELECT p.id, p.nickname, p.callsign, p.rating\n       FROM friends f\n       JOIN players p ON p.id = ","rows":2,"ms":29}
+[2026-10-07T08:34:16.227Z] [DB] Q | {"sql":"SELECT f.id, p.nickname, p.callsign, p.rating\n       FROM friends f\n       JOIN players p ON p.id = ","rows":0,"ms":39}
+[2026-10-07T08:34:16.285Z] [DB] Q | {"sql":"SELECT * FROM players WHERE telegram_id=?","rows":1,"ms":186}
+[2026-10-07T08:34:16.287Z] [DB] Q | {"sql":"SELECT * FROM players WHERE telegram_id=?","rows":1,"ms":186}
+[2026-10-07T08:34:16.303Z] [DB] Q | {"sql":"SELECT * FROM players WHERE telegram_id=?","rows":1,"ms":17}
+[2026-10-07T08:34:16.323Z] [DB] Q | {"sql":"SELECT id, created_at\n       FROM player_feedback_surveys\n       WHERE player_id=? AND survey_key=?\n","rows":0,"ms":34}
+[2026-10-07T08:34:16.336Z] [DB] Q | {"sql":"SELECT rating FROM players WHERE id=?","rows":1,"ms":31}
+[2026-10-07T08:34:16.373Z] [DB] Q | {"sql":"SELECT * FROM player_spins WHERE player_id=?","rows":1,"ms":37}
+[2026-10-07T08:34:16.409Z] [DB] Q | {"sql":"SELECT id, reward_key, rarity, image_url, status, source, game_id, created_at FROM player_loot_rewar","rows":3,"ms":35}
+[2026-10-07T08:34:30.254Z] [DEBUG] Keep-warm ping OK | {"status":503}
+[2026-10-07T08:39:15.581Z] [DEBUG] Keep-warm ping OK | {"status":503}
+[2026-10-07T08:44:15.096Z] [DEBUG] Keep-warm ping OK | {"status":503}
+[2026-10-07T08:49:15.085Z] [DEBUG] Keep-warm ping OK | {"status":503}
+[2026-10-07T08:54:15.226Z] [DEBUG] Keep-warm ping OK | {"status":503}
+[2026-10-07T08:59:15.170Z] [DEBUG] Keep-warm ping OK | {"status":503}
+[2026-10-07T09:04:15.252Z] [DEBUG] Keep-warm ping OK | {"status":503}
+[2026-10-07T09:09:15.197Z] [DEBUG] Keep-warm ping OK | {"status":503}
+[2026-10-07T09:14:15.228Z] [DEBUG] Keep-warm ping OK | {"status":503}
+[2026-10-07T09:19:15.158Z] [DEBUG] Keep-warm ping OK | {"status":503}
+[2026-10-07T09:24:15.178Z] [DEBUG] Keep-warm ping OK | {"status":503}
+[2026-10-07T09:29:15.896Z] [DEBUG] Keep-warm ping OK | {"status":503}
+[2026-10-07T09:34:15.506Z] [DEBUG] Keep-warm ping OK | {"status":503}
+[2026-10-07T09:39:15.245Z] [DEBUG] Keep-warm ping OK | {"status":503}
+[2026-10-07T09:44:15.257Z] [DEBUG] Keep-warm ping OK | {"status":503}
+[2026-10-07T09:49:15.177Z] [DEBUG] Keep-warm ping OK | {"status":503}
+[2026-10-07T09:54:15.199Z] [DEBUG] Keep-warm ping OK | {"status":503}
+[2026-10-07T09:59:15.243Z] [DEBUG] Keep-warm ping OK | {"status":503}
+[2026-10-07T10:04:15.254Z] [DEBUG] Keep-warm ping OK | {"status":503}
+[2026-10-07T10:09:15.279Z] [DEBUG] Keep-warm ping OK | {"status":503}
+[2026-10-07T10:14:24.970Z] [WARN] Keep-warm ping failed | {"healthUrl":"https://airsoft-app.onrender.com/api/health","error":"timeout"}
+[2026-10-07T10:19:15.644Z] [DEBUG] Keep-warm ping OK | {"status":503}
+[2026-10-07T10:24:15.269Z] [DEBUG] Keep-warm ping OK | {"status":503}
+[2026-10-07T10:29:15.303Z] [DEBUG] Keep-warm ping OK | {"status":503}
+[2026-10-07T10:34:15.332Z] [DEBUG] Keep-warm ping OK | {"status":503}
+[2026-10-07T10:39:15.308Z] [DEBUG] Keep-warm ping OK | {"status":503}
+[2026-10-07T10:44:15.197Z] [DEBUG] Keep-warm ping OK | {"status":503}
+[2026-10-07T10:49:15.236Z] [DEBUG] Keep-warm ping OK | {"status":503}
+[2026-10-07T10:54:15.250Z] [DEBUG] Keep-warm ping OK | {"status":503}
+[2026-10-07T10:59:15.353Z] [DEBUG] Keep-warm ping OK | {"status":503}
+[2026-10-07T11:04:15.237Z] [DEBUG] Keep-warm ping OK | {"status":503}

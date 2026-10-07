@@ -2,8 +2,10 @@ const { Bot } = require("grammy");
 const config = require("../config");
 const { q1, ins } = require("../database/helpers");
 const log = require("../utils/logger");
+const { installNotificationGuard } = require("../utils/notificationGuard");
 
 const bot = new Bot(config.BOT_TOKEN);
+installNotificationGuard(bot, "api-bot");
 
 // Handle team application inline buttons from captain
 bot.on("callback_query:data", async (ctx) => {
