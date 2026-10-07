@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
-# Runs on the server after GitHub Actions has uploaded the code.
+# Runs on the server inside the app checkout (after `git reset` to the new commit).
 # Usage: remote-deploy.sh <production|staging> [version]
 set -euo pipefail
 
 APP_ENV="${1:?usage: remote-deploy.sh <production|staging> [version]}"
 VERSION="${2:-unknown}"
-APP_DIR="/srv/airsoft/$APP_ENV"
+APP_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 NAME="airsoft-$APP_ENV"
 
 cd "$APP_DIR"
@@ -25,6 +25,9 @@ PORT="${PORT:-3000}"
 echo "▶ Installing dependencies ($APP_ENV, $VERSION)"
 npm ci --omit=dev --no-audit --no-fund
 mkdir -p logs
+
+echo "▶ Building webapp"
+(cd webapp && npm ci --no-audit --no-fund && npm run build)
 
 echo "▶ Restarting $NAME"
 if pm2 describe "$NAME" >/dev/null 2>&1; then
